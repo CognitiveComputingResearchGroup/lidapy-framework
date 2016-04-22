@@ -3,22 +3,28 @@ Created on Apr 21, 2016
 
 @author: Sean Kugele
 '''
+import rospy
+import comm
+
 class FrameworkModule:
 
         
     def __init__(self, name):
         self.name = name
-        
         self._publishers = {}
-        self._subscribers = {}
-        
+
+        comm.initialize(self.name)
+
         return
     
-    def register(self):
+    def _addPublisher(self, topic, msg_type, queue_size=0):
+        self._publishers[topic] = comm.getPublisher(topic, msg_type, queue_size = queue_size)
         return
     
-    def addPublisher(self, topic, msg_type, queue_size=0):
+    def _addSubscriber(self, topic, msg_type, callback, callback_args=[]):
+        comm.registerSubscriber(topic, msg_type, callback, callback_args)
         return
-    
-    def addSubscriber(self, topic, msg_type, callback, args=[]):
+
+    def _publish(self, topic, msg):
+        comm.publishMessage(self._publishers[topic], msg)
         return
