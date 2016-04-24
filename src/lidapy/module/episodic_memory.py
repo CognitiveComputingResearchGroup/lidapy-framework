@@ -11,7 +11,7 @@ from lida.msg import ConsciousContent, Cue, Episode
 class EpisodicMemoryModule(FrameworkModule):
 
     def __init__(self):
-        FrameworkModule.__init__(self, "EpisodicMemoryModule")
+        super(EpisodicMemoryModule, self).__init__("EpisodicMemoryModule")
         return
 
     def addPublishers(self):

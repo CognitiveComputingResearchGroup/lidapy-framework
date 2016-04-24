@@ -11,7 +11,7 @@ from lida.msg import ConsciousContent, Cue, Feature, Percept
 class PerceptualAssociativeMemoryModule(FrameworkModule):
 
     def __init__(self):
-        FrameworkModule.__init__(self, "PerceptualAssociativeMemoryModule")
+        super(PerceptualAssociativeMemoryModule, self).__init__("PerceptualAssociativeMemoryModule")
         return
 
     def addPublishers(self):

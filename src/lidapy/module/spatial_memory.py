@@ -11,7 +11,7 @@ from lida.msg import ConsciousContent, Cue, SpatialMap
 class SpatialMemoryModule(FrameworkModule):
 
     def __init__(self):
-        FrameworkModule.__init__(self, "SpatialMemoryModule")
+        super(SpatialMemoryModule, self).__init__("SpatialMemoryModule")
         return
 
     def addPublishers(self):

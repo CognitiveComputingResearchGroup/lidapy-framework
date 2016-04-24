@@ -13,7 +13,7 @@ from lida.msg import Coalition, ConsciousContent, Cue, Episode, Percept, Spatial
 class WorkspaceModule(FrameworkModule):
 
     def __init__(self):
-        FrameworkModule.__init__(self, "WorkspaceModule")
+        super(WorkspaceModule, self).__init__("WorkspaceModule")
         return
 
     def addPublishers(self):

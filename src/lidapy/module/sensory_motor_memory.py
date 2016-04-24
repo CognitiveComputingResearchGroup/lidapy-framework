@@ -13,7 +13,7 @@ from std_msgs.msg import String
 class SensoryMotorMemoryModule(FrameworkModule):
 
     def __init__(self):
-        FrameworkModule.__init__(self, "SensoryMotorMemoryModule")
+        super(SensoryMotorMemoryModule, self).__init__("SensoryMotorMemoryModule")
         return
 
     def addPublishers(self):

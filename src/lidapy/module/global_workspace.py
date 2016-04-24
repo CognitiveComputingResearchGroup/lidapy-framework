@@ -11,7 +11,7 @@ from lida.msg import Coalition, ConsciousContent
 class GlobalWorkspaceModule(FrameworkModule):
 
     def __init__(self):
-        FrameworkModule.__init__(self, "GlobalWorkspaceModule")
+        super(GlobalWorkspaceModule, self).__init__("GlobalWorkspaceModule")
         return
 
     def addPublishers(self):

@@ -11,7 +11,7 @@ from lida.msg import Behavior, ConsciousContent
 class ProceduralMemoryModule(FrameworkModule):
 
     def __init__(self):
-        FrameworkModule.__init__(self, "ProceduralMemoryModule")
+        super(ProceduralMemoryModule, self).__init__("ProceduralMemoryModule")
         return
 
     def addPublishers(self):

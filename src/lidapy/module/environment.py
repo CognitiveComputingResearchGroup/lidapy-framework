@@ -12,7 +12,7 @@ from std_msgs.msg import String
 class EnvironmentModule(FrameworkModule):
 
     def __init__(self):
-        FrameworkModule.__init__(self, "EnvironmentModule")
+        super(EnvironmentModule, self).__init__("EnvironmentModule")
         return
 
     def addPublishers(self):

@@ -11,7 +11,7 @@ from lida.msg import Behavior, ConsciousContent
 class ActionSelectionModule(FrameworkModule):
 
     def __init__(self):
-        FrameworkModule.__init__(self, "ActionSelectionModule")
+        super(ActionSelectionModule, self).__init__("ActionSelectionModule")
         return
 
     def addPublishers(self):

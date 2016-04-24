@@ -11,7 +11,7 @@ from lida.msg import ConsciousContent, Cue, Episode
 class TransientEpisodicMemoryModule(FrameworkModule):
 
     def __init__(self):
-        FrameworkModule.__init__(self, "TransientEpisodicMemoryModule")
+        super(TransientEpisodicMemoryModule, self).__init__("TransientEpisodicMemoryModule")
         return
 
     def addPublishers(self):
