@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 '''
 Created on Apr 21, 2016
 
@@ -19,3 +20,13 @@ def registerSubscriber(topic, msg_type, callback, callback_args=[]):
 def publishMessage(publisher, msg):
     publisher.publish(msg)
     return
+
+def run(pubRate):
+    # set the message publication rate
+    rate = rospy.Rate(pubRate)
+
+    while not rospy.is_shutdown():
+        rate.sleep()
+    return
+
+

@@ -1,12 +1,12 @@
+#!/usr/bin/env python
 '''
 Created on Apr 21, 2016
 
 @author: Sean Kugele
 '''
-import rospy
-import comm
+from lidapy.util import comm
 
-class FrameworkModule:
+class FrameworkModule(object):
         
     def __init__(self, name):
         self.name = name
@@ -26,4 +26,8 @@ class FrameworkModule:
 
     def _publish(self, topic, msg):
         comm.publishMessage(self._publishers[topic], msg)
+        return
+
+    def run(self, pubRate):
+        comm.run(pubRate)
         return
