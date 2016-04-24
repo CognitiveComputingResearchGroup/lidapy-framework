@@ -5,6 +5,8 @@ Created on Apr 20, 2016
 @author: Sean Kugele
 '''
 from lidapy.framework.module import FrameworkModule
+from lida.msg import Behavior, ConsciousContent
+#TODO: Replace this with LIDA msgs
 from std_msgs.msg import String
 
 
@@ -22,7 +24,9 @@ class SensoryMotorMemoryModule(FrameworkModule):
         return
 
     def addSubscribers(self):
-        subs = [{"topic": "/lida/action_selection", "msg_type" : String}]
+        subs = [{"topic": "/lida/selected_behaviors", "msg_type" : Behavior},
+                {"topic": "/lida/global_broadcast", "msg_type": ConsciousContent},
+                {"topic": "/lida/dorsal_stream", "msg_type": String}]
         for sub in subs:
             super(SensoryMotorMemoryModule, self)._addSubscriber(sub["topic"], sub["msg_type"])
 

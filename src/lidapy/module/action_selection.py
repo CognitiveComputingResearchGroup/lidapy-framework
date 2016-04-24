@@ -5,7 +5,7 @@ Created on Apr 20, 2016
 @author: Sean Kugele
 '''
 from lidapy.framework.module import FrameworkModule
-from std_msgs.msg import String
+from lida.msg import Behavior, ConsciousContent
 
 
 class ActionSelectionModule(FrameworkModule):
@@ -15,15 +15,15 @@ class ActionSelectionModule(FrameworkModule):
         return
 
     def addPublishers(self):
-        pubs = [{"topic": "/lida/action_selection", "msg_type" : String}]
+        pubs = [{"topic": "/lida/selected_behaviors", "msg_type" : Behavior}]
         for pub in pubs:
             super(ActionSelectionModule, self)._addPublisher(pub["topic"], pub["msg_type"])
 
         return
 
     def addSubscribers(self):
-        subs = [{"topic": "/lida/procedural_memory", "msg_type" : String},
-                {"topic": "/lida/global_broadcast", "msg_type": String}]
+        subs = [{"topic": "/lida/candidate_behaviors", "msg_type" : Behavior},
+                {"topic": "/lida/global_broadcast", "msg_type": ConsciousContent}]
         for sub in subs:
             super(ActionSelectionModule, self)._addSubscriber(sub["topic"], sub["msg_type"])
 

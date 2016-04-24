@@ -5,6 +5,7 @@ Created on Apr 20, 2016
 @author: Sean Kugele
 '''
 from lidapy.framework.module import FrameworkModule
+# TODO: Replace this with actual messages
 from std_msgs.msg import String
 
 

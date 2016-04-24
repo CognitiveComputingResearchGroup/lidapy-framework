@@ -5,7 +5,7 @@ Created on Apr 20, 2016
 @author: Sean Kugele
 '''
 from lidapy.framework.module import FrameworkModule
-from std_msgs.msg import String
+from lida.msg import ConsciousContent, Cue, SpatialMap
 
 
 class SpatialMemoryModule(FrameworkModule):
@@ -15,14 +15,15 @@ class SpatialMemoryModule(FrameworkModule):
         return
 
     def addPublishers(self):
-        pubs = [{"topic": "/lida/spatial_memory", "msg_type" : String}]
+        pubs = [{"topic": "/lida/spatial_maps", "msg_type" : SpatialMap}]
         for pub in pubs:
             super(SpatialMemoryModule, self)._addPublisher(pub["topic"], pub["msg_type"])
 
         return
 
     def addSubscribers(self):
-        subs = [{"topic": "/lida/workspace_cue", "msg_type" : String}]
+        subs = [{"topic": "/lida/workspace_cues", "msg_type" : Cue},
+                {"topic": "/lida/global_broadcast", "msg_type": ConsciousContent}]
         for sub in subs:
             super(SpatialMemoryModule, self)._addSubscriber(sub["topic"], sub["msg_type"])
 

@@ -5,7 +5,7 @@ Created on Apr 20, 2016
 @author: Sean Kugele
 '''
 from lidapy.framework.module import FrameworkModule
-from std_msgs.msg import String
+from lida.msg import Coalition, ConsciousContent
 
 
 class GlobalWorkspaceModule(FrameworkModule):
@@ -15,14 +15,14 @@ class GlobalWorkspaceModule(FrameworkModule):
         return
 
     def addPublishers(self):
-        pubs = [{"topic": "/lida/global_broadcast", "msg_type" : String}]
+        pubs = [{"topic": "/lida/global_broadcast", "msg_type" : ConsciousContent}]
         for pub in pubs:
             super(GlobalWorkspaceModule, self)._addPublisher(pub["topic"], pub["msg_type"])
 
         return
 
     def addSubscribers(self):
-        subs = [{"topic": "/lida/workspace_coalitions", "msg_type" : String}]
+        subs = [{"topic": "/lida/workspace_coalitions", "msg_type" : Coalition}]
         for sub in subs:
             super(GlobalWorkspaceModule, self)._addSubscriber(sub["topic"], sub["msg_type"])
 

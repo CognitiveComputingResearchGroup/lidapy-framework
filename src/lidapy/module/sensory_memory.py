@@ -5,6 +5,8 @@ Created on Apr 20, 2016
 @author: Sean Kugele
 '''
 from lidapy.framework.module import FrameworkModule
+from lida.msg import Feature
+# TODO: Replace this with LIDA messages
 from std_msgs.msg import String
 
 
@@ -19,7 +21,7 @@ class SensoryMemoryModule(FrameworkModule):
         return
 
     def addPublishers(self):
-        pubs = [{"topic": "/lida/sensory_memory", "msg_type" : String},
+        pubs = [{"topic": "/lida/detected_features", "msg_type" : Feature},
                 {"topic": "/lida/dorsal_stream", "msg_type": String},
                 {"topic": "/lida/ventral_stream", "msg_type": String},]
         for pub in pubs:

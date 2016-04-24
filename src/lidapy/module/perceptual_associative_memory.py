@@ -5,7 +5,7 @@ Created on Apr 20, 2016
 @author: Sean Kugele
 '''
 from lidapy.framework.module import FrameworkModule
-from std_msgs.msg import String
+from lida.msg import ConsciousContent, Cue, Feature, Percept
 
 
 class PerceptualAssociativeMemoryModule(FrameworkModule):
@@ -15,15 +15,16 @@ class PerceptualAssociativeMemoryModule(FrameworkModule):
         return
 
     def addPublishers(self):
-        pubs = [{"topic": "/lida/percepts", "msg_type" : String}]
+        pubs = [{"topic": "/lida/percepts", "msg_type" : Percept}]
         for pub in pubs:
             super(PerceptualAssociativeMemoryModule, self)._addPublisher(pub["topic"], pub["msg_type"])
 
         return
 
     def addSubscribers(self):
-        subs = [{"topic": "/lida/sensory_memory", "msg_type" : String},
-                {"topic": "/lida/workspace_cue", "msg_type": String}]
+        subs = [{"topic": "/lida/detected_features", "msg_type" : Feature},
+                {"topic": "/lida/workspace_cues", "msg_type": Cue},
+                {"topic": "/lida/global_broadcast", "msg_type": ConsciousContent}]
 
         for sub in subs:
             super(PerceptualAssociativeMemoryModule, self)._addSubscriber(sub["topic"], sub["msg_type"])
