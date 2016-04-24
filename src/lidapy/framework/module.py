@@ -16,6 +16,9 @@ class FrameworkModule(object):
 
         comm.initialize(self.name)
 
+        self.addPublishers()
+        self.addSubscribers()
+
         return
     
     def _addPublisher(self, topic, msg_type, queue_size=0):
@@ -46,6 +49,12 @@ class FrameworkModule(object):
             if msgQueue is not None:
                 msgQueue[topic].append(msg)
         return
+
+    def addPublishers(self):
+        pass
+
+    def addSubscribers(self):
+        pass
 
     def getNextMsg(self, topic):
         return self._receivedMsgs[topic].pop()

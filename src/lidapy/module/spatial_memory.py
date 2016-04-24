@@ -8,23 +8,23 @@ from lidapy.framework.module import FrameworkModule
 from std_msgs.msg import String
 
 
-class EpisodicMemoryModule(FrameworkModule):
+class SpatialMemoryModule(FrameworkModule):
 
     def __init__(self):
-        FrameworkModule.__init__(self, "EpisodicMemoryModule")
+        FrameworkModule.__init__(self, "SpatialMemoryModule")
         return
 
     def addPublishers(self):
-        pubs = [{"topic": "/lida/episodic_memory", "msg_type" : String}]
+        pubs = [{"topic": "/lida/spatial_memory", "msg_type" : String}]
         for pub in pubs:
-            super(EpisodicMemoryModule, self)._addPublisher(pub["topic"], pub["msg_type"])
+            super(SpatialMemoryModule, self)._addPublisher(pub["topic"], pub["msg_type"])
 
         return
 
     def addSubscribers(self):
         subs = [{"topic": "/lida/workspace_cue", "msg_type" : String}]
         for sub in subs:
-            super(EpisodicMemoryModule, self)._addSubscriber(sub["topic"], sub["msg_type"])
+            super(SpatialMemoryModule, self)._addSubscriber(sub["topic"], sub["msg_type"])
 
         return
 
@@ -32,7 +32,7 @@ class EpisodicMemoryModule(FrameworkModule):
 if __name__ == '__main__':
 
     try:
-        module = EpisodicMemoryModule()
+        module = SpatialMemoryModule()
         module.run(10)
 
     except Exception as e:

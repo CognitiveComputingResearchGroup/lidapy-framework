@@ -5,6 +5,7 @@ Created on Apr 20, 2016
 @author: Sean Kugele
 '''
 from lidapy.framework.module import FrameworkModule
+from std_msgs.msg import String
 
 
 class EnvironmentModule(FrameworkModule):
@@ -13,6 +14,24 @@ class EnvironmentModule(FrameworkModule):
         FrameworkModule.__init__(self, "EnvironmentModule")
         return
 
+    def addPublishers(self):
+        # TODO: Add actuator commands
+        #pubs = [{"topic": "", "msg_type" : }]
+        pubs = []
+        for pub in pubs:
+            super(EnvironmentModule, self)._addPublisher(pub["topic"], pub["msg_type"])
+
+        return
+
+    def addSubscribers(self):
+        # TODO: Add sensor input topic
+        #subs = [{"topic": "/lida/environment", "msg_type" : String}]
+        #subs = [{"topic": """, "msg_type" : }]
+        subs = []
+        for sub in subs:
+            super(EnvironmentModule, self)._addSubscriber(sub["topic"], sub["msg_type"])
+
+        return
 
 
 if __name__ == '__main__':

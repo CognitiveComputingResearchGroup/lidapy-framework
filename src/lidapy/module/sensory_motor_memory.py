@@ -5,6 +5,7 @@ Created on Apr 20, 2016
 @author: Sean Kugele
 '''
 from lidapy.framework.module import FrameworkModule
+from std_msgs.msg import String
 
 
 class SensoryMotorMemoryModule(FrameworkModule):
@@ -13,6 +14,19 @@ class SensoryMotorMemoryModule(FrameworkModule):
         FrameworkModule.__init__(self, "SensoryMotorMemoryModule")
         return
 
+    def addPublishers(self):
+        pubs = [{"topic": "/lida/motor_commands", "msg_type" : String}]
+        for pub in pubs:
+            super(SensoryMotorMemoryModule, self)._addPublisher(pub["topic"], pub["msg_type"])
+
+        return
+
+    def addSubscribers(self):
+        subs = [{"topic": "/lida/action_selection", "msg_type" : String}]
+        for sub in subs:
+            super(SensoryMotorMemoryModule, self)._addSubscriber(sub["topic"], sub["msg_type"])
+
+        return
 
 
 if __name__ == '__main__':
