@@ -7,7 +7,6 @@ import rospy
 import comm
 
 class FrameworkModule:
-
         
     def __init__(self, name):
         self.name = name

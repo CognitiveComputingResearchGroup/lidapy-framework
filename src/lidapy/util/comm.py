@@ -18,5 +18,4 @@ def registerSubscriber(topic, msg_type, callback, callback_args=[]):
 
 def publishMessage(publisher, msg):
     publisher.publish(msg)
-
     return
