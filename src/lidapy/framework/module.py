@@ -6,8 +6,8 @@ Created on Apr 21, 2016
 '''
 from lidapy.util import comm
 
+
 class FrameworkModule(object):
-        
     def __init__(self, name):
         self.name = name
 
@@ -16,20 +16,20 @@ class FrameworkModule(object):
 
         comm.initialize(self.name)
 
-        self.addPublishers()
-        self.addSubscribers()
+        self.add_publishers()
+        self.add_subscribers()
 
         return
-    
-    def _addPublisher(self, topic, msg_type, queue_size=0):
-        self._publishers[topic] = comm.getPublisher(topic, msg_type, queue_size = queue_size)
+
+    def _add_publisher(self, topic, msg_type, queue_size=0):
+        self._publishers[topic] = comm.getPublisher(topic, msg_type, queue_size=queue_size)
         return
-    
-    def _addSubscriber(self, topic, msg_type, callback=None, callback_args={}):
+
+    def _add_subscriber(self, topic, msg_type, callback=None, callback_args={}):
         if callback is None:
-            callback = self._receiveMsg
+            callback = self._receive_msg
 
-        sub_args = {"topic" : topic}
+        sub_args = {"topic": topic}
         sub_args.update(callback_args)
 
         comm.registerSubscriber(topic, msg_type, callback, sub_args)
@@ -42,7 +42,7 @@ class FrameworkModule(object):
         comm.publishMessage(self._publishers[topic], msg)
         return
 
-    def _receiveMsg(self, msg, args):
+    def _receive_msg(self, msg, args):
         topic = args["topic"]
         if topic is not None:
             msgQueue = self._receivedMsgs[topic]
@@ -50,13 +50,13 @@ class FrameworkModule(object):
                 msgQueue[topic].append(msg)
         return
 
-    def addPublishers(self):
+    def add_publishers(self):
         pass
 
-    def addSubscribers(self):
+    def add_subscribers(self):
         pass
 
-    def getNextMsg(self, topic):
+    def get_next_msg(self, topic):
         return self._receivedMsgs[topic].pop()
 
     def run(self, pubRate):

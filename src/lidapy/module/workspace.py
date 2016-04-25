@@ -7,31 +7,30 @@ Created on Apr 20, 2016
 from lidapy.framework.module import FrameworkModule
 # TODO: Replace with LIDA msgs
 from std_msgs.msg import String
-from lida.msg import Coalition, ConsciousContent, Cue, Episode, Percept, SpatialMap
+from lidapy.framework.msg import Coalition, ConsciousContent, Cue, Episode, Percept, SpatialMap
 
 
 class WorkspaceModule(FrameworkModule):
-
     def __init__(self):
         super(WorkspaceModule, self).__init__("WorkspaceModule")
         return
 
-    def addPublishers(self):
-        pubs = [{"topic": "/lida/workspace_coalitions", "msg_type" : Coalition},
-                {"topic": "/lida/workspace_cues", "msg_type": Cue}]
+    def add_publishers(self):
+        pubs = [{"topic": "/lida/workspace_coalitions", "msg_type": Coalition.msg_type()},
+                {"topic": "/lida/workspace_cues", "msg_type": Cue.msg_type()}]
         for pub in pubs:
-            super(WorkspaceModule, self)._addPublisher(pub["topic"], pub["msg_type"])
+            super(WorkspaceModule, self)._add_publisher(pub["topic"], pub["msg_type"])
 
         return
 
-    def addSubscribers(self):
-        subs = [{"topic": "/lida/ventral_stream", "msg_type" : String},
-                {"topic": "/lida/percepts", "msg_type": Percept},
-                {"topic": "/lida/spatial_maps", "msg_type": SpatialMap},
-                {"topic": "/lida/episodes", "msg_type": Episode},
-                {"topic": "/lida/global_broadcast", "msg_type": ConsciousContent},]
+    def add_subscribers(self):
+        # {"topic": "/lida/ventral_stream", "msg_type": String},
+        subs = [{"topic": "/lida/percepts", "msg_type": Percept.msg_type()},
+                {"topic": "/lida/spatial_maps", "msg_type": SpatialMap.msg_type()},
+                {"topic": "/lida/episodes", "msg_type": Episode.msg_type()},
+                {"topic": "/lida/global_broadcast", "msg_type": ConsciousContent.msg_type()},]
         for sub in subs:
-            super(WorkspaceModule, self)._addSubscriber(sub["topic"], sub["msg_type"])
+            super(WorkspaceModule, self)._add_subscriber(sub["topic"], sub["msg_type"])
 
         return
 
@@ -47,4 +46,3 @@ if __name__ == '__main__':
 
     finally:
         pass
-

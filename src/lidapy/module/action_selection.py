@@ -5,27 +5,27 @@ Created on Apr 20, 2016
 @author: Sean Kugele
 '''
 from lidapy.framework.module import FrameworkModule
-from lida.msg import Behavior, ConsciousContent
+from lidapy.framework.msg import Behavior, ConsciousContent
 
 
 class ActionSelectionModule(FrameworkModule):
-
     def __init__(self):
         super(ActionSelectionModule, self).__init__("ActionSelectionModule")
         return
 
-    def addPublishers(self):
-        pubs = [{"topic": "/lida/selected_behaviors", "msg_type" : Behavior}]
+    def add_publishers(self):
+        pubs = [{"topic": "/lida/selected_behaviors", "msg_type": Behavior.msg_type()}]
+
         for pub in pubs:
-            super(ActionSelectionModule, self)._addPublisher(pub["topic"], pub["msg_type"])
+            super(ActionSelectionModule, self)._add_publisher(pub["topic"], pub["msg_type"])
 
         return
 
-    def addSubscribers(self):
-        subs = [{"topic": "/lida/candidate_behaviors", "msg_type" : Behavior},
-                {"topic": "/lida/global_broadcast", "msg_type": ConsciousContent}]
+    def add_subscribers(self):
+        subs = [{"topic": "/lida/candidate_behaviors", "msg_type": Behavior.msg_type()},
+                {"topic": "/lida/global_broadcast", "msg_type": ConsciousContent.msg_type()}]
         for sub in subs:
-            super(ActionSelectionModule, self)._addSubscriber(sub["topic"], sub["msg_type"])
+            super(ActionSelectionModule, self)._add_subscriber(sub["topic"], sub["msg_type"])
 
         return
 
