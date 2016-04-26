@@ -23,9 +23,14 @@ def publish_message(publisher, msg):
     publisher.publish(msg.serializable_msg)
 
 
-def run(pubRate):
-    # set the message publication rate
-    rate = rospy.Rate(pubRate)
+def get_param(param_name, default=None):
+    return rospy.get_param(param_name, default)
 
-    while not rospy.is_shutdown():
-        rate.sleep()
+
+def shutting_down():
+    return rospy.is_shutdown()
+
+
+def wait(rate):
+    waiter = rospy.Rate(rate)
+    waiter.sleep()

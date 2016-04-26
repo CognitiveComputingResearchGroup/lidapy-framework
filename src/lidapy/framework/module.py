@@ -19,6 +19,11 @@ class FrameworkModule(object):
         self.add_publishers()
         self.add_subscribers()
 
+    def get_param(self, param_name, default):
+        decorated_param_name = "/{base_name}/{module_name}/{param_name}".format(base_name='lida', module_name=self.name,
+                                                                                param_name=param_name);
+        return comm.get_param(decorated_param_name, default)
+
     def _add_publisher(self, topic, msg_type, queue_size=0):
         self._publishers[topic] = comm.get_publisher(topic, msg_type, queue_size=queue_size)
 
@@ -30,7 +35,6 @@ class FrameworkModule(object):
         sub_args.update(callback_args)
 
         comm.register_subscriber(topic, msg_type, callback, sub_args)
-
         self._receivedMsgs[topic] = []
 
     def _publish(self, topic, msg):
@@ -43,14 +47,15 @@ class FrameworkModule(object):
             if msgQueue is not None:
                 msgQueue[topic].append(msg)
 
-    def add_publishers(self):
-        pass
-
-    def add_subscribers(self):
-        pass
-
     def get_next_msg(self, topic):
         return self._receivedMsgs[topic].pop()
 
-    def run(self, pubRate):
-        comm.run(pubRate)
+    def advance(self):
+        pass
+
+    def run(self):
+        while not comm.shutting_down():
+            rate_in_hz = self.get_param("rate", 100)
+
+            self.advance()
+            comm.wait(rate_in_hz)

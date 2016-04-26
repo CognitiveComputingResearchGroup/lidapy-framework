@@ -33,7 +33,7 @@ if __name__ == '__main__':
 
     try:
         module = EnvironmentModule()
-        module.run(10)
+        module.run()
 
     except Exception as e:
         print e
