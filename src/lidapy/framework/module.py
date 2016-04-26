@@ -4,7 +4,7 @@ Created on Apr 21, 2016
 
 @author: Sean Kugele
 '''
-from lidapy.util import comm
+from lidapy.util import comm, logger
 
 
 class FrameworkModule(object):
@@ -25,9 +25,11 @@ class FrameworkModule(object):
         return comm.get_param(decorated_param_name, default)
 
     def _add_publisher(self, topic, msg_type, queue_size=0):
+        logger.info("Adding publisher for topic = {}".format(topic))
         self._publishers[topic] = comm.get_publisher(topic, msg_type, queue_size=queue_size)
 
     def _add_subscriber(self, topic, msg_type, callback=None, callback_args={}):
+        logger.info("Adding subscriber for topic = {}".format(topic))
         if callback is None:
             callback = self._receive_msg
 
@@ -38,10 +40,13 @@ class FrameworkModule(object):
         self._receivedMsgs[topic] = []
 
     def _publish(self, topic, msg):
+        logger.debug("Publishing msg to topic = {} : {}".format(topic, msg))
+
         comm.publish_message(self._publishers[topic], msg)
 
     def _receive_msg(self, msg, args):
         topic = args["topic"]
+        logger.debug("Receiving message for topic = {} : {}".format(topic, msg))
         if topic is not None:
             msgQueue = self._receivedMsgs[topic]
             if msgQueue is not None:
@@ -56,6 +61,6 @@ class FrameworkModule(object):
     def run(self):
         while not comm.shutting_down():
             rate_in_hz = self.get_param("rate", 100)
-
+            logger.debug("Current rate is {}".format(rate_in_hz))
             self.advance()
             comm.wait(rate_in_hz)
