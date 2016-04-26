@@ -19,7 +19,6 @@ class FrameworkModule(object):
         self.add_publishers()
         self.add_subscribers()
 
-
     def _add_publisher(self, topic, msg_type, queue_size=0):
         self._publishers[topic] = comm.get_publisher(topic, msg_type, queue_size=queue_size)
 
@@ -33,7 +32,6 @@ class FrameworkModule(object):
         comm.register_subscriber(topic, msg_type, callback, sub_args)
 
         self._receivedMsgs[topic] = []
-
 
     def _publish(self, topic, msg):
         comm.publish_message(self._publishers[topic], msg)
