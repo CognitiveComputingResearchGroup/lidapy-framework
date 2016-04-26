@@ -11,22 +11,17 @@ from lidapy.framework.msg import ConsciousContent, Cue, Episode
 class EpisodicMemoryModule(FrameworkModule):
     def __init__(self):
         super(EpisodicMemoryModule, self).__init__("EpisodicMemoryModule")
-        return
 
     def add_publishers(self):
         pubs = [{"topic": "/lida/episodes", "msg_type": Episode.msg_type()}]
         for pub in pubs:
             super(EpisodicMemoryModule, self)._add_publisher(pub["topic"], pub["msg_type"])
 
-        return
-
     def add_subscribers(self):
         subs = [{"topic": "/lida/workspace_cues", "msg_type": Cue.msg_type()},
                 {"topic": "/lida/global_broadcast", "msg_type": ConsciousContent.msg_type()}]
         for sub in subs:
             super(EpisodicMemoryModule, self)._add_subscriber(sub["topic"], sub["msg_type"])
-
-        return
 
 
 if __name__ == '__main__':

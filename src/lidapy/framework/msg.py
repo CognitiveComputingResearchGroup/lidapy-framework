@@ -27,13 +27,11 @@ class Behavior(FrameworkMsg):
 
     @property
     def id(self):
-
-        return
+        pass
 
     @id.setter
     def id(self, value):
-        return
-
+        pass
 
 class Coalition(FrameworkMsg):
     def __init__(self):

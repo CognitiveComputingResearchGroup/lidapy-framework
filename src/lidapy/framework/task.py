@@ -8,4 +8,4 @@ Created on Apr 21, 2016
 
 class FrameworkTask:
     def __init__(self):
-        return
+        pass

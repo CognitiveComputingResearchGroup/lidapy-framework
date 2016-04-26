@@ -12,7 +12,6 @@ from std_msgs.msg import String
 class EnvironmentModule(FrameworkModule):
     def __init__(self):
         super(EnvironmentModule, self).__init__("EnvironmentModule")
-        return
 
     def add_publishers(self):
         # TODO: Add actuator commands
@@ -21,8 +20,6 @@ class EnvironmentModule(FrameworkModule):
         for pub in pubs:
             super(EnvironmentModule, self)._add_publisher(pub["topic"], pub["msg_type"])
 
-        return
-
     def add_subscribers(self):
         # TODO: Add sensor input topic
         # subs = [{"topic": "/lida/environment", "msg_type" : String}]
@@ -30,8 +27,6 @@ class EnvironmentModule(FrameworkModule):
         subs = []
         for sub in subs:
             super(EnvironmentModule, self)._add_subscriber(sub["topic"], sub["msg_type"])
-
-        return
 
 
 if __name__ == '__main__':

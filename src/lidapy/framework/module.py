@@ -19,11 +19,9 @@ class FrameworkModule(object):
         self.add_publishers()
         self.add_subscribers()
 
-        return
 
     def _add_publisher(self, topic, msg_type, queue_size=0):
-        self._publishers[topic] = comm.getPublisher(topic, msg_type, queue_size=queue_size)
-        return
+        self._publishers[topic] = comm.get_publisher(topic, msg_type, queue_size=queue_size)
 
     def _add_subscriber(self, topic, msg_type, callback=None, callback_args={}):
         if callback is None:
@@ -32,15 +30,13 @@ class FrameworkModule(object):
         sub_args = {"topic": topic}
         sub_args.update(callback_args)
 
-        comm.registerSubscriber(topic, msg_type, callback, sub_args)
+        comm.register_subscriber(topic, msg_type, callback, sub_args)
 
         self._receivedMsgs[topic] = []
 
-        return
 
     def _publish(self, topic, msg):
-        comm.publishMessage(self._publishers[topic], msg)
-        return
+        comm.publish_message(self._publishers[topic], msg)
 
     def _receive_msg(self, msg, args):
         topic = args["topic"]
@@ -48,7 +44,6 @@ class FrameworkModule(object):
             msgQueue = self._receivedMsgs[topic]
             if msgQueue is not None:
                 msgQueue[topic].append(msg)
-        return
 
     def add_publishers(self):
         pass
@@ -61,4 +56,3 @@ class FrameworkModule(object):
 
     def run(self, pubRate):
         comm.run(pubRate)
-        return

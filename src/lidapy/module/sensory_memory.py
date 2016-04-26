@@ -17,8 +17,6 @@ class SensoryMemoryModule(FrameworkModule):
         self.add_publishers()
         self.add_subscribers()
 
-        return
-
     def add_publishers(self):
         #{"topic": "/lida/dorsal_stream", "msg_type": String},
         #{"topic": "/lida/ventral_stream", "msg_type": String},
@@ -27,15 +25,11 @@ class SensoryMemoryModule(FrameworkModule):
         for pub in pubs:
             super(SensoryMemoryModule, self)._add_publisher(pub["topic"], pub["msg_type"])
 
-        return
-
     def add_subscribers(self):
         #subs = [{"topic": "/lida/environment", "msg_type": String}]
         subs = []
         for sub in subs:
             super(SensoryMemoryModule, self)._add_subscriber(sub["topic"], sub["msg_type"])
-
-        return
 
 
 if __name__ == '__main__':
