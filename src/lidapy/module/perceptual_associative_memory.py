@@ -7,6 +7,7 @@ Created on Apr 20, 2016
 from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import ConsciousContent, Cue, Feature, Percept
 
+
 class PerceptualAssociativeMemoryModule(FrameworkModule):
     def __init__(self):
         super(PerceptualAssociativeMemoryModule, self).__init__("PerceptualAssociativeMemoryModule")
@@ -23,6 +24,16 @@ class PerceptualAssociativeMemoryModule(FrameworkModule):
 
         for sub in subs:
             super(PerceptualAssociativeMemoryModule, self)._add_subscriber(sub["topic"], sub["msg_type"])
+
+    def advance(self):
+
+        next_feature = super(PerceptualAssociativeMemoryModule, self).get_next_msg("/lida/detected_features")
+
+        if next_feature is not None:
+            percept = Percept()
+            percept.id = next_feature.id
+
+            super(PerceptualAssociativeMemoryModule, self).publish("/lida/percepts", percept)
 
 
 if __name__ == '__main__':

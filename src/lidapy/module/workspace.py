@@ -29,6 +29,14 @@ class WorkspaceModule(FrameworkModule):
         for sub in subs:
             super(WorkspaceModule, self)._add_subscriber(sub["topic"], sub["msg_type"])
 
+    def advance(self):
+        next_percept = super(WorkspaceModule, self).get_next_msg("/lida/percepts")
+
+        if next_percept is not None:
+            coalition = Coalition()
+            Coalition.id = next_percept.id
+
+            super(WorkspaceModule, self).publish("/lida/workspace_coalitions", coalition)
 
 if __name__ == '__main__':
 

@@ -20,7 +20,7 @@ def register_subscriber(topic, msg_type, callback, callback_args=[]):
 
 
 def publish_message(publisher, msg):
-    publisher.publish(msg.serializable_msg)
+    publisher.publish(msg.serialize())
 
 
 def get_param(param_name, default=None):

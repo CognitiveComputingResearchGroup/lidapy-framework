@@ -6,6 +6,8 @@ Created on Apr 20, 2016
 '''
 from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import Feature
+from random import randint
+
 # TODO: Replace this with LIDA messages
 from std_msgs.msg import String
 
@@ -30,6 +32,11 @@ class SensoryMemoryModule(FrameworkModule):
         subs = []
         for sub in subs:
             super(SensoryMemoryModule, self)._add_subscriber(sub["topic"], sub["msg_type"])
+
+    def advance(self):
+        msg = Feature()
+        msg.id = str(randint(0, 1e15 - 1))
+        super(SensoryMemoryModule, self).publish("/lida/detected_features", msg)
 
 
 if __name__ == '__main__':

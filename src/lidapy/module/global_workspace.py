@@ -22,7 +22,14 @@ class GlobalWorkspaceModule(FrameworkModule):
         for sub in subs:
             super(GlobalWorkspaceModule, self)._add_subscriber(sub["topic"], sub["msg_type"])
 
+    def advance(self):
+        next_coalition = super(GlobalWorkspaceModule, self).get_next_msg("/lida/workspace_coalitions")
 
+        if next_coalition is not None:
+            global_broadcast = Coalition()
+            global_broadcast.id = next_coalition.id
+
+            super(GlobalWorkspaceModule, self).publish("/lida/global_broadcast", global_broadcast)
 
 if __name__ == '__main__':
 

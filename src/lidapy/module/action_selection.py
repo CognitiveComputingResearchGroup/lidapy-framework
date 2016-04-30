@@ -24,6 +24,14 @@ class ActionSelectionModule(FrameworkModule):
         for sub in subs:
             super(ActionSelectionModule, self)._add_subscriber(sub["topic"], sub["msg_type"])
 
+    def advance(self):
+        next_behavior = super(ActionSelectionModule, self).get_next_msg("/lida/candidate_behaviors")
+
+        if next_behavior is not None:
+            behavior = Behavior()
+            behavior.id = next_behavior.id
+
+            super(ActionSelectionModule, self).publish("/lida/selected_behaviors", behavior)
 
 if __name__ == '__main__':
 

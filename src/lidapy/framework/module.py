@@ -12,7 +12,7 @@ class FrameworkModule(object):
         self.name = name
 
         self._publishers = {}
-        self._receivedMsgs = {}
+        self._received_msgs = {}
 
         comm.initialize(self.name)
 
@@ -37,23 +37,28 @@ class FrameworkModule(object):
         sub_args.update(callback_args)
 
         comm.register_subscriber(topic, msg_type, callback, sub_args)
-        self._receivedMsgs[topic] = []
-
-    def _publish(self, topic, msg):
-        logger.debug("Publishing msg to topic = {} : {}".format(topic, msg))
-
-        comm.publish_message(self._publishers[topic], msg)
+        self._received_msgs[topic] = []
 
     def _receive_msg(self, msg, args):
         topic = args["topic"]
         logger.debug("Receiving message for topic = {} : {}".format(topic, msg))
         if topic is not None:
-            msgQueue = self._receivedMsgs[topic]
-            if msgQueue is not None:
-                msgQueue[topic].append(msg)
+            msg_queue = self._received_msgs[topic]
+            msg_queue.append(msg)
 
     def get_next_msg(self, topic):
-        return self._receivedMsgs[topic].pop()
+        msg_queue = self._received_msgs[topic]
+
+        next_msg = None
+        if len(msg_queue) > 0:
+            next_msg = self._received_msgs[topic].pop()
+
+        return next_msg
+
+    def publish(self, topic, msg):
+        logger.debug("Publishing msg to topic = {} : {}".format(topic, msg))
+
+        comm.publish_message(self._publishers[topic], msg)
 
     def advance(self):
         pass

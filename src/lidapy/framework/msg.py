@@ -1,20 +1,25 @@
 class FrameworkMsg(object):
     def __init__(self):
-        self._msg = None
+        self._msg = self._create_serializable_msg()
 
-    @property
-    def serializable_msg(self):
+    def _create_serializable_msg(self):
+        pass
+
+    def serialize(self):
         return self._msg
 
-    @serializable_msg.setter
-    def serializable_msg(self, value):
-        self._msg = value
+    @property
+    def id(self):
+        return self._msg.id
+
+    @id.setter
+    def id(self, value):
+        self._msg.id = value
 
 
 class Behavior(FrameworkMsg):
     def __init__(self):
         super(Behavior, self).__init__()
-        super(Behavior, self).serializable_msg = Behavior.msg_type()()
 
     @staticmethod
     def msg_type():
@@ -25,18 +30,13 @@ class Behavior(FrameworkMsg):
         except ImportError:
             return Behavior
 
-    @property
-    def id(self):
-        pass
+    def _create_serializable_msg(self):
+        return Behavior.msg_type()()
 
-    @id.setter
-    def id(self, value):
-        pass
 
 class Coalition(FrameworkMsg):
     def __init__(self):
         super(Coalition, self).__init__()
-        super(Coalition, self).serializable_msg = Coalition.msg_type()()
 
     @staticmethod
     def msg_type():
@@ -47,11 +47,13 @@ class Coalition(FrameworkMsg):
         except ImportError:
             return Coalition
 
+    def _create_serializable_msg(self):
+        return Coalition.msg_type()()
+
 
 class ConsciousContent(FrameworkMsg):
     def __init__(self):
         super(ConsciousContent, self).__init__()
-        super(ConsciousContent, self).serializable_msg = ConsciousContent.msg_type()()
 
     @staticmethod
     def msg_type():
@@ -62,11 +64,13 @@ class ConsciousContent(FrameworkMsg):
         except ImportError:
             return ConsciousContent
 
+    def _create_serializable_msg(self):
+        return ConsciousContent.msg_type()()
+
 
 class Cue(FrameworkMsg):
     def __init__(self):
         super(Cue, self).__init__()
-        super(Cue, self).serializable_msg = Cue.msg_type()()
 
     @staticmethod
     def msg_type():
@@ -77,10 +81,13 @@ class Cue(FrameworkMsg):
         except ImportError:
             return Cue
 
+    def _create_serializable_msg(self):
+        return Episode.msg_type()()
+
+
 class Episode(FrameworkMsg):
     def __init__(self):
         super(Episode, self).__init__()
-        super(Episode, self).serializable_msg = Episode.msg_type()()
 
     @staticmethod
     def msg_type():
@@ -91,11 +98,13 @@ class Episode(FrameworkMsg):
         except ImportError:
             return Episode
 
+    def _create_serializable_msg(self):
+        return Episode.msg_type()()
+
 
 class Feature(FrameworkMsg):
     def __init__(self):
         super(Feature, self).__init__()
-        super(Feature, self).serializable_msg = Feature.msg_type()()
 
     @staticmethod
     def msg_type():
@@ -106,11 +115,13 @@ class Feature(FrameworkMsg):
         except ImportError:
             return Feature
 
+    def _create_serializable_msg(self):
+        return Feature.msg_type()()
+
 
 class Percept(FrameworkMsg):
     def __init__(self):
         super(Percept, self).__init__()
-        super(Percept, self).serializable_msg = Percept.msg_type()()
 
     @staticmethod
     def msg_type():
@@ -121,11 +132,13 @@ class Percept(FrameworkMsg):
         except ImportError:
             return Percept
 
+    def _create_serializable_msg(self):
+        return Percept.msg_type()()
+
 
 class SpatialMap(FrameworkMsg):
     def __init__(self):
         super(SpatialMap, self).__init__()
-        super(SpatialMap, self).serializable_msg = SpatialMap.msg_type()()
 
     @staticmethod
     def msg_type():
@@ -136,3 +149,5 @@ class SpatialMap(FrameworkMsg):
         except ImportError:
             return SpatialMap
 
+    def _create_serializable_msg(self):
+        return SpatialMap.msg_type()()

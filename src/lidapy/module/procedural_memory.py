@@ -22,6 +22,14 @@ class ProceduralMemoryModule(FrameworkModule):
         for sub in subs:
             super(ProceduralMemoryModule, self)._add_subscriber(sub["topic"], sub["msg_type"])
 
+    def advance(self):
+        next_broadcast = super(ProceduralMemoryModule, self).get_next_msg("/lida/global_broadcast")
+
+        if next_broadcast is not None:
+            behavior = Behavior()
+            behavior.id = next_broadcast.id
+
+            super(ProceduralMemoryModule, self).publish("/lida/candidate_behaviors", behavior)
 
 if __name__ == '__main__':
 
