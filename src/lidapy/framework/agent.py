@@ -61,5 +61,7 @@ class AgentConfig(object):
         if param_value is None:
             param_value = default_value
 
+        logger.debug("{} = {} [default: {}]".format(param_name, param_value, default_value))
+
         return param_value
 

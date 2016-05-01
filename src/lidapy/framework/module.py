@@ -21,7 +21,8 @@ class FrameworkModule(object):
         self.add_subscribers()
 
     def get_param(self, param_name, default_value=None):
-        self._config.get_param(self.module_name, param_name, default_value)
+        param_value = self._config.get_param(self.module_name, param_name, default_value)
+        return param_value
 
     def _add_publisher(self, topic, msg_type, queue_size=0):
         logger.info("Adding publisher for topic = {}".format(topic))
