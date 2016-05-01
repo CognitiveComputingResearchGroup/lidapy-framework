@@ -1,4 +1,4 @@
-from ConfigParser import SafeConfigParser, ConfigParser
+from ConfigParser import SafeConfigParser
 from lidapy.util import logger
 from lidapy.util.comm import ParameterService
 
