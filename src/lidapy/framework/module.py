@@ -5,24 +5,23 @@ Created on Apr 21, 2016
 @author: Sean Kugele
 '''
 from lidapy.util import comm, logger
-
+from lidapy.framework.agent import AgentConfig
 
 class FrameworkModule(object):
-    def __init__(self, name):
-        self.name = name
+    def __init__(self, module_name):
+        self.module_name = module_name
 
+        self._config = AgentConfig()
         self._publishers = {}
         self._received_msgs = {}
 
-        comm.initialize(self.name)
+        comm.initialize(self.module_name)
 
         self.add_publishers()
         self.add_subscribers()
 
-    def get_param(self, param_name, default):
-        decorated_param_name = "/{base_name}/{module_name}/{param_name}".format(base_name='lida', module_name=self.name,
-                                                                                param_name=param_name);
-        return comm.get_param(decorated_param_name, default)
+    def get_param(self, param_name, default_value=None):
+        self._config.get_param(self.module_name, param_name, default_value)
 
     def _add_publisher(self, topic, msg_type, queue_size=0):
         logger.info("Adding publisher for topic = {}".format(topic))
