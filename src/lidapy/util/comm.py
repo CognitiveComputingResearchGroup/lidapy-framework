@@ -8,7 +8,7 @@ import rospy
 
 
 def initialize(name):
-    rospy.init_node(name)
+    rospy.init_node(name, log_level=rospy.DEBUG)
 
 
 def get_publisher(topic, msg_type, queue_size=0):
