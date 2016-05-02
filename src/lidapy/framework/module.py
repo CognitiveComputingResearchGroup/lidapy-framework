@@ -72,6 +72,6 @@ class FrameworkModule(object):
 
     def run(self):
         while not comm.shutting_down():
-            rate_in_hz = self._config.get_global_param("rate_in_hz", 100)
+            rate_in_hz = self.get_global_param("rate_in_hz", 100)
             self.advance()
             comm.wait(rate_in_hz)
