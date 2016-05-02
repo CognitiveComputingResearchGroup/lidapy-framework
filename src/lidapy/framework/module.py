@@ -21,8 +21,13 @@ class FrameworkModule(object):
         self.add_publishers()
         self.add_subscribers()
 
-    def get_param(self, param_name, default_value=None):
+    def get_module_param(self, param_name, default_value=None):
         param_value = self._config.get_param(self.module_name, param_name, default_value)
+        logger.info("{} = {}".format(param_name, param_value))
+        return param_value
+
+    def get_global_param(self, param_name, default_value=None):
+        param_value = self._config.get_param("global_params", param_name, default_value)
         logger.info("{} = {}".format(param_name, param_value))
         return param_value
 
@@ -67,6 +72,6 @@ class FrameworkModule(object):
 
     def run(self):
         while not comm.shutting_down():
-            rate_in_hz = self.get_param("rate_in_hz", 100)
+            rate_in_hz = self._config.get_global_param("rate_in_hz", 100)
             self.advance()
             comm.wait(rate_in_hz)
