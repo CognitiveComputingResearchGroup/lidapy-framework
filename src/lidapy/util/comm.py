@@ -8,7 +8,7 @@ import rospy
 
 
 def initialize(name):
-    rospy.init_node(name)
+    rospy.init_node(name, log_level=rospy.DEBUG)
 
 
 def get_publisher(topic, msg_type, queue_size=0):
@@ -23,10 +23,6 @@ def publish_message(publisher, msg):
     publisher.publish(msg.serialize())
 
 
-def get_param(param_name, default=None):
-    return rospy.get_param(param_name, default)
-
-
 def shutting_down():
     return rospy.is_shutdown()
 
@@ -34,3 +30,17 @@ def shutting_down():
 def wait(rate):
     waiter = rospy.Rate(rate)
     waiter.sleep()
+
+
+class ParameterService(object):
+
+    def get_param(self, param_type, param_name, default_value=None):
+        fully_qualified_name = self.get_fully_qualified_param_name(param_type, param_name)
+        return rospy.get_param(fully_qualified_name, default_value)
+
+    def set_param(self, param_type, param_name, param_value):
+        fully_qualified_name = self.get_fully_qualified_param_name(param_type, param_name)
+        return rospy.set_param(fully_qualified_name, param_value)
+
+    def get_fully_qualified_param_name(self, param_type, param_name):
+        return "/".join(["lida", param_type, param_name])

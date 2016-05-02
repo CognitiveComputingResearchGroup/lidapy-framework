@@ -5,24 +5,31 @@ Created on Apr 21, 2016
 @author: Sean Kugele
 '''
 from lidapy.util import comm, logger
-
+from lidapy.framework.agent import AgentConfig
 
 class FrameworkModule(object):
-    def __init__(self, name):
-        self.name = name
+    def __init__(self, module_name):
+        self.module_name = module_name
+
+        comm.initialize(self.module_name)
 
         self._publishers = {}
         self._received_msgs = {}
 
-        comm.initialize(self.name)
+        self._config = AgentConfig()
 
         self.add_publishers()
         self.add_subscribers()
 
-    def get_param(self, param_name, default):
-        decorated_param_name = "/{base_name}/{module_name}/{param_name}".format(base_name='lida', module_name=self.name,
-                                                                                param_name=param_name);
-        return comm.get_param(decorated_param_name, default)
+    def get_module_param(self, param_name, default_value=None):
+        param_value = self._config.get_param(self.module_name, param_name, default_value)
+        logger.info("{} = {}".format(param_name, param_value))
+        return param_value
+
+    def get_global_param(self, param_name, default_value=None):
+        param_value = self._config.get_param("global_params", param_name, default_value)
+        logger.info("{} = {}".format(param_name, param_value))
+        return param_value
 
     def _add_publisher(self, topic, msg_type, queue_size=0):
         logger.info("Adding publisher for topic = {}".format(topic))
@@ -65,7 +72,6 @@ class FrameworkModule(object):
 
     def run(self):
         while not comm.shutting_down():
-            rate_in_hz = self.get_param("rate", 100)
-            logger.debug("Current rate is {}".format(rate_in_hz))
+            rate_in_hz = int(self.get_global_param("rate_in_hz", 100))
             self.advance()
             comm.wait(rate_in_hz)
