@@ -35,12 +35,12 @@ def wait(rate):
 class ParameterService(object):
 
     def get_param(self, param_type, param_name, default_value=None):
-        fully_qualified_name = ParameterService.get_fully_qualified_param_name(param_type, param_name)
+        fully_qualified_name = self.get_fully_qualified_param_name(param_type, param_name)
         return rospy.get_param(fully_qualified_name, default_value)
 
     def set_param(self, param_type, param_name, param_value):
-        fully_qualified_name = ParameterService.get_fully_qualified_param_name(param_type, param_name)
+        fully_qualified_name = self.get_fully_qualified_param_name(param_type, param_name)
         return rospy.set_param(fully_qualified_name, param_value)
 
     def get_fully_qualified_param_name(self, param_type, param_name):
-        return "/".join(param_type, param_name)
+        return "/".join(["lida", param_type, param_name])
