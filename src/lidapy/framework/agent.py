@@ -5,6 +5,7 @@ from os import getenv
 
 
 class AgentConfig(object):
+
     # Environment variable for agent configuration file
     agent_config_env_var = "LIDAPY_AGENT_CONFIG"
 
@@ -26,31 +27,40 @@ class AgentConfig(object):
 
     _initialized = False
 
-    def __init__(self, config_file):
+    def __init__(self, config_filepath):
         if not AgentConfig._initialized:
-            self._load_config(config_file)
+            found_filepath = self._find_config_file(config_filepath)
+            if not found_filepath:
+                raise IOError("Failed to find usable agent configuration file")
 
-    def _find_config_file(self, config_file):
+            self._load_config(found_filepath)
 
-        config_filepath = getenv(AgentConfig.agent_config_env_var)
-        if not config_filepath:
-            logger.warn("Agent configuration file not set in environment variable {}, using default {}".format(
-                AgentConfig.agent_config_env_var,
-                AgentConfig.default_agent_config_filepath))
+    def _find_config_file(self, config_filepath):
 
-            # using default
-            config_filepath = AgentConfig.default_agent_config_filepath
+        candidate_filepaths = [config_filepath,
+                               getenv(AgentConfig.agent_config_env_var),
+                               AgentConfig.default_agent_config_filepath]
 
+        for filepath in candidate_filepaths:
+            if AgentConfig._found_config_file_at(filepath):
+                return filepath
+
+        return None
+
+    def _found_config_file_at(self, config_filepath):
+        found = False
         try:
             # Test if file exists and has read permissions
             with open(config_filepath) as file:
-                pass
+                found = True
         except IOError as e:
-            raise IOError("Unable to open agent config file [{}]".format(config_filepath))
+            logger.warn("Failed to find config file at filepath = {}".format(config_filepath))
+
+        return found
 
     def _load_config(self, config_file):
         self._load_file_config(config_file)
-        if self.using_param_service():
+        if self._using_param_service():
             self._load_param_service()
 
     def _load_file_config(self, config_file):
@@ -73,6 +83,14 @@ class AgentConfig(object):
         for param_type in AgentConfig._file_config:
             for param_name, param_value in AgentConfig._file_config[param_type].items():
                 AgentConfig._param_service.set_param(param_type, param_name, param_value)
+
+    def _using_param_service(self):
+        param_value = self.get_param("global_params", "use_param_service", "False")
+
+        if param_value.lower() in ["true", "1"]:
+            return True
+        else:
+            return False
 
     def get_param(self, param_type, param_name, default_value):
         param_value = default_value
@@ -99,11 +117,3 @@ class AgentConfig(object):
             logger.debug("{} = {} [default: {}]".format(param_name, param_value, default_value))
 
         return param_value
-
-    def using_param_service(self):
-        param_value = self.get_param("global_params", "use_param_service", "False")
-
-        if param_value.lower() in ["true", "1"]:
-            return True
-        else:
-            return False
