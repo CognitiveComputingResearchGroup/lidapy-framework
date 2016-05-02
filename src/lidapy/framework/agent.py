@@ -50,13 +50,16 @@ class AgentConfig(object):
         return None
 
     def _found_config_file_at(self, config_filepath):
+        if not config_filepath:
+            return False
+
         found = False
         try:
             # Test if file exists and has read permissions
             with open(config_filepath) as file:
                 found = True
         except IOError as e:
-            logger.warn("Failed to find config file at filepath = {}".format(config_filepath))
+            pass
 
         return found
 
