@@ -75,7 +75,8 @@ class AgentConfig(object):
 
     def using_param_service(self):
         param_value = self.get_param("global_params", "use_param_service", "False")
-        if param_value == "True":
+
+        if param_value.lower() in ["true", "1"]:
             return True
         else:
             return False
