@@ -37,12 +37,14 @@ class AgentConfig(object):
 
     def _find_config_file(self, config_filepath):
 
-        candidate_filepaths = [config_filepath,
-                               getenv(AgentConfig.agent_config_env_var),
-                               AgentConfig.default_agent_config_filepath]
+        candidate_filepaths \
+            = [config_filepath,
+               getenv(AgentConfig.agent_config_env_var),
+               AgentConfig.default_agent_config_filepath]
 
         for filepath in candidate_filepaths:
             if self._found_config_file_at(filepath):
+                logger.info("Using agent configuration at {}".format(filepath))
                 return filepath
 
         return None
