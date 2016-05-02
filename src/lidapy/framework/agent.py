@@ -42,7 +42,7 @@ class AgentConfig(object):
                                AgentConfig.default_agent_config_filepath]
 
         for filepath in candidate_filepaths:
-            if AgentConfig._found_config_file_at(filepath):
+            if self._found_config_file_at(filepath):
                 return filepath
 
         return None
