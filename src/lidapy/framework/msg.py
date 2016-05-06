@@ -1,6 +1,17 @@
-class FrameworkMsg(object):
+import genpy 
+from std_msgs.msg import String
+
+class FrameworkMsg(genpy.Message):
+    # attributes of a valid ROS message
+    _type = "framework_msg"
+    _md5sum = "992ce8a1687cec8c8bd883ec73ca41d1"
+    __slots__ = ['data']
+    _slot_types = ['object']
+    
     def __init__(self):
-        self._msg = self._create_serializable_msg()
+        #self._msg = self._create_serializable_msg()
+        self._msg = {'id': -1}
+        self.data = ""
 
     def _create_serializable_msg(self):
         pass
@@ -10,11 +21,11 @@ class FrameworkMsg(object):
 
     @property
     def id(self):
-        return self._msg.id
+        return self._msg['id']
 
     @id.setter
     def id(self, value):
-        self._msg.id = value
+        self._msg['id'] = value
 
 
 class Behavior(FrameworkMsg):

@@ -10,7 +10,7 @@ class AgentConfig(object):
     agent_config_env_var = "LIDAPY_AGENT_CONFIG"
 
     # Default filepath for agent configuration file if not set in environment
-    default_agent_config_filepath = "configs/agent.conf"
+    default_agent_config_filepath = "../../../configs/agent.conf"
 
     # shared configuration dictionary containing key/value pairs
     # for each section in the configuration file
@@ -29,6 +29,9 @@ class AgentConfig(object):
 
     def __init__(self, config_filepath=None):
         if not AgentConfig._initialized:
+            if config_filepath is None:
+                config_filepath = self.default_agent_config_filepath
+            
             found_filepath = self._find_config_file(config_filepath)
             if not found_filepath:
                 raise IOError("Failed to find usable agent configuration file")
