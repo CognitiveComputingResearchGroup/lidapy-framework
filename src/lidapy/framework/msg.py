@@ -1,10 +1,11 @@
-import genpy 
+import genpy
+import hashlib 
 from std_msgs.msg import String
 
 class FrameworkMsg(genpy.Message):
     # attributes of a valid ROS message
     _type = "framework_msg"
-    _md5sum = "992ce8a1687cec8c8bd883ec73ca41d1"
+    _md5sum = hashlib.md5(_type.encode('utf-8')).hexdigest()
     __slots__ = ['data']
     _slot_types = ['object']
     

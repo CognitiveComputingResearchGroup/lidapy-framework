@@ -42,6 +42,16 @@ class SingleSubscription(object):
         """
         self.msg = ros_msg
         
+        if self.msg_type == PointCloud2:
+            # preprocess to get rid of NaN points (pixels of unknown distance)
+            rawpoints = numpy.array(list(point_cloud2.read_points(ros_msg, skip_nans=False)), dtype=numpy.float32)[:, :3]
+            notnanindices = ~numpy.isnan(rawpoints[:, 0])
+            self.data = (rawpoints[notnanindices], notnanindices, len(rawpoints))
+        elif self.msg_type == CompressedImage:
+            self.data = ros_msg.data
+        else:
+            self.data = ros_msg
+        
         # we don't need to be called again
         self.subscriber.unregister()
         
@@ -53,18 +63,11 @@ class SingleSubscription(object):
             # write data to disk
             if self.msg_type == CompressedImage:
                 f = open(self.path, 'w')
-                f.write(ros_msg.data)
-                f.close()
-            elif self.msg_type == PointCloud2:
-                # preprocess to get rid of NaN points (pixels of unknown distance)
-                rawpoints = numpy.array(list(point_cloud2.read_points(ros_msg, skip_nans=False)), dtype=numpy.float32)[:, :3]
-                notnanindices = ~numpy.isnan(rawpoints[:, 0])
-                f = open(self.path, 'wb')
-                pickle.dump((rawpoints[notnanindices], notnanindices, len(rawpoints)), f)
+                f.write(self.data)
                 f.close()
             else:
                 f = open(self.path, 'wb')
-                pickle.dump(ros_msg, f)
+                pickle.dump(self.data, f)
                 f.close()
         
         self.done = True

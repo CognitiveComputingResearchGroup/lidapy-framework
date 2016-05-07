@@ -32,13 +32,6 @@ class AtlasSensoryMotorMemoryModule(SensoryMotorMemoryModule):
             self.state_setter.setstate({'atlas::neck_ay': 0})
             time.sleep(1)
             self.state_setter.setstate({'atlas::neck_ay': 0})        
-        
-
-    def _add_publisher(self, topic, msg_type, queue_size=0):
-        super(AtlasSensoryMotorMemoryModule, self)._add_publisher(topic, msg_type, queue_size)
-        
-    def _add_subscriber(self, topic, msg_type, callback=None, callback_args={}):
-        super(AtlasSensoryMotorMemoryModule, self)._add_subscriber(topic, msg_type, callback, callback_args)
 
     def add_publishers(self, queue_size=10):
         """
