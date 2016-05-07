@@ -9,9 +9,10 @@ from lidapy.module.atlas_sensory_motor_memory import AtlasSensoryMotorMemoryModu
 from lidapy.framework.msg import Behavior
 from lidapy.util.comm import get_publisher
 from lidapy.util import logger
-import time, traceback
+import time, traceback, random
 from lidapy.module.atlas_sensory_memory import AtlasSensoryMemoryModule
 
+plt = None
 try:
     import matplotlib.pyplot as plt
 except:
@@ -33,22 +34,25 @@ class AgentStarter(object):
         self.modules["SensoryMemory"] = AtlasSensoryMemoryModule()
         
         # TODO: proper cognitive cycle instead
-        behavior_publisher = get_publisher("/lida/selected_behaviors", Behavior.msg_type(), queue_size=10)
+        behavior_publisher = get_publisher("/lida/selected_behaviors", Behavior, queue_size=10)
         for i in range(100):
+            linear_speed = random.random()*2
+            angular_speed = random.random()*0.5
+            logger.info("Executing random movement: {}".format(linear_speed)+", {}".format(angular_speed))
+            self.modules["SensoryMotorMemory"].move(linear_speed, angular_speed)
+            
             behavior = Behavior()
             behavior.data = i
             logger.info("Faking selection of action: {}".format(behavior))
             behavior_publisher.publish(behavior)
             time.sleep(1)
             
-            try:
+            if plt != None:
                 topics = self.modules["SensoryMemory"]._topic_data.keys()
                 for i in range(len(topics)):
                     plt.subplot(1,len(topics),i+1)
                     plt.imshow(self.modules["SensoryMemory"]._topic_data[topics[i]])
                 plt.show()
-            except Exception,e:
-                print e
             
 if __name__ == "__main__":
     starter = AgentStarter()

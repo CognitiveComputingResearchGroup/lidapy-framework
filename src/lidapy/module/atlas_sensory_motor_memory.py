@@ -6,7 +6,7 @@ Created on May 6, 2016
 '''
 from lidapy.module.sensory_motor_memory import SensoryMotorMemoryModule
 from lidapy.framework.msg import Behavior, ConsciousContent
-from lidapy.util.rosutils import StateSetter
+from lidapy.util.rosutils import StateSetter, DVector3
 from std_msgs.msg import String
 from geometry_msgs.msg import Twist
 from lidapy.util import logger
@@ -18,6 +18,10 @@ class AtlasSensoryMotorMemoryModule(SensoryMotorMemoryModule):
         
         # initialize StateSetter, allowing Sensory-Motor Memory to control individual joints of the Atlas
         self.state_setter = StateSetter()
+
+        # initialize movement vectors
+        self.linear_movement_vector = DVector3([0,0,0], defaultcoord=0)
+        self.angular_movement_vector = DVector3([0,0,0], defaultcoord=2)
 
         if fakewalking:
             # initialize fake walking
@@ -58,7 +62,19 @@ class AtlasSensoryMotorMemoryModule(SensoryMotorMemoryModule):
         """
         Execute the behavior selected by ActionSelection (arriving through /lida/selected_behaviors)
         """
-        print msg
+        logger.info("Executing behavior: {}".format(msg))
+        
+    def move(self, linear_speed = None, angular_speed = None):
+        if linear_speed != None:
+            self.linear_movement_vector.set(linear_speed)
+        if angular_speed != None:
+            self.angular_movement_vector.set(angular_speed)
+        movecommand = Twist()
+        movecommand.linear = self.linear_movement_vector
+        movecommand.angular = self.angular_movement_vector
+        
+        logger.info("Moving robot (linear: {},".format(self.linear_movement_vector)+" angular: {}".format(self.angular_movement_vector))
+        self._publishers["/atlas/cmd_vel"].publish(movecommand)
 
 if __name__ == '__main__':
     try:

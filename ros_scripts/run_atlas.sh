@@ -14,7 +14,9 @@ ROS_NAMESPACE=stereo rosrun stereo_image_proc stereo_image_proc &
 # show camera output for debugging
 rosrun image_view stereo_view stereo:=/stereo image:=image_rect_color &
 
-echo "starting Gazebo world... Please be patient. Only run 'test_lida_robot.py' when Gazebo has finished loading"
+sleep 1
+
+echo "starting Gazebo world... Please be patient. Only run 'agentstarter.py' when Gazebo has finished loading"
 
 # launch actual ROS world; use VRC cheats (for "fake walking")
 # see http://gazebosim.org/tutorials?tut=drcsim_fakewalking&cat=drcsim

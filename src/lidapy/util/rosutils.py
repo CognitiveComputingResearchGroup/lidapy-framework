@@ -12,9 +12,26 @@ import numpy
 from sensor_msgs.msg import CompressedImage
 from sensor_msgs.msg import PointCloud2
 from sensor_msgs import point_cloud2
+from geometry_msgs.msg import Vector3
 
 IMGTOPIC = "/multisense_sl/camera/left/image_color/compressed"
 DEPTHTOPIC = "/multisense_sl/points2"
+
+class DVector3(Vector3):
+    defaultcoord = 0
+    def __init__(self, coords=[0,0,0], defaultcoord=0):
+        self.set(coords)
+        self.defaultcoord = defaultcoord
+    def set(self, coords=[0,0,0]):
+        if type(coords) == list:
+            [self.x, self.y, self.z] = coords
+        else:
+            if self.defaultcoord == 0: 
+                self.x = coords
+            elif self.defaultcoord == 1: 
+                self.y = coords
+            elif self.defaultcoord == 2: 
+                self.z = coords
 
 class SingleSubscription(object):
     """
