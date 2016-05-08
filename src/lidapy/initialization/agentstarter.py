@@ -15,6 +15,7 @@ from lidapy.module.atlas_sensory_memory import AtlasSensoryMemoryModule
 plt = None
 try:
     import matplotlib.pyplot as plt
+    plt.ion() # interactive (non-blocking) plotting
 except:
     print "importing matplotlib failed - take a look at the contents of 'sensor_data_cache' for sensory memory snapshots"
 
@@ -52,7 +53,8 @@ class AgentStarter(object):
                 for i in range(len(topics)):
                     plt.subplot(1,len(topics),i+1)
                     plt.imshow(self.modules["SensoryMemory"]._topic_data[topics[i]])
-                plt.show()
+                plt.pause(0.0001)  
+        plt.show(block=True) # blocking plot of last sensory images 
             
 if __name__ == "__main__":
     starter = AgentStarter()
