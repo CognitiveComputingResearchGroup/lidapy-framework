@@ -101,7 +101,7 @@ class AgentConfig(object):
             return False
 
     def get_global_param(self, param_name, default_value=None):
-        param_value = self._config.get_param("global_params", param_name, default_value)
+        param_value = self.get_param("global_params", param_name, default_value)
         return param_value
 
     def get_param(self, param_type, param_name, default_value=None):
