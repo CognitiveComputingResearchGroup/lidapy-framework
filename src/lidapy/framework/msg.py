@@ -3,7 +3,7 @@ from lidapy.util import comm, logger
 
 class FrameworkTopic(object):
     def __init__(self, topic_name, msg_type, queue_size=0):
-        super(object, self).__init__()
+        super(FrameworkTopic, self).__init__()
 
         self.topic_name = topic_name
         self.msg_type = msg_type
@@ -22,7 +22,10 @@ class FrameworkTopic(object):
 
 
 class FrameworkTopicPublisher(object):
+
     def __init__(self, topic_name, msg_type, queue_size=0):
+        super(FrameworkTopicPublisher, self).__init__()
+
         self.topic_name = topic_name
         self.msg_type = msg_type
         self.queue_size = queue_size
@@ -40,6 +43,8 @@ class FrameworkTopicPublisher(object):
 
 class FrameworkMsg(object):
     def __init__(self):
+        super(FrameworkMsg, self).__init__()
+
         self._msg = self._create_serializable_msg()
 
     def _create_serializable_msg(self):

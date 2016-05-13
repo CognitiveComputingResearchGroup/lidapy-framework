@@ -29,6 +29,8 @@ class AgentConfig(object):
     _initialized = False
 
     def __init__(self, config_filepath=None):
+        super(AgentConfig, self).__init__()
+
         if not AgentConfig._initialized:
             found_filepath = self._find_config_file(config_filepath)
             if not found_filepath:
