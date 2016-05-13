@@ -13,7 +13,7 @@ from lidapy.util import comm, logger
 
 class FrameworkProcess(Process):
     def __init__(self, name):
-        super(Process, self).__init__(name=name)
+        super(FrameworkProcess, self).__init__(name=name)
 
         # Register this process with communication infrastructure
         comm.initialize(name)
