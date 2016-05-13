@@ -5,7 +5,7 @@ from lidapy.framework.process import FrameworkProcess
 class FrameworkModule(FrameworkProcess):
 
     def __init__(self, module_name):
-        super(FrameworkProcess, self).__init__(module_name)
+        super(FrameworkModule, self).__init__(module_name)
 
         self.module_name = module_name
 
