@@ -36,6 +36,8 @@ class FrameworkModule(FrameworkProcess):
         # }
         self.received_msgs = {}
 
+        self._config = None
+
         self.add_publishers()
         self.add_subscribers()
 
