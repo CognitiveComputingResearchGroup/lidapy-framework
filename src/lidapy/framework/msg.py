@@ -105,7 +105,7 @@ class ConsciousContent(FrameworkMsg):
     def msg_type():
         try:
             # ROS specific imports
-            from lida.msg import ConsciousContents as _ConsciousContent
+            from lida.msg import ConsciousContent as _ConsciousContent
             return _ConsciousContent
         except ImportError:
             return ConsciousContent
