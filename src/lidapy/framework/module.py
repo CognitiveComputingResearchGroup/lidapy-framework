@@ -1,77 +1,90 @@
-#!/usr/bin/env python
-'''
-Created on Apr 21, 2016
-
-@author: Sean Kugele
-'''
-from lidapy.util import comm, logger
 from lidapy.framework.agent import AgentConfig
+from lidapy.framework.process import FrameworkProcess
 
-class FrameworkModule(object):
+
+class FrameworkModule(FrameworkProcess):
+
     def __init__(self, module_name):
+        super(FrameworkProcess, self).__init__(module_name)
+
         self.module_name = module_name
 
-        comm.initialize(self.module_name)
+        # A dictionary of FrameworkTopics
+        #
+        # format:
+        # {
+        #     TopicName1 : FrameworkTopic1,
+        #     TopicName2 : FrameworkTopic2,
+        # }
+        self.topics = {}
 
-        self._publishers = {}
-        self._received_msgs = {}
+        # A dictionary of FrameworkTopics
+        #
+        # format:
+        # {
+        #     TopicName1 : FrameworkTopicPublisher1,
+        #     TopicName2 : FrameworkTopicPublisher2,
+        # }
+        self.publishers = {}
 
-        self._config = AgentConfig()
+        # A dictionary of message queues.
+        #
+        # format:
+        # {
+        #     TopicName1 : [ Msg1, Msg2, ... ],
+        #     TopicName2 : [ Msg1, Msg2, ... ],
+        # }
+        self.received_msgs = {}
 
         self.add_publishers()
         self.add_subscribers()
 
-    def get_module_param(self, param_name, default_value=None):
-        param_value = self._config.get_param(self.module_name, param_name, default_value)
-        logger.info("{} = {}".format(param_name, param_value))
-        return param_value
+    @property
+    def config(self):
+        if self._config is None:
+            self._config = AgentConfig()
 
-    def get_global_param(self, param_name, default_value=None):
-        param_value = self._config.get_param("global_params", param_name, default_value)
-        logger.info("{} = {}".format(param_name, param_value))
-        return param_value
+        return self._config
 
-    def _add_publisher(self, topic, msg_type, queue_size=0):
-        logger.info("Adding publisher for topic = {}".format(topic))
-        self._publishers[topic] = comm.get_publisher(topic, msg_type, queue_size=queue_size)
+    # A default callback for topic subscribers.
+    def receive_msg(self, msg, args):
 
-    def _add_subscriber(self, topic, msg_type, callback=None, callback_args={}):
-        logger.info("Adding subscriber for topic = {}".format(topic))
-        if callback is None:
-            callback = self._receive_msg
+        topic_name = args["topic"]
 
-        sub_args = {"topic": topic}
-        sub_args.update(callback_args)
-
-        comm.register_subscriber(topic, msg_type, callback, sub_args)
-        self._received_msgs[topic] = []
-
-    def _receive_msg(self, msg, args):
-        topic = args["topic"]
-        logger.debug("Receiving message for topic = {} : {}".format(topic, msg))
-        if topic is not None:
-            msg_queue = self._received_msgs[topic]
+        if topic_name is not None:
+            msg_queue = self._received_msgs[topic_name]
             msg_queue.append(msg)
 
+    # A default implementation for retrieving messages for a topic.  This
+    # implementation assumes the default callback "receive_msg"
     def get_next_msg(self, topic):
-        msg_queue = self._received_msgs[topic]
+        topic_name = topic.topic_name
+
+        msg_queue = self._received_msgs[topic_name]
 
         next_msg = None
         if len(msg_queue) > 0:
-            next_msg = self._received_msgs[topic].pop()
+            next_msg = self._received_msgs[topic_name].pop()
 
         return next_msg
 
-    def publish(self, topic, msg):
-        logger.debug("Publishing msg to topic = {} : {}".format(topic, msg))
+    def add_publisher(self, topic):
+        self.publishers[topic.topic_name] = topic.get_publisher()
 
-        comm.publish_message(self._publishers[topic], msg)
+    def add_subscriber(self, topic, callback=None, callback_args=None):
+        if callback is None:
+            callback = self.receive_msg
 
-    def advance(self):
+        topic.register_subscriber(callback, callback_args)
+
+    # This method must be overridden
+    def add_publishers(self):
         pass
 
-    def run(self):
-        while not comm.shutting_down():
-            rate_in_hz = int(self.get_global_param("rate_in_hz", 100))
-            self.advance()
-            comm.wait(rate_in_hz)
+    # This method must be overridden
+    def add_subscribers(self):
+        pass
+
+    # This method must be overridden
+    def advance(self):
+        pass

@@ -1,39 +1,32 @@
 #!/usr/bin/env python
-'''
-Created on Apr 20, 2016
 
-@author: Sean Kugele
-'''
 from lidapy.framework.module import FrameworkModule
-from lidapy.framework.msg import ConsciousContent, Cue, Feature, Percept
+from lidapy.framework.msg import Percepts
+from lidapy.framework.msg import built_in_topics
 
 
 class PerceptualAssociativeMemoryModule(FrameworkModule):
     def __init__(self):
         super(PerceptualAssociativeMemoryModule, self).__init__("PerceptualAssociativeMemoryModule")
 
+    # Override this method to add more publishers
     def add_publishers(self):
-        pubs = [{"topic": "/lida/percepts", "msg_type": Percept.msg_type()}]
-        for pub in pubs:
-            super(PerceptualAssociativeMemoryModule, self)._add_publisher(pub["topic"], pub["msg_type"])
+        super(PerceptualAssociativeMemoryModule, self).add_publisher(built_in_topics["/lida/percepts"])
 
+    # Override this method to add more subscribers
     def add_subscribers(self):
-        subs = [{"topic": "/lida/detected_features", "msg_type": Feature.msg_type()},
-                {"topic": "/lida/workspace_cues", "msg_type": Cue.msg_type()},
-                {"topic": "/lida/global_broadcast", "msg_type": ConsciousContent.msg_type()}]
-
-        for sub in subs:
-            super(PerceptualAssociativeMemoryModule, self)._add_subscriber(sub["topic"], sub["msg_type"])
+        super(PerceptualAssociativeMemoryModule, self).add_subscriber(built_in_topics["/lida/detected_features"])
+        super(PerceptualAssociativeMemoryModule, self).add_subscriber(built_in_topics["/lida/workspace_cues"])
+        super(PerceptualAssociativeMemoryModule, self).add_subscriber(built_in_topics["/lida/global_broadcast"])
 
     def advance(self):
+        next_features = super(PerceptualAssociativeMemoryModule, self).get_next_msg("/lida/detected_features")
 
-        next_feature = super(PerceptualAssociativeMemoryModule, self).get_next_msg("/lida/detected_features")
+        if next_features is not None:
+            percepts = Percepts()
+            percepts.id = next_features.id
 
-        if next_feature is not None:
-            percept = Percept()
-            percept.id = next_feature.id
-
-            super(PerceptualAssociativeMemoryModule, self).publish("/lida/percepts", percept)
+            super(PerceptualAssociativeMemoryModule, self).publish("/lida/percepts", percepts)
 
 
 if __name__ == '__main__':

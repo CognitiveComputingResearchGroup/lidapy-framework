@@ -1,40 +1,32 @@
 #!/usr/bin/env python
-'''
-Created on Apr 20, 2016
 
-@author: Sean Kugele
-'''
 from lidapy.framework.module import FrameworkModule
-# TODO: Replace with LIDA msgs
-from std_msgs.msg import String
-from lidapy.framework.msg import Coalition, ConsciousContent, Cue, Episode, Percept, SpatialMap
+from lidapy.framework.msg import Coalitions
+from lidapy.framework.msg import built_in_topics
 
 
 class WorkspaceModule(FrameworkModule):
     def __init__(self):
         super(WorkspaceModule, self).__init__("WorkspaceModule")
 
+    # Override this method to add more publishers
     def add_publishers(self):
-        pubs = [{"topic": "/lida/workspace_coalitions", "msg_type": Coalition.msg_type()},
-                {"topic": "/lida/workspace_cues", "msg_type": Cue.msg_type()}]
-        for pub in pubs:
-            super(WorkspaceModule, self)._add_publisher(pub["topic"], pub["msg_type"])
+        super(WorkspaceModule, self).add_publisher(built_in_topics["/lida/workspace_coalitions"])
+        super(WorkspaceModule, self).add_publisher(built_in_topics["/lida/workspace_cues"])
 
+    # Override this method to add more subscribers
     def add_subscribers(self):
-        # {"topic": "/lida/ventral_stream", "msg_type": String},
-        subs = [{"topic": "/lida/percepts", "msg_type": Percept.msg_type()},
-                {"topic": "/lida/spatial_maps", "msg_type": SpatialMap.msg_type()},
-                {"topic": "/lida/episodes", "msg_type": Episode.msg_type()},
-                {"topic": "/lida/global_broadcast", "msg_type": ConsciousContent.msg_type()},]
-        for sub in subs:
-            super(WorkspaceModule, self)._add_subscriber(sub["topic"], sub["msg_type"])
+        super(WorkspaceModule, self).add_subscriber(built_in_topics["/lida/percepts"])
+        super(WorkspaceModule, self).add_subscriber(built_in_topics["/lida/spatial_maps"])
+        super(WorkspaceModule, self).add_subscriber(built_in_topics["/lida/episodes"])
+        super(WorkspaceModule, self).add_subscriber(built_in_topics["/lida/global_broadcast"])
 
     def advance(self):
         next_percept = super(WorkspaceModule, self).get_next_msg("/lida/percepts")
 
         if next_percept is not None:
-            coalition = Coalition()
-            Coalition.id = next_percept.id
+            coalition = Coalitions()
+            Coalitions.id = next_percept.id
 
             super(WorkspaceModule, self).publish("/lida/workspace_coalitions", coalition)
 

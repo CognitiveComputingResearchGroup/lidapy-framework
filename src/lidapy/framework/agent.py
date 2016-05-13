@@ -1,7 +1,8 @@
 from ConfigParser import SafeConfigParser
+from os import getenv
+
 from lidapy.util import logger
 from lidapy.util.comm import ParameterService
-from os import getenv
 
 
 class AgentConfig(object):
@@ -97,7 +98,11 @@ class AgentConfig(object):
         else:
             return False
 
-    def get_param(self, param_type, param_name, default_value):
+    def get_global_param(self, param_name, default_value=None):
+        param_value = self._config.get_param("global_params", param_name, default_value)
+        return param_value
+
+    def get_param(self, param_type, param_name, default_value=None):
         param_value = default_value
         if AgentConfig._param_service is None:
             logger.debug("Retrieving parameter [type = {}, name = {}] from file config".format(param_type, param_name,
