@@ -2,11 +2,12 @@ from lidapy.util import comm, logger
 
 
 class FrameworkTopic(object):
-    def __init__(self, topic_name, msg_type, queue_size=0):
+    def __init__(self, topic_name, msg_class, queue_size=0):
         super(FrameworkTopic, self).__init__()
 
         self.topic_name = topic_name
-        self.msg_type = msg_type
+        self.msg_class = msg_class
+        self.msg_type = msg_class.msg_type()
         self.queue_size = queue_size
 
     def register_subscriber(self, callback=None, callback_args=None):
