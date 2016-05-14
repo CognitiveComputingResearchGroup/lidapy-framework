@@ -37,6 +37,7 @@ class AgentConfig(object):
                 raise IOError("Failed to find usable agent configuration file")
 
             self._load_config(found_filepath)
+            AgentConfig._initialized = True
 
     def _find_config_file(self, config_filepath):
 

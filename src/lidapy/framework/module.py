@@ -59,7 +59,7 @@ class FrameworkModule(FrameworkProcess):
     def receive_msg(self, msg, args):
         topic_name = args["topic"]
 
-        self.logger.debug("Receiving message on topic {}.  Message = ".format(topic_name, msg))
+        self.logger.debug("Receiving message on topic {}.  Message = {}".format(topic_name, msg))
 
         if topic_name is not None:
             msg_queue = self.received_msgs[topic_name]
