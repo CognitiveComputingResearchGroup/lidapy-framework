@@ -1,4 +1,4 @@
-from Queue import Queue, Empty, Full
+from collections import deque
 
 from lidapy.framework.agent import AgentConfig
 from lidapy.framework.process import FrameworkProcess
@@ -34,8 +34,8 @@ class FrameworkModule(FrameworkProcess):
         #
         # format:
         # {
-        #     TopicName1 : Queue1,
-        #     TopicName2 : Queue2,
+        #     TopicName1 : Deque1,
+        #     TopicName2 : Deque2,
         # }
         self.received_msgs = {}
 
@@ -55,7 +55,8 @@ class FrameworkModule(FrameworkProcess):
     def logger(self):
         return logger
 
-    # A default callback for topic subscribers.
+    # A default callback for topic subscribers. This can be overridden; however, if
+    # this method is overrideen then get_next_msg should also be overridden.
     def receive_msg(self, msg, args):
         topic_name = args["topic"]
 
@@ -63,11 +64,7 @@ class FrameworkModule(FrameworkProcess):
 
         if topic_name is not None:
             msg_queue = self.received_msgs[topic_name]
-
-            try:
-                msg_queue.put_nowait(msg)
-            except Full:
-                self.logger.warn("Message queue is full for topic {}".format(topic_name))
+            msg_queue.append(msg)
 
     # A default implementation for retrieving messages for a topic.  This
     # implementation assumes the default callback "receive_msg"
@@ -75,10 +72,10 @@ class FrameworkModule(FrameworkProcess):
         msg_queue = self.received_msgs[topic_name]
 
         next_msg = None
-        try:
-            next_msg = msg_queue.get_nowait()
-        except Empty:
+        if len(msg_queue) == 0:
             self.logger.debug("Message queue is empty for topic {}".format(topic_name))
+        else:
+            next_msg = msg_queue.popleft()
 
         return next_msg
 
@@ -90,7 +87,9 @@ class FrameworkModule(FrameworkProcess):
     def add_subscriber(self, topic, callback=None, callback_args=None):
         self.logger.info("Adding subscriber for topic {}".format(topic.topic_name))
 
-        self.received_msgs[topic.topic_name] = Queue()
+        # Initial message queue
+        max_queue_size = self.config.get_param(self.module_name, "max_queue_size", 10)
+        self.received_msgs[topic.topic_name] = deque(maxlen=max_queue_size)
 
         if callback is None:
             callback = self.receive_msg
