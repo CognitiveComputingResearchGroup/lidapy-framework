@@ -22,7 +22,7 @@ class SensoryMemoryModule(FrameworkModule):
 
     # Override this method to add more subscribers
     def add_subscribers(self):
-        pass
+        super(SensoryMemoryModule, self).add_subscriber(built_in_topics["/lida/global_broadcast"])
 
     def advance(self):
         self.logger.debug("Inside advance")
