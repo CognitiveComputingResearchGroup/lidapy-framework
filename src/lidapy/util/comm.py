@@ -23,6 +23,14 @@ def publish_message(publisher, msg):
     publisher.publish(msg.serialize())
 
 
+def get_service(service_name, service_class, callback):
+    return rospy.Service(service_name, service_class, callback)
+
+
+def get_service_proxy(service_name, service_class):
+    return rospy.ServiceProxy(service_name, service_class)
+
+
 def shutting_down():
     return rospy.is_shutdown()
 
