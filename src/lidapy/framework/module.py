@@ -69,7 +69,10 @@ class FrameworkModule(FrameworkProcess):
 
         next_msg = None
         if len(msg_queue) > 0:
+            self.logger.debug("{} message(s) available on queue for topic {}".format(len(msg_queue), topic_name))
             next_msg = self.received_msgs[topic_name].pop()
+        else:
+            self.logger.debug("Message queue is empty for topic {}".format(topic_name))
 
         return next_msg
 
