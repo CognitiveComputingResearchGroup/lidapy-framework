@@ -1,15 +1,10 @@
 #!/usr/bin/env python
-'''
-Created on Apr 20, 2016
 
-@author: Sean Kugele
-'''
-from lidapy.framework.module import FrameworkModule
-from lidapy.framework.msg import Feature
 from random import randint
 
-# TODO: Replace this with LIDA messages
-from std_msgs.msg import String
+from lidapy.framework.module import FrameworkModule
+from lidapy.framework.msg import Features
+from lidapy.framework.msg import built_in_topics
 
 
 class SensoryMemoryModule(FrameworkModule):
@@ -19,24 +14,23 @@ class SensoryMemoryModule(FrameworkModule):
         self.add_publishers()
         self.add_subscribers()
 
+    # Override this method to add more publishers
     def add_publishers(self):
-        #{"topic": "/lida/dorsal_stream", "msg_type": String},
-        #{"topic": "/lida/ventral_stream", "msg_type": String},
+        super(SensoryMemoryModule, self).add_publisher(built_in_topics["/lida/dorsal_stream"])
+        super(SensoryMemoryModule, self).add_publisher(built_in_topics["/lida/ventral_stream"])
+        super(SensoryMemoryModule, self).add_publisher(built_in_topics["/lida/detected_features"])
 
-        pubs = [{"topic": "/lida/detected_features", "msg_type": Feature.msg_type()},]
-        for pub in pubs:
-            super(SensoryMemoryModule, self)._add_publisher(pub["topic"], pub["msg_type"])
-
+    # Override this method to add more subscribers
     def add_subscribers(self):
-        #subs = [{"topic": "/lida/environment", "msg_type": String}]
-        subs = []
-        for sub in subs:
-            super(SensoryMemoryModule, self)._add_subscriber(sub["topic"], sub["msg_type"])
+        super(SensoryMemoryModule, self).add_subscriber(built_in_topics["/lida/global_broadcast"])
 
     def advance(self):
-        msg = Feature()
-        msg.id = str(randint(0, 1e15 - 1))
-        super(SensoryMemoryModule, self).publish("/lida/detected_features", msg)
+        self.logger.debug("Inside advance")
+
+        features = Features()
+        features.id = str(randint(0, 1e15 - 1))
+
+        self.publishers["/lida/detected_features"].publish(features)
 
 
 if __name__ == '__main__':

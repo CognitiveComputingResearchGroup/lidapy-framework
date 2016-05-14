@@ -16,7 +16,7 @@ def get_publisher(topic, msg_type, queue_size=0):
 
 
 def register_subscriber(topic, msg_type, callback, callback_args=[]):
-    rospy.Subscriber(topic, msg_type, callback=callback, callback_args=callback_args)
+    return rospy.Subscriber(topic, msg_type, callback=callback, callback_args=callback_args)
 
 
 def publish_message(publisher, msg):

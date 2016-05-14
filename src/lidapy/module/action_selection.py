@@ -1,37 +1,34 @@
 #!/usr/bin/env python
-'''
-Created on Apr 20, 2016
 
-@author: Sean Kugele
-'''
 from lidapy.framework.module import FrameworkModule
-from lidapy.framework.msg import Behavior, ConsciousContent
+from lidapy.framework.msg import Behaviors
+from lidapy.framework.msg import built_in_topics
 
 
 class ActionSelectionModule(FrameworkModule):
     def __init__(self):
         super(ActionSelectionModule, self).__init__("ActionSelectionModule")
 
+    # Override this method to add more publishers
     def add_publishers(self):
-        pubs = [{"topic": "/lida/selected_behaviors", "msg_type": Behavior.msg_type()}]
+        super(ActionSelectionModule, self).add_publisher(built_in_topics["/lida/selected_behaviors"])
 
-        for pub in pubs:
-            super(ActionSelectionModule, self)._add_publisher(pub["topic"], pub["msg_type"])
-
+    # Override this method to add more subscribers
     def add_subscribers(self):
-        subs = [{"topic": "/lida/candidate_behaviors", "msg_type": Behavior.msg_type()},
-                {"topic": "/lida/global_broadcast", "msg_type": ConsciousContent.msg_type()}]
-        for sub in subs:
-            super(ActionSelectionModule, self)._add_subscriber(sub["topic"], sub["msg_type"])
+        super(ActionSelectionModule, self).add_subscriber(built_in_topics["/lida/candidate_behaviors"])
+        super(ActionSelectionModule, self).add_subscriber(built_in_topics["/lida/global_broadcast"])
 
     def advance(self):
+        self.logger.debug("Inside advance")
+
         next_behavior = super(ActionSelectionModule, self).get_next_msg("/lida/candidate_behaviors")
 
         if next_behavior is not None:
-            behavior = Behavior()
-            behavior.id = next_behavior.id
+            behaviors = Behaviors()
+            behaviors.id = next_behavior.id
 
-            super(ActionSelectionModule, self).publish("/lida/selected_behaviors", behavior)
+            self.publishers["/lida/selected_behaviors"].publish(behaviors)
+
 
 if __name__ == '__main__':
 

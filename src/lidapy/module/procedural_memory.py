@@ -1,35 +1,32 @@
 #!/usr/bin/env python
-'''
-Created on Apr 20, 2016
 
-@author: Sean Kugele
-'''
 from lidapy.framework.module import FrameworkModule
-from lidapy.framework.msg import Behavior, ConsciousContent
+from lidapy.framework.msg import Behaviors
+from lidapy.framework.msg import built_in_topics
 
 
 class ProceduralMemoryModule(FrameworkModule):
     def __init__(self):
         super(ProceduralMemoryModule, self).__init__("ProceduralMemoryModule")
 
+    # Override this method to add more publishers
     def add_publishers(self):
-        pubs = [{"topic": "/lida/candidate_behaviors", "msg_type": Behavior.msg_type()}]
-        for pub in pubs:
-            super(ProceduralMemoryModule, self)._add_publisher(pub["topic"], pub["msg_type"])
+        super(ProceduralMemoryModule, self).add_publisher(built_in_topics["/lida/candidate_behaviors"])
 
+    # Override this method to add more subscribers
     def add_subscribers(self):
-        subs = [{"topic": "/lida/global_broadcast", "msg_type": ConsciousContent.msg_type()}]
-        for sub in subs:
-            super(ProceduralMemoryModule, self)._add_subscriber(sub["topic"], sub["msg_type"])
+        super(ProceduralMemoryModule, self).add_subscriber(built_in_topics["/lida/global_broadcast"])
 
     def advance(self):
+        self.logger.debug("Inside advance")
+
         next_broadcast = super(ProceduralMemoryModule, self).get_next_msg("/lida/global_broadcast")
 
         if next_broadcast is not None:
-            behavior = Behavior()
-            behavior.id = next_broadcast.id
+            behaviors = Behaviors()
+            behaviors.id = next_broadcast.id
 
-            super(ProceduralMemoryModule, self).publish("/lida/candidate_behaviors", behavior)
+            self.publishers["/lida/candidate_behaviors"].publish(behaviors)
 
 if __name__ == '__main__':
 

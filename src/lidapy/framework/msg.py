@@ -1,5 +1,51 @@
+from lidapy.util import comm, logger
+
+
+class FrameworkTopic(object):
+    def __init__(self, topic_name, msg_class, queue_size=0):
+        super(FrameworkTopic, self).__init__()
+
+        self.topic_name = topic_name
+        self.msg_class = msg_class
+        self.msg_type = msg_class.msg_type()
+        self.queue_size = queue_size
+
+    def register_subscriber(self, callback=None, callback_args=None):
+        sub_args = {"topic": self.topic_name}
+
+        if callback_args is not None:
+            sub_args.update(callback_args)
+
+        comm.register_subscriber(self.topic_name, self.msg_type, callback, sub_args)
+
+    def get_publisher(self):
+        return FrameworkTopicPublisher(self.topic_name, self.msg_type, self.queue_size)
+
+
+class FrameworkTopicPublisher(object):
+
+    def __init__(self, topic_name, msg_type, queue_size=0):
+        super(FrameworkTopicPublisher, self).__init__()
+
+        self.topic_name = topic_name
+        self.msg_type = msg_type
+        self.queue_size = queue_size
+
+        self._publisher \
+            = comm.get_publisher(self.topic_name,
+                                 self.msg_type,
+                                 queue_size=self.queue_size)
+
+    def publish(self, msg):
+        logger.debug("Publishing msg to topic [{}]".format(self.topic_name))
+
+        comm.publish_message(self._publisher, msg)
+
+
 class FrameworkMsg(object):
     def __init__(self):
+        super(FrameworkMsg, self).__init__()
+
         self._msg = self._create_serializable_msg()
 
     def _create_serializable_msg(self):
@@ -17,38 +63,38 @@ class FrameworkMsg(object):
         self._msg.id = value
 
 
-class Behavior(FrameworkMsg):
+class Behaviors(FrameworkMsg):
     def __init__(self):
-        super(Behavior, self).__init__()
+        super(Behaviors, self).__init__()
 
     @staticmethod
     def msg_type():
         try:
             # ROS specific imports
-            from lida.msg import Behavior as _Behavior
-            return _Behavior
+            from lida.msg import Behaviors as _Behaviors
+            return _Behaviors
         except ImportError:
-            return Behavior
+            return Behaviors
 
     def _create_serializable_msg(self):
-        return Behavior.msg_type()()
+        return Behaviors.msg_type()()
 
 
-class Coalition(FrameworkMsg):
+class Coalitions(FrameworkMsg):
     def __init__(self):
-        super(Coalition, self).__init__()
+        super(Coalitions, self).__init__()
 
     @staticmethod
     def msg_type():
         try:
             # ROS specific imports
-            from lida.msg import Coalition as _Coalition
-            return _Coalition
+            from lida.msg import Coalitions as _Coalitions
+            return _Coalitions
         except ImportError:
-            return Coalition
+            return Coalitions
 
     def _create_serializable_msg(self):
-        return Coalition.msg_type()()
+        return Coalitions.msg_type()()
 
 
 class ConsciousContent(FrameworkMsg):
@@ -68,86 +114,101 @@ class ConsciousContent(FrameworkMsg):
         return ConsciousContent.msg_type()()
 
 
-class Cue(FrameworkMsg):
+class Cues(FrameworkMsg):
     def __init__(self):
-        super(Cue, self).__init__()
+        super(Cues, self).__init__()
 
     @staticmethod
     def msg_type():
         try:
             # ROS specific imports
-            from lida.msg import Cue as _Cue
-            return _Cue
+            from lida.msg import Cues as _Cues
+            return _Cues
         except ImportError:
-            return Cue
+            return Cues
 
     def _create_serializable_msg(self):
-        return Episode.msg_type()()
+        return Episodes.msg_type()()
 
 
-class Episode(FrameworkMsg):
+class Episodes(FrameworkMsg):
     def __init__(self):
-        super(Episode, self).__init__()
+        super(Episodes, self).__init__()
 
     @staticmethod
     def msg_type():
         try:
             # ROS specific imports
-            from lida.msg import Episode as _Episode
-            return _Episode
+            from lida.msg import Episodes as _Episodes
+            return _Episodes
         except ImportError:
-            return Episode
+            return Episodes
 
     def _create_serializable_msg(self):
-        return Episode.msg_type()()
+        return Episodes.msg_type()()
 
 
-class Feature(FrameworkMsg):
+class Features(FrameworkMsg):
     def __init__(self):
-        super(Feature, self).__init__()
+        super(Features, self).__init__()
 
     @staticmethod
     def msg_type():
         try:
             # ROS specific imports
-            from lida.msg import Feature as _Feature
-            return _Feature
+            from lida.msg import Features as _Features
+            return _Features
         except ImportError:
-            return Feature
+            return Features
 
     def _create_serializable_msg(self):
-        return Feature.msg_type()()
+        return Features.msg_type()()
 
 
-class Percept(FrameworkMsg):
+class Percepts(FrameworkMsg):
     def __init__(self):
-        super(Percept, self).__init__()
+        super(Percepts, self).__init__()
 
     @staticmethod
     def msg_type():
         try:
             # ROS specific imports
-            from lida.msg import Percept as _Percept
-            return _Percept
+            from lida.msg import Percepts as _Percepts
+            return _Percepts
         except ImportError:
-            return Percept
+            return Percepts
 
     def _create_serializable_msg(self):
-        return Percept.msg_type()()
+        return Percepts.msg_type()()
 
 
-class SpatialMap(FrameworkMsg):
+class SpatialMaps(FrameworkMsg):
     def __init__(self):
-        super(SpatialMap, self).__init__()
+        super(SpatialMaps, self).__init__()
 
     @staticmethod
     def msg_type():
         try:
             # ROS specific imports
-            from lida.msg import SpatialMap as _SpatialMap
-            return _SpatialMap
+            from lida.msg import SpatialMaps as _SpatialMaps
+            return _SpatialMaps
         except ImportError:
-            return SpatialMap
+            return SpatialMaps
 
     def _create_serializable_msg(self):
-        return SpatialMap.msg_type()()
+        return SpatialMaps.msg_type()()
+
+
+built_in_topics = {
+    "/lida/selected_behaviors": FrameworkTopic("/lida/selected_behaviors", Behaviors),
+    "/lida/candidate_behaviors": FrameworkTopic("/lida/candidate_behaviors", Behaviors),
+    "/lida/global_broadcast": FrameworkTopic("/lida/global_broadcast", ConsciousContent),
+    "/lida/episodes": FrameworkTopic("/lida/episodes", Episodes),
+    "/lida/workspace_cues": FrameworkTopic("/lida/workspace_cues", Cues),
+    "/lida/workspace_coalitions": FrameworkTopic("/lida/workspace_coalitions", Coalitions),
+    "/lida/detected_features": FrameworkTopic("/lida/detected_features", Features),
+    "/lida/percepts": FrameworkTopic("/lida/percepts", Percepts),
+    "/lida/spatial_maps": FrameworkTopic("/lida/spatial_maps", SpatialMaps),
+    "/lida/dorsal_stream": FrameworkTopic("/lida/dorsal_stream", Features),
+    "/lida/ventral_stream": FrameworkTopic("/lida/ventral_stream", Features),
+}
