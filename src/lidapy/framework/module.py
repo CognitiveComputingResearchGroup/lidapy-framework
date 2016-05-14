@@ -54,7 +54,7 @@ class FrameworkModule(FrameworkProcess):
         topic_name = args["topic"]
 
         if topic_name is not None:
-            msg_queue = self._received_msgs[topic_name]
+            msg_queue = self.received_msgs[topic_name]
             msg_queue.append(msg)
 
     # A default implementation for retrieving messages for a topic.  This
@@ -62,11 +62,11 @@ class FrameworkModule(FrameworkProcess):
     def get_next_msg(self, topic):
         topic_name = topic.topic_name
 
-        msg_queue = self._received_msgs[topic_name]
+        msg_queue = self.received_msgs[topic_name]
 
         next_msg = None
         if len(msg_queue) > 0:
-            next_msg = self._received_msgs[topic_name].pop()
+            next_msg = self.received_msgs[topic_name].pop()
 
         return next_msg
 
