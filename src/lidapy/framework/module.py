@@ -59,9 +59,7 @@ class FrameworkModule(FrameworkProcess):
 
     # A default implementation for retrieving messages for a topic.  This
     # implementation assumes the default callback "receive_msg"
-    def get_next_msg(self, topic):
-        topic_name = topic.topic_name
-
+    def get_next_msg(self, topic_name):
         msg_queue = self.received_msgs[topic_name]
 
         next_msg = None
