@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from lidapy.framework.module import FrameworkModule
-from lidapy.framework.msg import built_in_topics, FrameworkMsg
+from lidapy.framework.msg import built_in_topics, ccqGetLastNBroadcastsResponse
 from lidapy.framework.service import FrameworkService
 
 # TODO: This is a ROS specific detail.  Need to figure out how to hide this!
@@ -44,40 +44,6 @@ class ConsciousContentsQueue(FrameworkModule):
 
         if broadcast is not None:
             self.queue.append(broadcast)
-
-
-class ccqGetLastNBroadcastsRequest(FrameworkMsg):
-    def __init__(self):
-        super(ccqGetLastNBroadcastsRequest, self).__init__()
-
-    @staticmethod
-    def msg_type():
-        try:
-            # ROS specific imports
-            from lida.srv import ccqGetLastNBroadcastsRequest as _ccqGetLastNBroadcastsRequest
-            return _ccqGetLastNBroadcastsRequest
-        except ImportError:
-            return ccqGetLastNBroadcastsRequest
-
-    def _create_serializable_msg(self):
-        return ccqGetLastNBroadcastsRequest.msg_type()()
-
-
-class ccqGetLastNBroadcastsResponse(FrameworkMsg):
-    def __init__(self):
-        super(ccqGetLastNBroadcastsResponse, self).__init__()
-
-    @staticmethod
-    def msg_type():
-        try:
-            # ROS specific imports
-            from lida.srv import ccqGetLastNBroadcastsResponse as _ccqGetLastNBroadcastsResponse
-            return ccqGetLastNBroadcastsResponse
-        except ImportError:
-            return ccqGetLastNBroadcastsResponse
-
-    def _create_serializable_msg(self):
-        return ccqGetLastNBroadcastsResponse.msg_type()()
 
 
 if __name__ == '__main__':

@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-'''
-Created on Apr 21, 2016
-
-@author: Sean Kugele
-'''
 import os
 from multiprocessing import Process
 
