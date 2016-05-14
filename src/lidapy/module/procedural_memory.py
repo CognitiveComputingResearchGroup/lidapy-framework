@@ -21,10 +21,10 @@ class ProceduralMemoryModule(FrameworkModule):
         next_broadcast = super(ProceduralMemoryModule, self).get_next_msg("/lida/global_broadcast")
 
         if next_broadcast is not None:
-            behavior = Behaviors()
-            behavior.id = next_broadcast.id
+            behaviors = Behaviors()
+            behaviors.id = next_broadcast.id
 
-            super(ProceduralMemoryModule, self).publish("/lida/candidate_behaviors", behavior)
+            self.publishers["/lida/candidate_behaviors"].publish(behaviors)
 
 if __name__ == '__main__':
 

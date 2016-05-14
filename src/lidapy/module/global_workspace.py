@@ -24,7 +24,7 @@ class GlobalWorkspaceModule(FrameworkModule):
             global_broadcast = Coalitions()
             global_broadcast.id = next_coalitions.id
 
-            super(GlobalWorkspaceModule, self).publish("/lida/global_broadcast", global_broadcast)
+            self.publishers["/lida/global_broadcast"].publish(global_broadcast)
 
 if __name__ == '__main__':
 

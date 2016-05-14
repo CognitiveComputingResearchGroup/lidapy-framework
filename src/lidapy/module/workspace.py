@@ -25,10 +25,11 @@ class WorkspaceModule(FrameworkModule):
         next_percept = super(WorkspaceModule, self).get_next_msg("/lida/percepts")
 
         if next_percept is not None:
-            coalition = Coalitions()
-            Coalitions.id = next_percept.id
+            coalitions = Coalitions()
+            coalitions.id = next_percept.id
 
-            super(WorkspaceModule, self).publish("/lida/workspace_coalitions", coalition)
+            self.publishers["/lida/workspace_coalitions"].publish(coalitions)
+
 
 if __name__ == '__main__':
 

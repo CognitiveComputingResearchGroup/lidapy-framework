@@ -25,7 +25,7 @@ class ActionSelectionModule(FrameworkModule):
             behaviors = Behaviors()
             behaviors.id = next_behavior.id
 
-            super(ActionSelectionModule, self).publish("/lida/selected_behaviors", behaviors)
+            self.publishers["/lida/selected_behaviors"].publish(behaviors)
 
 
 if __name__ == '__main__':

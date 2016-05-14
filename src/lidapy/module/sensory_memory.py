@@ -25,9 +25,10 @@ class SensoryMemoryModule(FrameworkModule):
         pass
 
     def advance(self):
-        msg = Features()
-        msg.id = str(randint(0, 1e15 - 1))
-        super(SensoryMemoryModule, self).publish("/lida/detected_features", msg)
+        features = Features()
+        features.id = str(randint(0, 1e15 - 1))
+
+        self.publishers["/lida/detected_features"].publish(features)
 
 
 if __name__ == '__main__':

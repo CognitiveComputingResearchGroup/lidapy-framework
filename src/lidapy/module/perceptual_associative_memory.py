@@ -26,7 +26,7 @@ class PerceptualAssociativeMemoryModule(FrameworkModule):
             percepts = Percepts()
             percepts.id = next_features.id
 
-            super(PerceptualAssociativeMemoryModule, self).publish("/lida/percepts", percepts)
+            self.publishers["/lida/percepts"].publish(percepts)
 
 
 if __name__ == '__main__':
