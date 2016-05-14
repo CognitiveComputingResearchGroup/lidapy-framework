@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
 from lidapy.framework.module import FrameworkModule
-from lidapy.framework.msg import built_in_topics, ccqGetLastNBroadcastsResponse
+from lidapy.framework.msg import built_in_topics
 from lidapy.framework.service import FrameworkService
 
 # TODO: This is a ROS specific detail.  Need to figure out how to hide this!
-from lida.srv import ccqGetLastNBroadcasts
+from lida.srv import ccqGetLastNBroadcasts, ccqGetLastNBroadcastsResponse
 from collections import deque
 from itertools import islice
 
