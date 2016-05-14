@@ -25,6 +25,8 @@ class SensoryMemoryModule(FrameworkModule):
         pass
 
     def advance(self):
+        self.logger.debug("Inside advance")
+
         features = Features()
         features.id = str(randint(0, 1e15 - 1))
 

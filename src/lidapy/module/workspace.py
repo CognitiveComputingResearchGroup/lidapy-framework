@@ -22,6 +22,8 @@ class WorkspaceModule(FrameworkModule):
         super(WorkspaceModule, self).add_subscriber(built_in_topics["/lida/global_broadcast"])
 
     def advance(self):
+        self.logger.debug("Inside advance")
+
         next_percept = super(WorkspaceModule, self).get_next_msg("/lida/percepts")
 
         if next_percept is not None:

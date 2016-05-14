@@ -18,6 +18,8 @@ class GlobalWorkspaceModule(FrameworkModule):
         super(GlobalWorkspaceModule, self).add_subscriber(built_in_topics["/lida/workspace_coalitions"])
 
     def advance(self):
+        self.logger.debug("Inside advance")
+
         next_coalitions = super(GlobalWorkspaceModule, self).get_next_msg("/lida/workspace_coalitions")
 
         if next_coalitions is not None:

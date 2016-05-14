@@ -20,6 +20,7 @@ class FrameworkProcess(Process):
 
     def run(self):
         logger.info("Beginning execution for process = {} [pid = {}]".format(self.name, os.getpid()))
+
         while not comm.shutting_down():
             rate_in_hz = int(AgentConfig().get_global_param("rate_in_hz", 100))
             self.advance()

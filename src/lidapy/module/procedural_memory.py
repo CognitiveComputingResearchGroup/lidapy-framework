@@ -18,6 +18,8 @@ class ProceduralMemoryModule(FrameworkModule):
         super(ProceduralMemoryModule, self).add_subscriber(built_in_topics["/lida/global_broadcast"])
 
     def advance(self):
+        self.logger.debug("Inside advance")
+
         next_broadcast = super(ProceduralMemoryModule, self).get_next_msg("/lida/global_broadcast")
 
         if next_broadcast is not None:

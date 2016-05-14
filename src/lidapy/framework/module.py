@@ -1,6 +1,6 @@
 from lidapy.framework.agent import AgentConfig
 from lidapy.framework.process import FrameworkProcess
-
+from lidapy.util import logger
 
 class FrameworkModule(FrameworkProcess):
 
@@ -48,10 +48,15 @@ class FrameworkModule(FrameworkProcess):
 
         return self._config
 
+    @property
+    def logger(self):
+        return logger
+
     # A default callback for topic subscribers.
     def receive_msg(self, msg, args):
-
         topic_name = args["topic"]
+
+        self.logger.debug("Receiving message on topic {}.  Message = ".format(topic_name, msg))
 
         if topic_name is not None:
             msg_queue = self.received_msgs[topic_name]
@@ -69,9 +74,13 @@ class FrameworkModule(FrameworkProcess):
         return next_msg
 
     def add_publisher(self, topic):
+        self.logger.info("Adding publisher for topic {}".format(topic.topic_name))
+
         self.publishers[topic.topic_name] = topic.get_publisher()
 
     def add_subscriber(self, topic, callback=None, callback_args=None):
+        self.logger.info("Adding subscriber for topic {}".format(topic.topic_name))
+
         if callback is None:
             callback = self.receive_msg
 

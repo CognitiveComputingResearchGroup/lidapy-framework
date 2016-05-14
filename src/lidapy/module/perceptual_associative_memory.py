@@ -20,6 +20,8 @@ class PerceptualAssociativeMemoryModule(FrameworkModule):
         super(PerceptualAssociativeMemoryModule, self).add_subscriber(built_in_topics["/lida/global_broadcast"])
 
     def advance(self):
+        self.logger.debug("Inside advance")
+
         next_features = super(PerceptualAssociativeMemoryModule, self).get_next_msg("/lida/detected_features")
 
         if next_features is not None:

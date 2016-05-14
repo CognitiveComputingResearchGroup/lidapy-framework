@@ -19,6 +19,8 @@ class ActionSelectionModule(FrameworkModule):
         super(ActionSelectionModule, self).add_subscriber(built_in_topics["/lida/global_broadcast"])
 
     def advance(self):
+        self.logger.debug("Inside advance")
+
         next_behavior = super(ActionSelectionModule, self).get_next_msg("/lida/candidate_behaviors")
 
         if next_behavior is not None:
