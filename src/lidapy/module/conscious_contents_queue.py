@@ -17,7 +17,7 @@ class ConsciousContentsQueue(FrameworkModule):
         self.max_queue_size = self.config.get_param("ConsciousContentsQueue",
                                                     "max_queue_size", 10)
 
-        self.queue = deque(self.max_queue_size)
+        self.queue = deque(maxlen=self.max_queue_size)
         self.service = FrameworkService("ccqGetLastNBroadcasts",
                                         ccqGetLastNBroadcasts,
                                         self.process_last_n_broadcasts_request)
