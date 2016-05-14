@@ -1,6 +1,9 @@
+from Queue import Queue, Empty, Full
+
 from lidapy.framework.agent import AgentConfig
 from lidapy.framework.process import FrameworkProcess
 from lidapy.util import logger
+
 
 class FrameworkModule(FrameworkProcess):
 
@@ -31,8 +34,8 @@ class FrameworkModule(FrameworkProcess):
         #
         # format:
         # {
-        #     TopicName1 : [ Msg1, Msg2, ... ],
-        #     TopicName2 : [ Msg1, Msg2, ... ],
+        #     TopicName1 : Queue1,
+        #     TopicName2 : Queue2,
         # }
         self.received_msgs = {}
 
@@ -60,7 +63,11 @@ class FrameworkModule(FrameworkProcess):
 
         if topic_name is not None:
             msg_queue = self.received_msgs[topic_name]
-            msg_queue.append(msg)
+
+            try:
+                msg_queue.put_nowait(msg)
+            except Full:
+                self.logger.warn("Message queue is full for topic {}".format(topic_name))
 
     # A default implementation for retrieving messages for a topic.  This
     # implementation assumes the default callback "receive_msg"
@@ -68,10 +75,9 @@ class FrameworkModule(FrameworkProcess):
         msg_queue = self.received_msgs[topic_name]
 
         next_msg = None
-        if len(msg_queue) > 0:
-            self.logger.debug("{} message(s) available on queue for topic {}".format(len(msg_queue), topic_name))
-            next_msg = self.received_msgs[topic_name].pop()
-        else:
+        try:
+            next_msg = msg_queue.get_nowait()
+        except Empty:
             self.logger.debug("Message queue is empty for topic {}".format(topic_name))
 
         return next_msg
@@ -83,6 +89,8 @@ class FrameworkModule(FrameworkProcess):
 
     def add_subscriber(self, topic, callback=None, callback_args=None):
         self.logger.info("Adding subscriber for topic {}".format(topic.topic_name))
+
+        self.received_msgs[topic.topic_name] = Queue()
 
         if callback is None:
             callback = self.receive_msg
