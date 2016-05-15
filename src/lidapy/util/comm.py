@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-'''
-Created on Apr 21, 2016
-
-@author: Sean Kugele
-'''
 import rospy
 
 
@@ -20,7 +14,15 @@ def register_subscriber(topic, msg_type, callback, callback_args=[]):
 
 
 def publish_message(publisher, msg):
-    publisher.publish(msg.serialize())
+    publisher.publish(msg)
+
+
+def get_service(service_name, service_class, callback):
+    return rospy.Service(service_name, service_class, callback)
+
+
+def get_service_proxy(service_name, service_class):
+    return rospy.ServiceProxy(service_name, service_class)
 
 
 def shutting_down():
