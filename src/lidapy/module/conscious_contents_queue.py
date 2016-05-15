@@ -33,7 +33,7 @@ class ConsciousContentsQueue(FrameworkModule):
             request.last_n = queue_size
 
         response = ccqGetLastNBroadcastsResponse()
-        response.items = islice(self.queue, queue_size - request.last_n, queue_size)
+        response.items = list(islice(self.queue, queue_size - request.last_n, queue_size))
 
         return response
 
