@@ -106,28 +106,15 @@ class AgentConfig(object):
         return param_value
 
     def get_param(self, param_type, param_name, default_value=None):
-        param_value = default_value
         if AgentConfig._param_service is None:
-            logger.debug("Retrieving parameter [type = {}, name = {}] from file config".format(param_type, param_name,
-                                                                                               default_value))
-
-            print AgentConfig._file_config
             param_value = AgentConfig._file_config[param_type][param_name]
         else:
-            logger.debug(
-                "Retrieving parameter [type = {}, name = {}] from parameter service".format(param_type, param_name,
-                                                                                            default_value))
-
             param_value = AgentConfig._param_service.get_param(param_type,
                                                                param_name,
                                                                default_value)
 
         if param_value is None:
-            logger.warn("Parameter \"{}\"not found.  Using default = {}".format(param_name, default_value))
-
             param_value = default_value
-        else:
-            logger.debug("{} = {} [default: {}]".format(param_name, param_value, default_value))
 
         return param_value
 
