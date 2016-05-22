@@ -17,10 +17,15 @@ class FrameworkProcess(Process):
         # Register this process with communication infrastructure
         comm.initialize(self.name)
 
-        while not comm.shutting_down():
-            rate_in_hz = int(AgentConfig().get_type_or_global_param(self.name, "rate_in_hz", 100))
-            self.advance()
-            comm.wait(rate_in_hz)
+        try:
+
+            while not comm.shutting_down():
+                rate_in_hz = int(AgentConfig().get_type_or_global_param(self.name, "rate_in_hz", 100))
+                self.advance()
+                comm.wait(rate_in_hz)
+
+        except Exception as e:
+            logger.fatal("Caught exception in run method: {}".format(e))
 
     # Must be overridden
     def advance(self):
