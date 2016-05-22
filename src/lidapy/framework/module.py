@@ -9,11 +9,13 @@ from lidapy.util import logger
 
 
 class FrameworkModule(FrameworkProcess):
-
-    def __init__(self, module_name):
+    def __init__(self, module_name, **kwds):
         super(FrameworkModule, self).__init__(module_name)
 
         self.module_name = module_name
+
+        self.cueable = kwds.get("cueable", False)
+        self.decayable = kwds.get("decayable", False)
 
         # A dictionary of FrameworkTopics
         #
@@ -121,29 +123,21 @@ class FrameworkModule(FrameworkProcess):
     def add_subscribers(self):
         self.logger.debug("Adding subscribers")
 
-    # This method must be overridden
     def add_services(self):
         self.logger.debug("Adding services")
+
+        if self.cueable:
+            self.add_service("cue", decayModule, self.receive_cue)
+
+        if self.decayable:
+            self.add_service("decay", decayModule, self.decay)
 
     # This method must be overridden
     def advance(self):
         super(FrameworkModule, self).advance()
 
+    def receive_cue(self):
+        self.logger.debug("Processing cue request")
 
-class Decayable(object):
-    def __init__(self, module):
-        if self._has_decay_method(module):
-            module.add_service("DecayModule", decayModule, module.decay)
-        else:
-            logger.fatal("Module must implement decay method")
-            raise NotImplementedError("decay method is required by DecayableModule, but was not implemented")
-
-    def __call__(self, *args, **kwargs):
-        pass
-
-    def _has_decay_method(self, module):
-        decay_method = getattr(self, "decay", None)
-        if callable(decay_method):
-            return True
-
-        return False
+    def decay(self):
+        self.logger.debug("Decaying module")
