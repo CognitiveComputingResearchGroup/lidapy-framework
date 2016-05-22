@@ -130,3 +130,17 @@ class AgentConfig(object):
             logger.debug("{} = {} [default: {}]".format(param_name, param_value, default_value))
 
         return param_value
+
+    def get_type_or_global_param(self, param_type, param_name, default_value=None):
+
+        # Try to find param_name under param_type params
+        param_value = self.get_param(param_type, param_name)
+        if param_value is not None:
+            return param_value
+
+        # Try to find param_name under global params
+        param_value = self.get_global_param(param_name)
+        if param_value is not None:
+            return param_value
+
+        return default_value
