@@ -5,26 +5,26 @@ from lidapy.framework.msg import Coalitions
 from lidapy.framework.msg import built_in_topics
 
 
-class WorkspaceModule(FrameworkModule):
+class Workspace(FrameworkModule):
     def __init__(self):
-        super(WorkspaceModule, self).__init__("WorkspaceModule", decayable=True)
+        super(Workspace, self).__init__("Workspace", decayable=True)
 
     # Override this method to add more publishers
     def add_publishers(self):
-        super(WorkspaceModule, self).add_publisher(built_in_topics["workspace_coalitions"])
-        super(WorkspaceModule, self).add_publisher(built_in_topics["workspace_cues"])
+        super(Workspace, self).add_publisher(built_in_topics["workspace_coalitions"])
+        super(Workspace, self).add_publisher(built_in_topics["workspace_cues"])
 
     # Override this method to add more subscribers
     def add_subscribers(self):
-        super(WorkspaceModule, self).add_subscriber(built_in_topics["percepts"])
-        super(WorkspaceModule, self).add_subscriber(built_in_topics["spatial_maps"])
-        super(WorkspaceModule, self).add_subscriber(built_in_topics["episodes"])
-        super(WorkspaceModule, self).add_subscriber(built_in_topics["global_broadcast"])
+        super(Workspace, self).add_subscriber(built_in_topics["percepts"])
+        super(Workspace, self).add_subscriber(built_in_topics["spatial_maps"])
+        super(Workspace, self).add_subscriber(built_in_topics["episodes"])
+        super(Workspace, self).add_subscriber(built_in_topics["global_broadcast"])
 
     def advance(self):
-        super(WorkspaceModule, self).advance()
+        super(Workspace, self).advance()
 
-        next_percept = super(WorkspaceModule, self).get_next_msg("percepts")
+        next_percept = super(Workspace, self).get_next_msg("percepts")
 
         if next_percept is not None:
             coalitions = Coalitions()
@@ -36,7 +36,7 @@ class WorkspaceModule(FrameworkModule):
 if __name__ == '__main__':
 
     try:
-        module = WorkspaceModule()
+        module = Workspace()
         module.run()
 
     except Exception as e:

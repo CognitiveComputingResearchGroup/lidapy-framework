@@ -5,25 +5,26 @@ from lidapy.framework.msg import Percepts
 from lidapy.framework.msg import built_in_topics
 
 
-class PerceptualAssociativeMemoryModule(FrameworkModule):
+class PerceptualAssociativeMemory(FrameworkModule):
     def __init__(self):
-        super(PerceptualAssociativeMemoryModule, self).__init__("PerceptualAssociativeMemoryModule", decayable=True,
-                                                                cueable=True)
+        super(PerceptualAssociativeMemory, self).__init__("PerceptualAssociativeMemory",
+                                                          decayable=True,
+                                                          cueable=True)
 
     # Override this method to add more publishers
     def add_publishers(self):
-        super(PerceptualAssociativeMemoryModule, self).add_publisher(built_in_topics["percepts"])
+        super(PerceptualAssociativeMemory, self).add_publisher(built_in_topics["percepts"])
 
     # Override this method to add more subscribers
     def add_subscribers(self):
-        super(PerceptualAssociativeMemoryModule, self).add_subscriber(built_in_topics["detected_features"])
-        super(PerceptualAssociativeMemoryModule, self).add_subscriber(built_in_topics["workspace_cues"])
-        super(PerceptualAssociativeMemoryModule, self).add_subscriber(built_in_topics["global_broadcast"])
+        super(PerceptualAssociativeMemory, self).add_subscriber(built_in_topics["detected_features"])
+        super(PerceptualAssociativeMemory, self).add_subscriber(built_in_topics["workspace_cues"])
+        super(PerceptualAssociativeMemory, self).add_subscriber(built_in_topics["global_broadcast"])
 
     def advance(self):
-        super(PerceptualAssociativeMemoryModule, self).advance()
+        super(PerceptualAssociativeMemory, self).advance()
 
-        next_features = super(PerceptualAssociativeMemoryModule, self).get_next_msg("detected_features")
+        next_features = super(PerceptualAssociativeMemory, self).get_next_msg("detected_features")
 
         if next_features is not None:
             percepts = Percepts()
@@ -35,7 +36,7 @@ class PerceptualAssociativeMemoryModule(FrameworkModule):
 if __name__ == '__main__':
 
     try:
-        module = PerceptualAssociativeMemoryModule()
+        module = PerceptualAssociativeMemory()
         module.run()
 
     except Exception as e:

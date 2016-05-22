@@ -5,22 +5,22 @@ from lidapy.framework.msg import Coalitions
 from lidapy.framework.msg import built_in_topics
 
 
-class GlobalWorkspaceModule(FrameworkModule):
+class GlobalWorkspace(FrameworkModule):
     def __init__(self):
-        super(GlobalWorkspaceModule, self).__init__("GlobalWorkspaceModule", decayable=True)
+        super(GlobalWorkspace, self).__init__("GlobalWorkspace", decayable=True)
 
         # Override this method to add more publishers
     def add_publishers(self):
-        super(GlobalWorkspaceModule, self).add_publisher(built_in_topics["global_broadcast"])
+        super(GlobalWorkspace, self).add_publisher(built_in_topics["global_broadcast"])
 
     # Override this method to add more subscribers
     def add_subscribers(self):
-        super(GlobalWorkspaceModule, self).add_subscriber(built_in_topics["workspace_coalitions"])
+        super(GlobalWorkspace, self).add_subscriber(built_in_topics["workspace_coalitions"])
 
     def advance(self):
-        super(GlobalWorkspaceModule, self).advance()
+        super(GlobalWorkspace, self).advance()
 
-        next_coalitions = super(GlobalWorkspaceModule, self).get_next_msg("workspace_coalitions")
+        next_coalitions = super(GlobalWorkspace, self).get_next_msg("workspace_coalitions")
 
         if next_coalitions is not None:
             global_broadcast = Coalitions()
@@ -31,7 +31,7 @@ class GlobalWorkspaceModule(FrameworkModule):
 if __name__ == '__main__':
 
     try:
-        module = GlobalWorkspaceModule()
+        module = GlobalWorkspace()
         module.run()
 
     except Exception as e:

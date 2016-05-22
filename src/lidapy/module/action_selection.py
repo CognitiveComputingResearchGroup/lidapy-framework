@@ -5,24 +5,24 @@ from lidapy.framework.msg import Behaviors
 from lidapy.framework.msg import built_in_topics
 
 
-class ActionSelectionModule(FrameworkModule):
+class ActionSelection(FrameworkModule):
     def __init__(self):
-        super(ActionSelectionModule, self).__init__("ActionSelectionModule", decayable=True)
+        super(ActionSelection, self).__init__("ActionSelection", decayable=True)
 
     # Override this method to add more publishers
     def add_publishers(self):
-        super(ActionSelectionModule, self).add_publisher(built_in_topics["selected_behaviors"])
+        super(ActionSelection, self).add_publisher(built_in_topics["selected_behaviors"])
 
     # Override this method to add more subscribers
     def add_subscribers(self):
-        super(ActionSelectionModule, self).add_subscriber(built_in_topics["candidate_behaviors"])
-        super(ActionSelectionModule, self).add_subscriber(built_in_topics["global_broadcast"])
+        super(ActionSelection, self).add_subscriber(built_in_topics["candidate_behaviors"])
+        super(ActionSelection, self).add_subscriber(built_in_topics["global_broadcast"])
 
     # Must be overridden
     def advance(self):
-        super(ActionSelectionModule, self).advance()
+        super(ActionSelection, self).advance()
 
-        next_behavior = super(ActionSelectionModule, self).get_next_msg("candidate_behaviors")
+        next_behavior = super(ActionSelection, self).get_next_msg("candidate_behaviors")
 
         if next_behavior is not None:
             behaviors = Behaviors()
@@ -34,7 +34,7 @@ class ActionSelectionModule(FrameworkModule):
 if __name__ == '__main__':
 
     try:
-        module = ActionSelectionModule()
+        module = ActionSelection()
         module.run()
 
     except Exception as e:

@@ -4,9 +4,9 @@ from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import built_in_topics
 
 
-class SensoryMotorMemoryModule(FrameworkModule):
+class SensoryMotorMemory(FrameworkModule):
     def __init__(self):
-        super(SensoryMotorMemoryModule, self).__init__("SensoryMotorMemoryModule", decayable=True)
+        super(SensoryMotorMemory, self).__init__("SensoryMotorMemory", decayable=True)
 
     # Override this method to add more publishers
     def add_publishers(self):
@@ -14,19 +14,19 @@ class SensoryMotorMemoryModule(FrameworkModule):
 
     # Override this method to add more subscribers
     def add_subscribers(self):
-        super(SensoryMotorMemoryModule, self).add_subscriber(built_in_topics["selected_behaviors"])
-        super(SensoryMotorMemoryModule, self).add_subscriber(built_in_topics["global_broadcast"])
-        super(SensoryMotorMemoryModule, self).add_subscriber(built_in_topics["dorsal_stream"])
+        super(SensoryMotorMemory, self).add_subscriber(built_in_topics["selected_behaviors"])
+        super(SensoryMotorMemory, self).add_subscriber(built_in_topics["global_broadcast"])
+        super(SensoryMotorMemory, self).add_subscriber(built_in_topics["dorsal_stream"])
 
     # Must be overridden
     def advance(self):
-        super(SensoryMotorMemoryModule, self).advance()
+        super(SensoryMotorMemory, self).advance()
 
 
 if __name__ == '__main__':
 
     try:
-        module = SensoryMotorMemoryModule()
+        module = SensoryMotorMemory()
         module.run()
 
     except Exception as e:

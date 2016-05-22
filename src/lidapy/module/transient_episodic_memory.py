@@ -4,29 +4,30 @@ from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import built_in_topics
 
 
-class TransientEpisodicMemoryModule(FrameworkModule):
+class TransientEpisodicMemory(FrameworkModule):
     def __init__(self):
-        super(TransientEpisodicMemoryModule, self).__init__("TransientEpisodicMemoryModule", decayable=True,
-                                                            cueable=True)
+        super(TransientEpisodicMemory, self).__init__("TransientEpisodicMemory",
+                                                      decayable=True,
+                                                      cueable=True)
 
     # Override this method to add more publishers
     def add_publishers(self):
-        super(TransientEpisodicMemoryModule, self).add_publisher(built_in_topics["episodes"])
+        super(TransientEpisodicMemory, self).add_publisher(built_in_topics["episodes"])
 
     # Override this method to add more subscribers
     def add_subscribers(self):
-        super(TransientEpisodicMemoryModule, self).add_subscriber(built_in_topics["workspace_cues"])
-        super(TransientEpisodicMemoryModule, self).add_subscriber(built_in_topics["global_broadcast"])
+        super(TransientEpisodicMemory, self).add_subscriber(built_in_topics["workspace_cues"])
+        super(TransientEpisodicMemory, self).add_subscriber(built_in_topics["global_broadcast"])
 
     # Must be overridden
     def advance(self):
-        super(TransientEpisodicMemoryModule, self).advance()
+        super(TransientEpisodicMemory, self).advance()
 
 
 if __name__ == '__main__':
 
     try:
-        module = TransientEpisodicMemoryModule()
+        module = TransientEpisodicMemory()
         module.run()
 
     except Exception as e:
