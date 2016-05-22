@@ -16,9 +16,10 @@ class FrameworkProcess(Process):
         logger.info("Beginning execution for process = {} [pid = {}]".format(self.name, os.getpid()))
 
         while not comm.shutting_down():
-            rate_in_hz = int(AgentConfig().get_global_param("rate_in_hz", 100))
+            rate_in_hz = int(AgentConfig().get_type_or_global_param(self.name, "rate_in_hz", 100))
             self.advance()
             comm.wait(rate_in_hz)
 
+    # Must be overridden
     def advance(self):
-        pass
+        logger.debug("Inside advance")
