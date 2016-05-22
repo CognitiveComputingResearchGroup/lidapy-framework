@@ -55,6 +55,7 @@ class FrameworkModule(FrameworkProcess):
 
         self.add_publishers()
         self.add_subscribers()
+        self.add_services()
 
     @property
     def config(self):
