@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
-from lidapy.framework.module import FrameworkModule
+from lidapy.framework.module import FrameworkModule, Decayable
 from lidapy.framework.msg import Behaviors
 from lidapy.framework.msg import built_in_topics
 
 
+@Decayable
 class ActionSelectionModule(FrameworkModule):
     def __init__(self):
         super(ActionSelectionModule, self).__init__("ActionSelectionModule")
