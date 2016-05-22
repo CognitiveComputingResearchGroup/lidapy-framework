@@ -27,7 +27,7 @@ class ConsciousContentsQueue(FrameworkModule):
 
     # Override this method to add more services
     def add_services(self):
-        super(ConsciousContentsQueue, self).add_service("getLastNBroadcasts",
+        super(ConsciousContentsQueue, self).add_service("get_last_n_broadcasts",
                                                         ccqGetLastNBroadcasts,
                                                         self.process_last_n_broadcasts_request)
 
