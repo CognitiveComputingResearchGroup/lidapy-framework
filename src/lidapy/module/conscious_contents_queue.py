@@ -2,7 +2,6 @@
 
 from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import built_in_topics
-from lidapy.framework.service import FrameworkService
 
 # TODO: This is a ROS specific detail.  Need to figure out how to hide this!
 from lida.srv import ccqGetLastNBroadcasts, ccqGetLastNBroadcastsResponse
@@ -18,13 +17,19 @@ class ConsciousContentsQueue(FrameworkModule):
                                                     "max_queue_size", 10)
 
         self.queue = deque(maxlen=self.max_queue_size)
-        self.service = FrameworkService("GetLastNBroadcasts",
-                                        ccqGetLastNBroadcasts,
-                                        self.process_last_n_broadcasts_request)
+        # self.service = FrameworkService("GetLastNBroadcasts",
+        #                                 ccqGetLastNBroadcasts,
+        #                                 self.process_last_n_broadcasts_request)
 
     # Override this method to add more subscribers
     def add_subscribers(self):
         super(ConsciousContentsQueue, self).add_subscriber(built_in_topics["global_broadcast"])
+
+    # Override this method to add more services
+    def add_services(self):
+        super(ConsciousContentsQueue, self).add_service("GetLastNBroadcasts",
+                                                        ccqGetLastNBroadcasts,
+                                                        self.process_last_n_broadcasts_request)
 
     def process_last_n_broadcasts_request(self, request):
 

@@ -1,7 +1,10 @@
 from collections import deque
 
+from lida.srv import decayModule
+
 from lidapy.framework.agent import AgentConfig
 from lidapy.framework.process import FrameworkProcess
+from lidapy.framework.service import FrameworkService
 from lidapy.util import logger
 
 
@@ -29,6 +32,15 @@ class FrameworkModule(FrameworkProcess):
         #     TopicName2 : FrameworkTopicPublisher2,
         # }
         self.publishers = {}
+
+        # A dictionary of FrameworkServices
+        #
+        # format:
+        # {
+        #     ServiceName1 : FrameworkService1,
+        #     ServiceName2 : FrameworkService2,
+        # }
+        self.services = {}
 
         # A dictionary of message queues.
         #
@@ -88,7 +100,7 @@ class FrameworkModule(FrameworkProcess):
         self.logger.info("Adding subscriber for topic {}".format(topic.topic_name))
 
         # Initial message queue
-        max_queue_size = self.config.get_param(self.module_name, "max_queue_size", 10)
+        max_queue_size = self.config.get_type_or_global_param(self.module_name, "max_queue_size", 10)
         self.received_msgs[topic.topic_name] = deque(maxlen=max_queue_size)
 
         if callback is None:
@@ -96,14 +108,40 @@ class FrameworkModule(FrameworkProcess):
 
         topic.register_subscriber(callback, callback_args)
 
+    def add_service(self, svc_name, svc_msg_class, callback):
+        self.service = FrameworkService(svc_name, svc_msg_class, callback)
+
     # This method must be overridden
     def add_publishers(self):
-        pass
+        self.logger.debug("Adding publishers")
 
     # This method must be overridden
     def add_subscribers(self):
-        pass
+        self.logger.debug("Adding subscribers")
+
+    # This method must be overridden
+    def add_services(self):
+        self.logger.debug("Adding services")
 
     # This method must be overridden
     def advance(self):
+        super(FrameworkModule, self).advance()
+
+
+class Decayable(object):
+    def __init__(self, module):
+        if self._has_decay_method(module):
+            module.add_service("DecayModule", decayModule, module.decay)
+        else:
+            logger.fatal("Module must implement decay method")
+            raise NotImplementedError("decay method is required by DecayableModule, but was not implemented")
+
+    def __call__(self, *args, **kwargs):
         pass
+
+    def _has_decay_method(self, module):
+        decay_method = getattr(self, "decay", None)
+        if callable(decay_method):
+            return True
+
+        return False
