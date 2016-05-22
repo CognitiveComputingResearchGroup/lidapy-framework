@@ -9,11 +9,13 @@ class FrameworkProcess(Process):
     def __init__(self, name):
         super(FrameworkProcess, self).__init__(name=name)
 
-        # Register this process with communication infrastructure
-        comm.initialize(name)
+        self.name = name
 
     def run(self):
         logger.info("Beginning execution for process = {} [pid = {}]".format(self.name, os.getpid()))
+
+        # Register this process with communication infrastructure
+        comm.initialize(self.name)
 
         while not comm.shutting_down():
             rate_in_hz = int(AgentConfig().get_type_or_global_param(self.name, "rate_in_hz", 100))
