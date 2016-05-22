@@ -110,7 +110,8 @@ class FrameworkModule(FrameworkProcess):
         topic.register_subscriber(callback, callback_args)
 
     def add_service(self, svc_name, svc_msg_class, callback):
-        self.service = FrameworkService(svc_name, svc_msg_class, callback)
+        decorated_svc_name = "{}/{}".format(self.name, svc_name)
+        self.service = FrameworkService(decorated_svc_name, svc_msg_class, callback)
 
     # This method must be overridden
     def add_publishers(self):
