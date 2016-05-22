@@ -44,15 +44,15 @@ class FrameworkTopicPublisher(object):
 
 
 built_in_topics = {
-    "/lida/selected_behaviors": FrameworkTopic("/lida/selected_behaviors", Behaviors),
-    "/lida/candidate_behaviors": FrameworkTopic("/lida/candidate_behaviors", Behaviors),
-    "/lida/global_broadcast": FrameworkTopic("/lida/global_broadcast", ConsciousContent),
-    "/lida/episodes": FrameworkTopic("/lida/episodes", Episodes),
-    "/lida/workspace_cues": FrameworkTopic("/lida/workspace_cues", Cues),
-    "/lida/workspace_coalitions": FrameworkTopic("/lida/workspace_coalitions", Coalitions),
-    "/lida/detected_features": FrameworkTopic("/lida/detected_features", Features),
-    "/lida/percepts": FrameworkTopic("/lida/percepts", Percepts),
-    "/lida/spatial_maps": FrameworkTopic("/lida/spatial_maps", SpatialMaps),
-    "/lida/dorsal_stream": FrameworkTopic("/lida/dorsal_stream", Features),
-    "/lida/ventral_stream": FrameworkTopic("/lida/ventral_stream", Features),
+    "selected_behaviors": FrameworkTopic("selected_behaviors", Behaviors),
+    "candidate_behaviors": FrameworkTopic("candidate_behaviors", Behaviors),
+    "global_broadcast": FrameworkTopic("global_broadcast", ConsciousContent),
+    "episodes": FrameworkTopic("episodes", Episodes),
+    "workspace_cues": FrameworkTopic("workspace_cues", Cues),
+    "workspace_coalitions": FrameworkTopic("workspace_coalitions", Coalitions),
+    "detected_features": FrameworkTopic("detected_features", Features),
+    "percepts": FrameworkTopic("percepts", Percepts),
+    "spatial_maps": FrameworkTopic("spatial_maps", SpatialMaps),
+    "dorsal_stream": FrameworkTopic("dorsal_stream", Features),
+    "ventral_stream": FrameworkTopic("ventral_stream", Features),
 }

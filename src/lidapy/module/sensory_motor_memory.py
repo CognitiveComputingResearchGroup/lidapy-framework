@@ -14,9 +14,13 @@ class SensoryMotorMemoryModule(FrameworkModule):
 
     # Override this method to add more subscribers
     def add_subscribers(self):
-        super(SensoryMotorMemoryModule, self).add_subscriber(built_in_topics["/lida/selected_behaviors"])
-        super(SensoryMotorMemoryModule, self).add_subscriber(built_in_topics["/lida/global_broadcast"])
-        super(SensoryMotorMemoryModule, self).add_subscriber(built_in_topics["/lida/dorsal_stream"])
+        super(SensoryMotorMemoryModule, self).add_subscriber(built_in_topics["selected_behaviors"])
+        super(SensoryMotorMemoryModule, self).add_subscriber(built_in_topics["global_broadcast"])
+        super(SensoryMotorMemoryModule, self).add_subscriber(built_in_topics["dorsal_stream"])
+
+    # Must be overridden
+    def advance(self):
+        super(SensoryMotorMemoryModule, self).advance()
 
 
 if __name__ == '__main__':

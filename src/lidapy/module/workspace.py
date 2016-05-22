@@ -11,26 +11,26 @@ class WorkspaceModule(FrameworkModule):
 
     # Override this method to add more publishers
     def add_publishers(self):
-        super(WorkspaceModule, self).add_publisher(built_in_topics["/lida/workspace_coalitions"])
-        super(WorkspaceModule, self).add_publisher(built_in_topics["/lida/workspace_cues"])
+        super(WorkspaceModule, self).add_publisher(built_in_topics["workspace_coalitions"])
+        super(WorkspaceModule, self).add_publisher(built_in_topics["workspace_cues"])
 
     # Override this method to add more subscribers
     def add_subscribers(self):
-        super(WorkspaceModule, self).add_subscriber(built_in_topics["/lida/percepts"])
-        super(WorkspaceModule, self).add_subscriber(built_in_topics["/lida/spatial_maps"])
-        super(WorkspaceModule, self).add_subscriber(built_in_topics["/lida/episodes"])
-        super(WorkspaceModule, self).add_subscriber(built_in_topics["/lida/global_broadcast"])
+        super(WorkspaceModule, self).add_subscriber(built_in_topics["percepts"])
+        super(WorkspaceModule, self).add_subscriber(built_in_topics["spatial_maps"])
+        super(WorkspaceModule, self).add_subscriber(built_in_topics["episodes"])
+        super(WorkspaceModule, self).add_subscriber(built_in_topics["global_broadcast"])
 
     def advance(self):
-        self.logger.debug("Inside advance")
+        super(WorkspaceModule, self).advance()
 
-        next_percept = super(WorkspaceModule, self).get_next_msg("/lida/percepts")
+        next_percept = super(WorkspaceModule, self).get_next_msg("percepts")
 
         if next_percept is not None:
             coalitions = Coalitions()
             coalitions.id = next_percept.id
 
-            self.publishers["/lida/workspace_coalitions"].publish(coalitions)
+            self.publishers["workspace_coalitions"].publish(coalitions)
 
 
 if __name__ == '__main__':

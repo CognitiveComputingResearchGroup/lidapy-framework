@@ -11,23 +11,24 @@ class ActionSelectionModule(FrameworkModule):
 
     # Override this method to add more publishers
     def add_publishers(self):
-        super(ActionSelectionModule, self).add_publisher(built_in_topics["/lida/selected_behaviors"])
+        super(ActionSelectionModule, self).add_publisher(built_in_topics["selected_behaviors"])
 
     # Override this method to add more subscribers
     def add_subscribers(self):
-        super(ActionSelectionModule, self).add_subscriber(built_in_topics["/lida/candidate_behaviors"])
-        super(ActionSelectionModule, self).add_subscriber(built_in_topics["/lida/global_broadcast"])
+        super(ActionSelectionModule, self).add_subscriber(built_in_topics["candidate_behaviors"])
+        super(ActionSelectionModule, self).add_subscriber(built_in_topics["global_broadcast"])
 
+    # Must be overridden
     def advance(self):
-        self.logger.debug("Inside advance")
+        super(ActionSelectionModule, self).advance()
 
-        next_behavior = super(ActionSelectionModule, self).get_next_msg("/lida/candidate_behaviors")
+        next_behavior = super(ActionSelectionModule, self).get_next_msg("candidate_behaviors")
 
         if next_behavior is not None:
             behaviors = Behaviors()
             behaviors.id = next_behavior.id
 
-            self.publishers["/lida/selected_behaviors"].publish(behaviors)
+            self.publishers["selected_behaviors"].publish(behaviors)
 
 
 if __name__ == '__main__':

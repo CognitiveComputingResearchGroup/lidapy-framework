@@ -11,22 +11,22 @@ class GlobalWorkspaceModule(FrameworkModule):
 
         # Override this method to add more publishers
     def add_publishers(self):
-        super(GlobalWorkspaceModule, self).add_publisher(built_in_topics["/lida/global_broadcast"])
+        super(GlobalWorkspaceModule, self).add_publisher(built_in_topics["global_broadcast"])
 
     # Override this method to add more subscribers
     def add_subscribers(self):
-        super(GlobalWorkspaceModule, self).add_subscriber(built_in_topics["/lida/workspace_coalitions"])
+        super(GlobalWorkspaceModule, self).add_subscriber(built_in_topics["workspace_coalitions"])
 
     def advance(self):
-        self.logger.debug("Inside advance")
+        super(GlobalWorkspaceModule, self).advance()
 
-        next_coalitions = super(GlobalWorkspaceModule, self).get_next_msg("/lida/workspace_coalitions")
+        next_coalitions = super(GlobalWorkspaceModule, self).get_next_msg("workspace_coalitions")
 
         if next_coalitions is not None:
             global_broadcast = Coalitions()
             global_broadcast.id = next_coalitions.id
 
-            self.publishers["/lida/global_broadcast"].publish(global_broadcast)
+            self.publishers["global_broadcast"].publish(global_broadcast)
 
 if __name__ == '__main__':
 

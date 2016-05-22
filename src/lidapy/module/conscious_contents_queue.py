@@ -18,13 +18,13 @@ class ConsciousContentsQueue(FrameworkModule):
                                                     "max_queue_size", 10)
 
         self.queue = deque(maxlen=self.max_queue_size)
-        self.service = FrameworkService("ccqGetLastNBroadcasts",
+        self.service = FrameworkService("GetLastNBroadcasts",
                                         ccqGetLastNBroadcasts,
                                         self.process_last_n_broadcasts_request)
 
     # Override this method to add more subscribers
     def add_subscribers(self):
-        super(ConsciousContentsQueue, self).add_subscriber(built_in_topics["/lida/global_broadcast"])
+        super(ConsciousContentsQueue, self).add_subscriber(built_in_topics["global_broadcast"])
 
     def process_last_n_broadcasts_request(self, request):
 
@@ -38,9 +38,9 @@ class ConsciousContentsQueue(FrameworkModule):
         return response
 
     def advance(self):
-        self.logger.debug("Inside advance")
+        super(ConsciousContentsQueue, self).advance()
 
-        broadcast = super(ConsciousContentsQueue, self).get_next_msg("/lida/global_broadcast")
+        broadcast = super(ConsciousContentsQueue, self).get_next_msg("global_broadcast")
 
         if broadcast is not None:
             self.queue.append(broadcast)
