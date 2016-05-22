@@ -11,7 +11,7 @@ from itertools import islice
 
 class ConsciousContentsQueue(FrameworkModule):
     def __init__(self):
-        super(ConsciousContentsQueue, self).__init__("ConsciousContentsQueue")
+        super(ConsciousContentsQueue, self).__init__("ConsciousContentsQueue", decayable=True)
 
         self.max_queue_size = self.config.get_param("ConsciousContentsQueue",
                                                     "max_queue_size", 10)

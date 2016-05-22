@@ -6,7 +6,7 @@ from lidapy.framework.msg import built_in_topics
 
 class SensoryMemoryModule(FrameworkModule):
     def __init__(self):
-        super(SensoryMemoryModule, self).__init__("SensoryMemoryModule")
+        super(SensoryMemoryModule, self).__init__("SensoryMemoryModule", decayable=True)
 
         self.add_publishers()
         self.add_subscribers()

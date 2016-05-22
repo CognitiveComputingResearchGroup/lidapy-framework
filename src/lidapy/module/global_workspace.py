@@ -7,7 +7,7 @@ from lidapy.framework.msg import built_in_topics
 
 class GlobalWorkspaceModule(FrameworkModule):
     def __init__(self):
-        super(GlobalWorkspaceModule, self).__init__("GlobalWorkspaceModule")
+        super(GlobalWorkspaceModule, self).__init__("GlobalWorkspaceModule", decayable=True)
 
         # Override this method to add more publishers
     def add_publishers(self):

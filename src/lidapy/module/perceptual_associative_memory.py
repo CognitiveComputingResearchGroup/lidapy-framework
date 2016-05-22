@@ -7,7 +7,8 @@ from lidapy.framework.msg import built_in_topics
 
 class PerceptualAssociativeMemoryModule(FrameworkModule):
     def __init__(self):
-        super(PerceptualAssociativeMemoryModule, self).__init__("PerceptualAssociativeMemoryModule")
+        super(PerceptualAssociativeMemoryModule, self).__init__("PerceptualAssociativeMemoryModule", decayable=True,
+                                                                cueable=True)
 
     # Override this method to add more publishers
     def add_publishers(self):

@@ -7,7 +7,7 @@ from lidapy.framework.msg import built_in_topics
 
 class ActionSelectionModule(FrameworkModule):
     def __init__(self):
-        super(ActionSelectionModule, self).__init__("ActionSelectionModule", decayable=True, cueable=True)
+        super(ActionSelectionModule, self).__init__("ActionSelectionModule", decayable=True)
 
     # Override this method to add more publishers
     def add_publishers(self):
