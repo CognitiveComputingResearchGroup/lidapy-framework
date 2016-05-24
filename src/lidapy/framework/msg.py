@@ -1,4 +1,4 @@
-from lida.msg import Behaviors, Coalitions, ConsciousContent, Cues, Episodes, Features, Percepts, SpatialMaps
+from lida.msg import CognitiveContent
 
 from lidapy.util import comm, logger
 
@@ -44,15 +44,15 @@ class FrameworkTopicPublisher(object):
 
 
 built_in_topics = {
-    "selected_behaviors": FrameworkTopic("selected_behaviors", Behaviors),
-    "candidate_behaviors": FrameworkTopic("candidate_behaviors", Behaviors),
-    "global_broadcast": FrameworkTopic("global_broadcast", ConsciousContent),
-    "episodes": FrameworkTopic("episodes", Episodes),
-    "workspace_cues": FrameworkTopic("workspace_cues", Cues),
-    "workspace_coalitions": FrameworkTopic("workspace_coalitions", Coalitions),
-    "detected_features": FrameworkTopic("detected_features", Features),
-    "percepts": FrameworkTopic("percepts", Percepts),
-    "spatial_maps": FrameworkTopic("spatial_maps", SpatialMaps),
-    "dorsal_stream": FrameworkTopic("dorsal_stream", Features),
-    "ventral_stream": FrameworkTopic("ventral_stream", Features),
+    "selected_behaviors": FrameworkTopic("selected_behaviors", CognitiveContent),
+    "candidate_behaviors": FrameworkTopic("candidate_behaviors", CognitiveContent),
+    "global_broadcast": FrameworkTopic("global_broadcast", CognitiveContent),
+    "episodes": FrameworkTopic("episodes", CognitiveContent),
+    "workspace_cues": FrameworkTopic("workspace_cues", CognitiveContent),
+    "workspace_coalitions": FrameworkTopic("workspace_coalitions", CognitiveContent),
+    "detected_features": FrameworkTopic("detected_features", CognitiveContent),
+    "percepts": FrameworkTopic("percepts", CognitiveContent),
+    "spatial_maps": FrameworkTopic("spatial_maps", CognitiveContent),
+    "dorsal_stream": FrameworkTopic("dorsal_stream", CognitiveContent),
+    "ventral_stream": FrameworkTopic("ventral_stream", CognitiveContent),
 }
