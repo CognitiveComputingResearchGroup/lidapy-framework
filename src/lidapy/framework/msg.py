@@ -1,4 +1,6 @@
-from lida.msg import CognitiveContent
+from cPickle import dumps, loads  # Object Serialization / Deserialization
+
+from lida.msg import CognitiveContent  # ROS specific message class import
 
 from lidapy.util import comm, logger
 
@@ -41,6 +43,16 @@ class FrameworkTopicPublisher(object):
         logger.debug("Publishing msg to topic [{}]".format(self.topic_name))
 
         comm.publish_message(self._publisher, msg)
+
+
+class MsgSerializer(object):
+    @staticmethod
+    def serialize(self, obj):
+        return dumps(obj)
+
+    @staticmethod
+    def deserialize(self, serialized_obj):
+        return loads(serialized_obj)
 
 
 built_in_topics = {
