@@ -7,7 +7,7 @@ from lidapy.util import comm, logger
 
 class FrameworkProcess(Process):
     def __init__(self, process_name, **kwargs):
-        super(FrameworkProcess, self).__init__(process_name, **kwargs)
+        super(FrameworkProcess, self).__init__(process_name)
 
         self.process_name = process_name
         self.log_level = kwargs.get("log_level")
