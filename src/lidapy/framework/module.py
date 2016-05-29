@@ -9,10 +9,10 @@ from lidapy.util import logger
 
 
 class FrameworkModule(FrameworkProcess):
-    def __init__(self, module_name, **kwargs):
-        super(FrameworkModule, self).__init__(module_name, **kwargs)
+    def __init__(self, name, **kwargs):
+        super(FrameworkModule, self).__init__(name, **kwargs)
 
-        self.module_name = module_name
+        self.name = name
 
         self.cueable = kwargs.get("cueable", False)
         self.decayable = kwargs.get("decayable", False)
@@ -109,7 +109,7 @@ class FrameworkModule(FrameworkProcess):
         self.logger.info("Adding subscriber for topic {}".format(topic.topic_name))
 
         # Initial message queue
-        max_queue_size = self.config.get_type_or_global_param(self.module_name, "max_queue_size", 10)
+        max_queue_size = self.config.get_type_or_global_param(self.name, "max_queue_size", 10)
         self.received_msgs[topic.topic_name] = deque(maxlen=max_queue_size)
 
         if callback is None:
