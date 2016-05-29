@@ -6,7 +6,7 @@ from lidapy.util import comm, logger
 
 
 class FrameworkProcess(Process):
-    def __init__(self, name):
+    def __init__(self, name, *args, **kwargs):
         super(FrameworkProcess, self).__init__(name=name)
 
         self.name = name
@@ -14,8 +14,7 @@ class FrameworkProcess(Process):
     def run(self):
         logger.info("Beginning execution for process = {} [pid = {}]".format(self.name, os.getpid()))
 
-        # Register this process with communication infrastructure
-        comm.initialize(self.name)
+        self.initialize()
 
         try:
 
@@ -26,6 +25,10 @@ class FrameworkProcess(Process):
 
         except Exception as e:
             logger.fatal("Caught exception in run method: {}".format(e))
+
+    def initialize(self):
+        # Register this process with communication infrastructure
+        comm.initialize(self.name)
 
     # Must be overridden
     def advance(self):

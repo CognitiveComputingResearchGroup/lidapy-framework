@@ -55,6 +55,12 @@ class FrameworkModule(FrameworkProcess):
 
         self._config = None
 
+    # Can be override to customize module initialization.  Note: When running
+    # the module in a separate process, initialize must be called after forking
+    # (i.e., starting) the process
+    def initialize(self):
+        super(FrameworkModule, self).initialize()
+
         self.add_publishers()
         self.add_subscribers()
         self.add_services()
@@ -133,11 +139,17 @@ class FrameworkModule(FrameworkProcess):
             self.add_service("decay", decayModule, self.decay)
 
     # This method must be overridden
+    # TODO: Change the name to something that more obviously
+    # TODO: conveys the intent
     def advance(self):
         super(FrameworkModule, self).advance()
 
-    def receive_cue(self):
-        self.logger.debug("Processing cue request")
+    def learn(self):
+        self.logger.debug("Learning")
 
-    def decay(self):
-        self.logger.debug("Decaying module")
+    # TODO: Need to add decay strategies
+    def decay(self, targets, decay_strategy):
+        self.logger.debug("Decaying")
+
+    def receive_cue(self):
+        self.logger.debug("Receiving cue request")
