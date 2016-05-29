@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 from lidapy.framework.module import FrameworkModule
-from lidapy.framework.msg import Coalitions
 from lidapy.framework.msg import built_in_topics
 
 
@@ -24,13 +23,12 @@ class Workspace(FrameworkModule):
     def advance(self):
         super(Workspace, self).advance()
 
-        next_percept = super(Workspace, self).get_next_msg("percepts")
+        percepts = super(Workspace, self).get_next_msg("percepts")
 
-        if next_percept is not None:
-            coalitions = Coalitions()
-            coalitions.id = next_percept.id
+        if percepts is not None:
+            workspace_coalitions = percepts
 
-            self.publishers["workspace_coalitions"].publish(coalitions)
+            self.publishers["workspace_coalitions"].publish(workspace_coalitions)
 
 
 if __name__ == '__main__':

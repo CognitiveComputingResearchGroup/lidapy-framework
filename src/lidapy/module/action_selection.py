@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 from lidapy.framework.module import FrameworkModule
-from lidapy.framework.msg import Behaviors
 from lidapy.framework.msg import built_in_topics
 
 
@@ -18,17 +17,16 @@ class ActionSelection(FrameworkModule):
         super(ActionSelection, self).add_subscriber(built_in_topics["candidate_behaviors"])
         super(ActionSelection, self).add_subscriber(built_in_topics["global_broadcast"])
 
-    # Must be overridden
+    # Should be overridden
     def advance(self):
         super(ActionSelection, self).advance()
 
-        next_behavior = super(ActionSelection, self).get_next_msg("candidate_behaviors")
+        candidate_behaviors = super(ActionSelection, self).get_next_msg("candidate_behaviors")
 
-        if next_behavior is not None:
-            behaviors = Behaviors()
-            behaviors.id = next_behavior.id
+        if candidate_behaviors is not None:
+            selected_behaviors = candidate_behaviors
 
-            self.publishers["selected_behaviors"].publish(behaviors)
+            self.publishers["selected_behaviors"].publish(selected_behaviors)
 
 
 if __name__ == '__main__':

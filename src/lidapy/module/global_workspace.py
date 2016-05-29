@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 from lidapy.framework.module import FrameworkModule
-from lidapy.framework.msg import Coalitions
 from lidapy.framework.msg import built_in_topics
 
 
@@ -17,14 +16,14 @@ class GlobalWorkspace(FrameworkModule):
     def add_subscribers(self):
         super(GlobalWorkspace, self).add_subscriber(built_in_topics["workspace_coalitions"])
 
+    # Should be overridden
     def advance(self):
         super(GlobalWorkspace, self).advance()
 
-        next_coalitions = super(GlobalWorkspace, self).get_next_msg("workspace_coalitions")
+        workspace_coalitions = super(GlobalWorkspace, self).get_next_msg("workspace_coalitions")
 
-        if next_coalitions is not None:
-            global_broadcast = Coalitions()
-            global_broadcast.id = next_coalitions.id
+        if workspace_coalitions is not None:
+            global_broadcast = workspace_coalitions
 
             self.publishers["global_broadcast"].publish(global_broadcast)
 

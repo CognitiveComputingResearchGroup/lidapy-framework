@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 from lidapy.framework.module import FrameworkModule
-from lidapy.framework.msg import Behaviors
 from lidapy.framework.msg import built_in_topics
 
 
@@ -20,13 +19,13 @@ class ProceduralMemory(FrameworkModule):
     def advance(self):
         super(ProceduralMemory, self).advance()
 
-        next_broadcast = super(ProceduralMemory, self).get_next_msg("global_broadcast")
+        global_broadcast = super(ProceduralMemory, self).get_next_msg("global_broadcast")
 
-        if next_broadcast is not None:
-            behaviors = Behaviors()
-            behaviors.id = next_broadcast.id
+        if global_broadcast is not None:
+            candidate_behaviors = global_broadcast
 
-            self.publishers["candidate_behaviors"].publish(behaviors)
+            self.publishers["candidate_behaviors"].publish(candidate_behaviors)
+
 
 if __name__ == '__main__':
 

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 from lidapy.framework.module import FrameworkModule
-from lidapy.framework.msg import Percepts
 from lidapy.framework.msg import built_in_topics
 
 
@@ -24,13 +23,12 @@ class PerceptualAssociativeMemory(FrameworkModule):
     def advance(self):
         super(PerceptualAssociativeMemory, self).advance()
 
-        next_features = super(PerceptualAssociativeMemory, self).get_next_msg("detected_features")
+        detected_features = super(PerceptualAssociativeMemory, self).get_next_msg("detected_features")
 
-        if next_features is not None:
-            percepts = Percepts()
-            percepts.id = next_features.id
+        if detected_features is not None:
+            active_percepts = detected_features
 
-            self.publishers["percepts"].publish(percepts)
+            self.publishers["percepts"].publish(active_percepts)
 
 
 if __name__ == '__main__':
