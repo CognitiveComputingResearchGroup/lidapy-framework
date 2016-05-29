@@ -5,8 +5,8 @@ from lidapy.framework.msg import built_in_topics
 
 
 class EpisodicMemory(FrameworkModule):
-    def __init__(self):
-        super(EpisodicMemory, self).__init__("EpisodicMemory", decayable=True, cueable=True)
+    def __init__(self, **kwargs):
+        super(EpisodicMemory, self).__init__("EpisodicMemory", decayable=True, cueable=True, **kwargs)
 
     # Override this method to add more publishers
     def add_publishers(self):

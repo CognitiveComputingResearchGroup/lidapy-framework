@@ -5,10 +5,10 @@ from lidapy.framework.msg import built_in_topics
 
 
 class GlobalWorkspace(FrameworkModule):
-    def __init__(self):
-        super(GlobalWorkspace, self).__init__("GlobalWorkspace", decayable=True)
+    def __init__(self, **kwargs):
+        super(GlobalWorkspace, self).__init__("GlobalWorkspace", decayable=True, **kwargs)
 
-        # Override this method to add more publishers
+    # Override this method to add more publishers
     def add_publishers(self):
         super(GlobalWorkspace, self).add_publisher(built_in_topics["global_broadcast"])
 
@@ -26,6 +26,7 @@ class GlobalWorkspace(FrameworkModule):
             global_broadcast = workspace_coalitions
 
             self.publishers["global_broadcast"].publish(global_broadcast)
+
 
 if __name__ == '__main__':
 

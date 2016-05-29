@@ -5,10 +5,9 @@ from lidapy.framework.msg import built_in_topics
 
 
 class TransientEpisodicMemory(FrameworkModule):
-    def __init__(self):
-        super(TransientEpisodicMemory, self).__init__("TransientEpisodicMemory",
-                                                      decayable=True,
-                                                      cueable=True)
+    def __init__(self, **kwargs):
+        super(TransientEpisodicMemory, self).__init__("TransientEpisodicMemory", decayable=True,
+                                                      cueable=True, **kwargs)
 
     # Override this method to add more publishers
     def add_publishers(self):

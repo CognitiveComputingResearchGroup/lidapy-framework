@@ -1,8 +1,8 @@
 import rospy
 
 
-def initialize(name):
-    rospy.init_node(name, log_level=rospy.DEBUG)
+def initialize(name, log_level=rospy.INFO):
+    rospy.init_node(name, log_level=log_level)
 
 
 def get_publisher(topic, msg_type, queue_size=0):
@@ -35,7 +35,6 @@ def wait(rate):
 
 
 class ParameterService(object):
-
     def get_param(self, param_type, param_name, default_value=None):
         fully_qualified_name = self.get_fully_qualified_param_name(param_type, param_name)
         return rospy.get_param(fully_qualified_name, default_value)

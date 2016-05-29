@@ -5,8 +5,8 @@ from lidapy.framework.msg import built_in_topics
 
 
 class ProceduralMemory(FrameworkModule):
-    def __init__(self):
-        super(ProceduralMemory, self).__init__("ProceduralMemory", decayable=True)
+    def __init__(self, **kwargs):
+        super(ProceduralMemory, self).__init__("ProceduralMemory", decayable=True, **kwargs)
 
     # Override this method to add more publishers
     def add_publishers(self):

@@ -5,8 +5,8 @@ from lidapy.framework.msg import built_in_topics
 
 
 class SpatialMemory(FrameworkModule):
-    def __init__(self):
-        super(SpatialMemory, self).__init__("SpatialMemory", decayable=True, cueable=True)
+    def __init__(self, **kwargs):
+        super(SpatialMemory, self).__init__("SpatialMemory", decayable=True, cueable=True, **kwargs)
 
     # Override this method to add more publishers
     def add_publishers(self):

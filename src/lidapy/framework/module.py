@@ -9,13 +9,13 @@ from lidapy.util import logger
 
 
 class FrameworkModule(FrameworkProcess):
-    def __init__(self, module_name, **kwds):
-        super(FrameworkModule, self).__init__(module_name)
+    def __init__(self, module_name, **kwargs):
+        super(FrameworkModule, self).__init__(module_name, **kwargs)
 
         self.module_name = module_name
 
-        self.cueable = kwds.get("cueable", False)
-        self.decayable = kwds.get("decayable", False)
+        self.cueable = kwargs.get("cueable", False)
+        self.decayable = kwargs.get("decayable", False)
 
         # A dictionary of FrameworkTopics
         #

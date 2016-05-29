@@ -10,16 +10,13 @@ from itertools import islice
 
 
 class ConsciousContentsQueue(FrameworkModule):
-    def __init__(self):
-        super(ConsciousContentsQueue, self).__init__("ConsciousContentsQueue", decayable=True)
+    def __init__(self, **kwargs):
+        super(ConsciousContentsQueue, self).__init__("ConsciousContentsQueue", decayable=True, **kwargs)
 
         self.max_queue_size = self.config.get_param("ConsciousContentsQueue",
                                                     "max_queue_size", 10)
 
         self.queue = deque(maxlen=self.max_queue_size)
-        # self.service = FrameworkService("GetLastNBroadcasts",
-        #                                 ccqGetLastNBroadcasts,
-        #                                 self.process_last_n_broadcasts_request)
 
     # Override this method to add more subscribers
     def add_subscribers(self):
