@@ -1,7 +1,6 @@
 from ConfigParser import SafeConfigParser
 from os import getenv
 
-from lidapy.util import comm
 from lidapy.util import logger
 from lidapy.util.comm import ParameterService
 
@@ -138,16 +137,9 @@ class AgentStarter(object):
     def __init__(self):
         self.modules = []
 
-        comm.initialize("AgentStarter")
-
     def add_module(self, module):
-        logger.debug("Adding module to AgentStarter: {}".format(module.name))
-
         self.modules.append(module)
 
     def start(self):
         for module in self.modules:
-            logger.info("Launching module: {}".format(module.name))
             module.start()
-
-        logger.info("Completed launching modules.")
