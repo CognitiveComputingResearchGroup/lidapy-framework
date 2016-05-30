@@ -12,8 +12,7 @@ class FrameworkProcess(Process):
 
         self.name = name
         self.log_level = kwargs.get("log_level")
-        self.status = "starting"
-        self.rate = self.get_rate()
+        self._status = "starting"
 
     def run(self):
 
@@ -69,12 +68,8 @@ class FrameworkProcess(Process):
 
     @property
     def status(self):
-        return self.status
+        return self._status
 
     @status.setter
     def status(self, new_status):
-        self.status = new_status
-
-    @property
-    def rate(self):
-        return self.rate
+        self._status = new_status
