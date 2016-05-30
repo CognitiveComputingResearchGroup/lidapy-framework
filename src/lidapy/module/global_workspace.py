@@ -17,8 +17,8 @@ class GlobalWorkspace(FrameworkModule):
         super(GlobalWorkspace, self).add_subscriber(built_in_topics["workspace_coalitions"])
 
     # Should be overridden
-    def advance(self):
-        super(GlobalWorkspace, self).advance()
+    def call(self):
+        super(GlobalWorkspace, self).call()
 
         workspace_coalitions = super(GlobalWorkspace, self).get_next_msg("workspace_coalitions")
 

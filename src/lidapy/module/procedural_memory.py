@@ -16,8 +16,8 @@ class ProceduralMemory(FrameworkModule):
     def add_subscribers(self):
         super(ProceduralMemory, self).add_subscriber(built_in_topics["global_broadcast"])
 
-    def advance(self):
-        super(ProceduralMemory, self).advance()
+    def call(self):
+        super(ProceduralMemory, self).call()
 
         global_broadcast = super(ProceduralMemory, self).get_next_msg("global_broadcast")
 

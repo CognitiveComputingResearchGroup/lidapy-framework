@@ -18,8 +18,8 @@ class SpatialMemory(FrameworkModule):
         super(SpatialMemory, self).add_subscriber(built_in_topics["global_broadcast"])
 
     # Must be overridden
-    def advance(self):
-        super(SpatialMemory, self).advance()
+    def call(self):
+        super(SpatialMemory, self).call()
 
 
 if __name__ == '__main__':

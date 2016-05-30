@@ -19,8 +19,8 @@ class SensoryMotorMemory(FrameworkModule):
         super(SensoryMotorMemory, self).add_subscriber(built_in_topics["dorsal_stream"])
 
     # Must be overridden
-    def advance(self):
-        super(SensoryMotorMemory, self).advance()
+    def call(self):
+        super(SensoryMotorMemory, self).call()
 
 
 if __name__ == '__main__':

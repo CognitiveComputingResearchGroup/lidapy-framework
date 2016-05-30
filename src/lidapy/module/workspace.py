@@ -20,8 +20,8 @@ class Workspace(FrameworkModule):
         super(Workspace, self).add_subscriber(built_in_topics["episodes"])
         super(Workspace, self).add_subscriber(built_in_topics["global_broadcast"])
 
-    def advance(self):
-        super(Workspace, self).advance()
+    def call(self):
+        super(Workspace, self).call()
 
         percepts = super(Workspace, self).get_next_msg("percepts")
 

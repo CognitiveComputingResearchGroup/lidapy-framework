@@ -22,8 +22,8 @@ class SensoryMemory(FrameworkModule):
         super(SensoryMemory, self).add_subscriber(built_in_topics["global_broadcast"])
 
     # Must be overridden
-    def advance(self):
-        super(SensoryMemory, self).advance()
+    def call(self):
+        super(SensoryMemory, self).call()
 
 
 if __name__ == '__main__':

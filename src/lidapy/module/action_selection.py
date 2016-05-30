@@ -18,8 +18,8 @@ class ActionSelection(FrameworkModule):
         super(ActionSelection, self).add_subscriber(built_in_topics["global_broadcast"])
 
     # Should be overridden
-    def advance(self):
-        super(ActionSelection, self).advance()
+    def call(self):
+        super(ActionSelection, self).call()
 
         candidate_behaviors = super(ActionSelection, self).get_next_msg("candidate_behaviors")
 

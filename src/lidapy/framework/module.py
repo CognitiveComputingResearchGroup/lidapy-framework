@@ -1,6 +1,6 @@
 from collections import deque
 
-from lida.srv import decayModule
+from lida.srv import decayModule, cueModule
 
 from lidapy.framework.agent import AgentConfig
 from lidapy.framework.process import FrameworkProcess
@@ -123,33 +123,46 @@ class FrameworkModule(FrameworkProcess):
 
     # This method must be overridden
     def add_publishers(self):
-        self.logger.debug("Adding publishers")
+        pass
 
     # This method must be overridden
     def add_subscribers(self):
-        self.logger.debug("Adding subscribers")
+        pass
 
     def add_services(self):
         self.logger.debug("Adding services")
 
         if self.cueable:
-            self.add_service("cue", decayModule, self.receive_cue)
+            self.add_service("cue", cueModule, self.receive_cue_request)
 
         if self.decayable:
-            self.add_service("decay", decayModule, self.decay)
+            self.add_service("decay", decayModule, self.receive_decay_request)
 
     # This method must be overridden
-    # TODO: Change the name to something that more obviously
-    # TODO: conveys the intent
-    def advance(self):
-        super(FrameworkModule, self).advance()
+    def call(self):
+        super(FrameworkModule, self).call()
 
     def learn(self):
         self.logger.debug("Learning")
 
     # TODO: Need to add decay strategies
-    def decay(self, targets, decay_strategy):
+    def decay(self, decay_strategy):
         self.logger.debug("Decaying")
 
-    def receive_cue(self):
-        self.logger.debug("Receiving cue request")
+    def receive_decay_request(self, request):
+        self.logger.debug("Receiving decay request: {}".format(request))
+
+        if request is None:
+            return
+
+        n = request.n
+        strategy = request.strategy
+
+        for i in xrange(1..n):
+            self.decay(strategy)
+
+    def receive_cue_request(self, request):
+        self.logger.debug("Receiving cue request: {}".format(request))
+
+        if request is None:
+            return

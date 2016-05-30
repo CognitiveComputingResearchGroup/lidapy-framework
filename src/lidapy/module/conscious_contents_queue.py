@@ -39,8 +39,8 @@ class ConsciousContentsQueue(FrameworkModule):
 
         return response
 
-    def advance(self):
-        super(ConsciousContentsQueue, self).advance()
+    def call(self):
+        super(ConsciousContentsQueue, self).call()
 
         broadcast = super(ConsciousContentsQueue, self).get_next_msg("global_broadcast")
 

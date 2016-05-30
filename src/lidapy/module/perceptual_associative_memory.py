@@ -19,8 +19,8 @@ class PerceptualAssociativeMemory(FrameworkModule):
         super(PerceptualAssociativeMemory, self).add_subscriber(built_in_topics["workspace_cues"])
         super(PerceptualAssociativeMemory, self).add_subscriber(built_in_topics["global_broadcast"])
 
-    def advance(self):
-        super(PerceptualAssociativeMemory, self).advance()
+    def call(self):
+        super(PerceptualAssociativeMemory, self).call()
 
         detected_features = super(PerceptualAssociativeMemory, self).get_next_msg("detected_features")
 

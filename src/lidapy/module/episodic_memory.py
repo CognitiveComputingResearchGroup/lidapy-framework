@@ -18,8 +18,8 @@ class EpisodicMemory(FrameworkModule):
         super(EpisodicMemory, self).add_subscriber(built_in_topics["global_broadcast"])
 
     # Must be overridden
-    def advance(self):
-        super(EpisodicMemory, self).advance()
+    def call(self):
+        super(EpisodicMemory, self).call()
 
 
 if __name__ == '__main__':

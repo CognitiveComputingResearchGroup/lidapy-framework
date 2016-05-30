@@ -19,8 +19,8 @@ class TransientEpisodicMemory(FrameworkModule):
         super(TransientEpisodicMemory, self).add_subscriber(built_in_topics["global_broadcast"])
 
     # Must be overridden
-    def advance(self):
-        super(TransientEpisodicMemory, self).advance()
+    def call(self):
+        super(TransientEpisodicMemory, self).call()
 
 
 if __name__ == '__main__':
