@@ -1,39 +1,38 @@
 #!/usr/bin/env python
 
 from lidapy.framework.module import FrameworkModule
-from lidapy.framework.msg import Behaviors
 from lidapy.framework.msg import built_in_topics
 
 
-class ActionSelectionModule(FrameworkModule):
-    def __init__(self):
-        super(ActionSelectionModule, self).__init__("ActionSelectionModule")
+class ActionSelection(FrameworkModule):
+    def __init__(self, **kwargs):
+        super(ActionSelection, self).__init__("ActionSelection", decayable=True, **kwargs)
 
     # Override this method to add more publishers
     def add_publishers(self):
-        super(ActionSelectionModule, self).add_publisher(built_in_topics["/lida/selected_behaviors"])
+        super(ActionSelection, self).add_publisher(built_in_topics["selected_behaviors"])
 
     # Override this method to add more subscribers
     def add_subscribers(self):
-        super(ActionSelectionModule, self).add_subscriber(built_in_topics["/lida/candidate_behaviors"])
-        super(ActionSelectionModule, self).add_subscriber(built_in_topics["/lida/global_broadcast"])
+        super(ActionSelection, self).add_subscriber(built_in_topics["candidate_behaviors"])
+        super(ActionSelection, self).add_subscriber(built_in_topics["global_broadcast"])
 
-    def advance(self):
-        self.logger.debug("Inside advance")
+    # Should be overridden
+    def call(self):
+        super(ActionSelection, self).call()
 
-        next_behavior = super(ActionSelectionModule, self).get_next_msg("/lida/candidate_behaviors")
+        candidate_behaviors = super(ActionSelection, self).get_next_msg("candidate_behaviors")
 
-        if next_behavior is not None:
-            behaviors = Behaviors()
-            behaviors.id = next_behavior.id
+        if candidate_behaviors is not None:
+            selected_behaviors = candidate_behaviors
 
-            self.publishers["/lida/selected_behaviors"].publish(behaviors)
+            self.publishers["selected_behaviors"].publish(selected_behaviors)
 
 
 if __name__ == '__main__':
 
     try:
-        module = ActionSelectionModule()
+        module = ActionSelection()
         module.run()
 
     except Exception as e:

@@ -1,37 +1,37 @@
 #!/usr/bin/env python
 
 from lidapy.framework.module import FrameworkModule
-from lidapy.framework.msg import Coalitions
 from lidapy.framework.msg import built_in_topics
 
 
-class GlobalWorkspaceModule(FrameworkModule):
-    def __init__(self):
-        super(GlobalWorkspaceModule, self).__init__("GlobalWorkspaceModule")
+class GlobalWorkspace(FrameworkModule):
+    def __init__(self, **kwargs):
+        super(GlobalWorkspace, self).__init__("GlobalWorkspace", decayable=True, **kwargs)
 
-        # Override this method to add more publishers
+    # Override this method to add more publishers
     def add_publishers(self):
-        super(GlobalWorkspaceModule, self).add_publisher(built_in_topics["/lida/global_broadcast"])
+        super(GlobalWorkspace, self).add_publisher(built_in_topics["global_broadcast"])
 
     # Override this method to add more subscribers
     def add_subscribers(self):
-        super(GlobalWorkspaceModule, self).add_subscriber(built_in_topics["/lida/workspace_coalitions"])
+        super(GlobalWorkspace, self).add_subscriber(built_in_topics["workspace_coalitions"])
 
-    def advance(self):
-        self.logger.debug("Inside advance")
+    # Should be overridden
+    def call(self):
+        super(GlobalWorkspace, self).call()
 
-        next_coalitions = super(GlobalWorkspaceModule, self).get_next_msg("/lida/workspace_coalitions")
+        workspace_coalitions = super(GlobalWorkspace, self).get_next_msg("workspace_coalitions")
 
-        if next_coalitions is not None:
-            global_broadcast = Coalitions()
-            global_broadcast.id = next_coalitions.id
+        if workspace_coalitions is not None:
+            global_broadcast = workspace_coalitions
 
-            self.publishers["/lida/global_broadcast"].publish(global_broadcast)
+            self.publishers["global_broadcast"].publish(global_broadcast)
+
 
 if __name__ == '__main__':
 
     try:
-        module = GlobalWorkspaceModule()
+        module = GlobalWorkspace()
         module.run()
 
     except Exception as e:

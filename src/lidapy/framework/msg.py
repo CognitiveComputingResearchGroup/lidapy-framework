@@ -1,4 +1,6 @@
-from lida.msg import Behaviors, Coalitions, ConsciousContent, Cues, Episodes, Features, Percepts, SpatialMaps
+from cPickle import dumps, loads  # Object Serialization / Deserialization
+
+from lida.msg import CognitiveContent  # ROS specific message class import
 
 from lidapy.util import comm, logger
 
@@ -43,16 +45,26 @@ class FrameworkTopicPublisher(object):
         comm.publish_message(self._publisher, msg)
 
 
+class MsgSerializer(object):
+    @staticmethod
+    def serialize(self, obj):
+        return dumps(obj)
+
+    @staticmethod
+    def deserialize(self, serialized_obj):
+        return loads(serialized_obj)
+
+
 built_in_topics = {
-    "/lida/selected_behaviors": FrameworkTopic("/lida/selected_behaviors", Behaviors),
-    "/lida/candidate_behaviors": FrameworkTopic("/lida/candidate_behaviors", Behaviors),
-    "/lida/global_broadcast": FrameworkTopic("/lida/global_broadcast", ConsciousContent),
-    "/lida/episodes": FrameworkTopic("/lida/episodes", Episodes),
-    "/lida/workspace_cues": FrameworkTopic("/lida/workspace_cues", Cues),
-    "/lida/workspace_coalitions": FrameworkTopic("/lida/workspace_coalitions", Coalitions),
-    "/lida/detected_features": FrameworkTopic("/lida/detected_features", Features),
-    "/lida/percepts": FrameworkTopic("/lida/percepts", Percepts),
-    "/lida/spatial_maps": FrameworkTopic("/lida/spatial_maps", SpatialMaps),
-    "/lida/dorsal_stream": FrameworkTopic("/lida/dorsal_stream", Features),
-    "/lida/ventral_stream": FrameworkTopic("/lida/ventral_stream", Features),
+    "selected_behaviors": FrameworkTopic("selected_behaviors", CognitiveContent),
+    "candidate_behaviors": FrameworkTopic("candidate_behaviors", CognitiveContent),
+    "global_broadcast": FrameworkTopic("global_broadcast", CognitiveContent),
+    "episodes": FrameworkTopic("episodes", CognitiveContent),
+    "workspace_cues": FrameworkTopic("workspace_cues", CognitiveContent),
+    "workspace_coalitions": FrameworkTopic("workspace_coalitions", CognitiveContent),
+    "detected_features": FrameworkTopic("detected_features", CognitiveContent),
+    "percepts": FrameworkTopic("percepts", CognitiveContent),
+    "spatial_maps": FrameworkTopic("spatial_maps", CognitiveContent),
+    "dorsal_stream": FrameworkTopic("dorsal_stream", CognitiveContent),
+    "ventral_stream": FrameworkTopic("ventral_stream", CognitiveContent),
 }

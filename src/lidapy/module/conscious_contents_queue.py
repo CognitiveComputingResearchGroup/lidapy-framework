@@ -2,7 +2,6 @@
 
 from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import built_in_topics
-from lidapy.framework.service import FrameworkService
 
 # TODO: This is a ROS specific detail.  Need to figure out how to hide this!
 from lida.srv import ccqGetLastNBroadcasts, ccqGetLastNBroadcastsResponse
@@ -11,20 +10,23 @@ from itertools import islice
 
 
 class ConsciousContentsQueue(FrameworkModule):
-    def __init__(self):
-        super(ConsciousContentsQueue, self).__init__("ConsciousContentsQueue")
+    def __init__(self, **kwargs):
+        super(ConsciousContentsQueue, self).__init__("ConsciousContentsQueue", decayable=True, **kwargs)
 
         self.max_queue_size = self.config.get_param("ConsciousContentsQueue",
                                                     "max_queue_size", 10)
 
         self.queue = deque(maxlen=self.max_queue_size)
-        self.service = FrameworkService("ccqGetLastNBroadcasts",
-                                        ccqGetLastNBroadcasts,
-                                        self.process_last_n_broadcasts_request)
 
     # Override this method to add more subscribers
     def add_subscribers(self):
-        super(ConsciousContentsQueue, self).add_subscriber(built_in_topics["/lida/global_broadcast"])
+        super(ConsciousContentsQueue, self).add_subscriber(built_in_topics["global_broadcast"])
+
+    # Override this method to add more services
+    def add_services(self):
+        super(ConsciousContentsQueue, self).add_service("get_last_n_broadcasts",
+                                                        ccqGetLastNBroadcasts,
+                                                        self.process_last_n_broadcasts_request)
 
     def process_last_n_broadcasts_request(self, request):
 
@@ -37,10 +39,10 @@ class ConsciousContentsQueue(FrameworkModule):
 
         return response
 
-    def advance(self):
-        self.logger.debug("Inside advance")
+    def call(self):
+        super(ConsciousContentsQueue, self).call()
 
-        broadcast = super(ConsciousContentsQueue, self).get_next_msg("/lida/global_broadcast")
+        broadcast = super(ConsciousContentsQueue, self).get_next_msg("global_broadcast")
 
         if broadcast is not None:
             self.queue.append(broadcast)

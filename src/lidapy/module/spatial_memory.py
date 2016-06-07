@@ -4,24 +4,28 @@ from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import built_in_topics
 
 
-class SpatialMemoryModule(FrameworkModule):
-    def __init__(self):
-        super(SpatialMemoryModule, self).__init__("SpatialMemoryModule")
+class SpatialMemory(FrameworkModule):
+    def __init__(self, **kwargs):
+        super(SpatialMemory, self).__init__("SpatialMemory", decayable=True, cueable=True, **kwargs)
 
     # Override this method to add more publishers
     def add_publishers(self):
-        super(SpatialMemoryModule, self).add_publisher(built_in_topics["/lida/spatial_maps"])
+        super(SpatialMemory, self).add_publisher(built_in_topics["spatial_maps"])
 
     # Override this method to add more subscribers
     def add_subscribers(self):
-        super(SpatialMemoryModule, self).add_subscriber(built_in_topics["/lida/workspace_cues"])
-        super(SpatialMemoryModule, self).add_subscriber(built_in_topics["/lida/global_broadcast"])
+        super(SpatialMemory, self).add_subscriber(built_in_topics["workspace_cues"])
+        super(SpatialMemory, self).add_subscriber(built_in_topics["global_broadcast"])
+
+    # Must be overridden
+    def call(self):
+        super(SpatialMemory, self).call()
 
 
 if __name__ == '__main__':
 
     try:
-        module = SpatialMemoryModule()
+        module = SpatialMemory()
         module.run()
 
     except Exception as e:
