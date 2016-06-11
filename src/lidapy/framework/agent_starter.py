@@ -42,7 +42,7 @@ class AgentStarter(object):
         self.module_dict.pop(module_name)
 
     def start(self, **kwargs):
-        args = self._args_parser.parse_args()
+        args, unknown = self._args_parser.parse_known_args()
 
         module_class = self.module_dict.get(args.module_name, None)
         if module_class is not None:
