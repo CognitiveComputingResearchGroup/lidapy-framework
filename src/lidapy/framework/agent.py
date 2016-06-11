@@ -132,14 +132,3 @@ class AgentConfig(object):
 
         return default_value
 
-
-class AgentStarter(object):
-    def __init__(self):
-        self.modules = []
-
-    def add_module(self, module):
-        self.modules.append(module)
-
-    def start(self):
-        for module in self.modules:
-            module.start()
