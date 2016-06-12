@@ -3,6 +3,7 @@ from os import environ
 
 from lidapy.module.action_selection import ActionSelection
 from lidapy.module.conscious_contents_queue import ConsciousContentsQueue
+from lidapy.module.current_situational_model import CurrentSituationalModel
 from lidapy.module.global_workspace import GlobalWorkspace
 from lidapy.module.perceptual_associative_memory import PerceptualAssociativeMemory
 from lidapy.module.procedural_memory import ProceduralMemory
@@ -22,6 +23,7 @@ class AgentStarter(object):
         self.module_dict = {
             "ActionSelection": ActionSelection,
             "ConsciousContentsQueue": ConsciousContentsQueue,
+            "CurrentSituationalModel": CurrentSituationalModel,
             "GlobalWorkspace": GlobalWorkspace,
             "PerceptualAssociativeMemory": PerceptualAssociativeMemory,
             "ProceduralMemory": ProceduralMemory,
