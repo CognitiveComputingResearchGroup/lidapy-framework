@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+from os import environ
 
 from lidapy.module.action_selection import ActionSelection
 from lidapy.module.conscious_contents_queue import ConsciousContentsQueue
@@ -34,6 +35,14 @@ class AgentStarter(object):
     def _configure_args_parser(self):
         self._args_parser = ArgumentParser()
         self._args_parser.add_argument("-m", "--module_name", help="The name of the module to launch.")
+        self._args_parser.add_argument("-f", "--config_file", help="The filepath to the agent configuration file.")
+
+    def _update_env(self, args):
+        if args is None:
+            return
+
+        if args.config_file is not None:
+            environ["LIDAPY_AGENT_CONFIG"] = args.config_file
 
     def add_module(self, module_name, module_class):
         self.module_dict[module_name] = module_class
@@ -43,6 +52,8 @@ class AgentStarter(object):
 
     def start(self, **kwargs):
         args, unknown = self._args_parser.parse_known_args()
+
+        self._update_env(args)
 
         module_class = self.module_dict.get(args.module_name, None)
         if module_class is not None:
