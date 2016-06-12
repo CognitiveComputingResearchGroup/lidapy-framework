@@ -29,7 +29,8 @@ class FrameworkProcess(Process):
                 self.wait()
 
         except Exception as e:
-            logger.fatal("Process [name = {}; pid = {}] caught exception in run method: {}".format(e))
+            logger.fatal(
+                "Process [name = {}; pid = {}] caught exception in run method: {}".format(self.name, os.getpid(), e))
             self.status = "error"
 
         self.finalize()
