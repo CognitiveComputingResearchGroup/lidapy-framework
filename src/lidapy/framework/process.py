@@ -52,8 +52,8 @@ class FrameworkProcess(Process):
 
     # May be overridden to customize finalization
     def finalize(self):
-        logger.info("Process [name = {}; pid = {}] complete with status = {}".format(self.name, os.getpid()),
-                    self.status)
+        logger.info("Process [name = {}; pid = {}] complete with status = {}".format(self.name, os.getpid(),
+                                                                                     self.status))
 
         self.status = "complete"
 
