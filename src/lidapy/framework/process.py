@@ -29,7 +29,8 @@ class FrameworkProcess(Process):
                 self.wait()
 
         except Exception as e:
-            logger.fatal("Process [name = {}; pid = {}] caught exception in run method: {}".format(e))
+            logger.fatal(
+                "Process [name = {}; pid = {}] caught exception in run method: {}".format(self.name, os.getpid(), e))
             self.status = "error"
 
         self.finalize()
@@ -51,8 +52,8 @@ class FrameworkProcess(Process):
 
     # May be overridden to customize finalization
     def finalize(self):
-        logger.info("Process [name = {}; pid = {}] complete with status = {}".format(self.name, os.getpid()),
-                    self.status)
+        logger.info("Process [name = {}; pid = {}] complete with status = {}".format(self.name, os.getpid(),
+                                                                                     self.status))
 
         self.status = "complete"
 
