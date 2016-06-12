@@ -26,17 +26,25 @@ class CurrentSituationalModel(FrameworkModule):
         # type: (csmAddContentRequest) -> csmAddContentResponse
         self.logger.debug("Receiving add_csm_content request: {}".format(request))
 
+        return csmAddContentResponse()
+
     def receive_find_csm_content_request(self, request):
         # type: (csmFindContentRequest) -> csmFindContentResponse
         self.logger.debug("Receiving find_csm_content request: {}".format(request))
+
+        return csmFindContentResponse()
 
     def receive_list_csm_content_request(self, request):
         # type: (csmListContentRequest) -> csmListContentResponse
         self.logger.debug("Receiving list_csm_content request: {}".format(request))
 
+        return csmListContentResponse()
+
     def receive_update_csm_content_request(self, request):
         # type: (csmUpdateContentRequest) -> csmUpdateContentResponse
         self.logger.debug("Receiving update_csm_content request: {}".format(request))
+
+        return csmUpdateContentResponse()
 
     def call(self):
         pass
