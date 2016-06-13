@@ -2,7 +2,6 @@ from collections import deque
 
 from lida.srv import decayModule, cueModule
 
-from lidapy.framework.agent import AgentConfig
 from lidapy.framework.process import FrameworkProcess
 from lidapy.framework.service import FrameworkService
 from lidapy.util import logger
@@ -53,8 +52,6 @@ class FrameworkModule(FrameworkProcess):
         # }
         self.received_msgs = {}
 
-        self._config = None
-
     # Can be override to customize module initialization.  Note: When running
     # the module in a separate process, initialize must be called after forking
     # (i.e., starting) the process
@@ -65,23 +62,12 @@ class FrameworkModule(FrameworkProcess):
         self.add_subscribers()
         self.add_services()
 
-    @property
-    def config(self):
-        if self._config is None:
-            self._config = AgentConfig()
-
-        return self._config
-
-    @property
-    def logger(self):
-        return logger
-
     # A default callback for topic subscribers. This can be overridden; however, if
     # this method is overrideen then get_next_msg should also be overridden.
     def receive_msg(self, msg, args):
         topic_name = args["topic"]
 
-        self.logger.debug("Receiving message on topic {}.  Message = {}".format(topic_name, msg))
+        logger.debug("Receiving message on topic {}.  Message = {}".format(topic_name, msg))
 
         if topic_name is not None:
             msg_queue = self.received_msgs[topic_name]
@@ -94,19 +80,19 @@ class FrameworkModule(FrameworkProcess):
 
         next_msg = None
         if len(msg_queue) == 0:
-            self.logger.debug("Message queue is empty for topic {}".format(topic_name))
+            logger.debug("Message queue is empty for topic {}".format(topic_name))
         else:
             next_msg = msg_queue.popleft()
 
         return next_msg
 
     def add_publisher(self, topic):
-        self.logger.info("Adding publisher for topic {}".format(topic.topic_name))
+        logger.info("Adding publisher for topic {}".format(topic.topic_name))
 
         self.publishers[topic.topic_name] = topic.get_publisher()
 
     def add_subscriber(self, topic, callback=None, callback_args=None):
-        self.logger.info("Adding subscriber for topic {}".format(topic.topic_name))
+        logger.info("Adding subscriber for topic {}".format(topic.topic_name))
 
         # Initial message queue
         max_queue_size = self.config.get_type_or_global_param(self.name, "max_queue_size", 10)
@@ -130,7 +116,7 @@ class FrameworkModule(FrameworkProcess):
         pass
 
     def add_services(self):
-        self.logger.debug("Adding services")
+        logger.debug("Adding services")
 
         if self.cueable:
             self.add_service("cue", cueModule, self.receive_cue_request)
@@ -143,14 +129,14 @@ class FrameworkModule(FrameworkProcess):
         super(FrameworkModule, self).call()
 
     def learn(self):
-        self.logger.debug("Learning")
+        logger.debug("Learning")
 
     # TODO: Need to add decay strategies
     def decay(self, decay_strategy):
-        self.logger.debug("Decaying")
+        logger.debug("Decaying")
 
     def receive_decay_request(self, request):
-        self.logger.debug("Receiving decay request: {}".format(request))
+        logger.debug("Receiving decay request: {}".format(request))
 
         if request is None:
             return
@@ -162,7 +148,7 @@ class FrameworkModule(FrameworkProcess):
             self.decay(strategy)
 
     def receive_cue_request(self, request):
-        self.logger.debug("Receiving cue request: {}".format(request))
+        logger.debug("Receiving cue request: {}".format(request))
 
         if request is None:
             return

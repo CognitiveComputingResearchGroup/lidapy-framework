@@ -1,6 +1,6 @@
 from argparse import ArgumentParser
-from os import environ
 
+from lidapy.framework.agent import AgentConfig
 from lidapy.module.action_selection import ActionSelection
 from lidapy.module.conscious_contents_queue import ConsciousContentsQueue
 from lidapy.module.current_situational_model import CurrentSituationalModel
@@ -15,52 +15,64 @@ from lidapy.module.workspace import Workspace
 
 
 class AgentStarter(object):
-    def __init__(self, module_dict=None):
-        self._configure_module_dict(module_dict)
-        self._configure_args_parser()
+    def __init__(self, **kwargs):
 
-    def _configure_module_dict(self, module_dict):
-        self.module_dict = {
-            "ActionSelection": ActionSelection,
-            "ConsciousContentsQueue": ConsciousContentsQueue,
-            "CurrentSituationalModel": CurrentSituationalModel,
-            "GlobalWorkspace": GlobalWorkspace,
-            "PerceptualAssociativeMemory": PerceptualAssociativeMemory,
-            "ProceduralMemory": ProceduralMemory,
-            "SensoryMemory": SensoryMemory,
-            "SensoryMotorMemory": SensoryMotorMemory,
-            "SpatialMemory": SpatialMemory,
-            "TransientEpisodicMemory": TransientEpisodicMemory,
-            "Workspace": Workspace,
-        }
+        self._module_dict = None
+        self._args_parser = None
+        self._config = None
 
-    def _configure_args_parser(self):
+        self._initialize_args_parser()
+
+        self.args, self.unknown = self._args_parser.parse_known_args()
+
+        self._initialize_module_dict(module_dict=kwargs.get("module_dict"))
+        self._initialize_agent_config(config_file=kwargs.get("config_file"))
+
+    def _initialize_args_parser(self):
         self._args_parser = ArgumentParser()
         self._args_parser.add_argument("-m", "--module_name", help="The name of the module to launch.")
         self._args_parser.add_argument("-f", "--config_file", help="The filepath to the agent configuration file.")
 
-    def _update_env(self, args):
-        if args is None:
-            return
+    def _initialize_module_dict(self, module_dict=None):
 
-        if args.config_file is not None:
-            environ["LIDAPY_AGENT_CONFIG"] = args.config_file
+        if module_dict is None:
+            self._module_dict = {
+                "ActionSelection": ActionSelection,
+                "ConsciousContentsQueue": ConsciousContentsQueue,
+                "CurrentSituationalModel": CurrentSituationalModel,
+                "GlobalWorkspace": GlobalWorkspace,
+                "PerceptualAssociativeMemory": PerceptualAssociativeMemory,
+                "ProceduralMemory": ProceduralMemory,
+                "SensoryMemory": SensoryMemory,
+                "SensoryMotorMemory": SensoryMotorMemory,
+                "SpatialMemory": SpatialMemory,
+                "TransientEpisodicMemory": TransientEpisodicMemory,
+                "Workspace": Workspace,
+            }
+        else:
+            self._module_dict = module_dict
 
+    def _initialize_agent_config(self, config_file):
+        if self._config is None:
+            cf = config_file or self.args.config_file
+            self._config = AgentConfig(config_file=cf)
+
+        return self._config
+    
     def add_module(self, module_name, module_class):
-        self.module_dict[module_name] = module_class
+        self._module_dict[module_name] = module_class
 
     def remove_module(self, module_name):
-        self.module_dict.pop(module_name)
+        self._module_dict.pop(module_name)
 
     def start(self, **kwargs):
-        args, unknown = self._args_parser.parse_known_args()
 
-        self._update_env(args)
+        module_name = kwargs.get("module_name") or self.args.module_name
+        module_class = self._module_dict.get(module_name)
 
-        module_class = self.module_dict.get(args.module_name, None)
         if module_class is not None:
-            print "Starting module {}".format(args.module_name)
-            module_obj = module_class(**kwargs)
+            print "Starting module {}".format(self.args.module_name)
+            module_obj = module_class(config=self._config, cmdline_args=self.args, **kwargs)
             module_obj.run()
         else:
-            print "Unknown module: {}".format(args.module_name)
+            print "Unknown module: {}".format(self.args.module_name)

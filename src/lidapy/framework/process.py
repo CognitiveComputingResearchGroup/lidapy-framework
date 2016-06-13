@@ -1,7 +1,6 @@
 import os
 from multiprocessing import Process
 
-from lidapy.framework.agent import AgentConfig
 from lidapy.util import comm, logger
 
 
@@ -11,7 +10,13 @@ class FrameworkProcess(Process):
         super(FrameworkProcess, self).__init__(name=name)
 
         self.name = name
+
         self.log_level = kwargs.get("log_level")
+
+        self.config = kwargs.get("config")
+        if self.config is None:
+            raise RuntimeError("Illegal state: agent configuration is undefined.")
+
         self._status = "starting"
 
     def run(self):
@@ -36,7 +41,7 @@ class FrameworkProcess(Process):
         self.finalize()
 
     def get_rate(self):
-        return int(AgentConfig().get_type_or_global_param(self.name, "rate_in_hz", 100))
+        return int(self.config.get_type_or_global_param(self.name, "rate_in_hz", 100))
 
     def wait(self):
         comm.wait(self.get_rate())

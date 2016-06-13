@@ -5,6 +5,7 @@ from lidapy.util.comm import ParameterService
 
 
 class AgentConfig(object):
+
     # Default filepath for agent configuration file
     default_agent_config_filepath = "configs/agent.conf"
 
@@ -23,7 +24,7 @@ class AgentConfig(object):
 
     _initialized = False
 
-    def __init__(self, config_file=None):
+    def __init__(self, config_file):
         super(AgentConfig, self).__init__()
 
         if not AgentConfig._initialized:
