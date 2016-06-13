@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from lidapy.framework.agent_starter import AgentStarter
 from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import built_in_topics
 
@@ -25,8 +26,9 @@ class SpatialMemory(FrameworkModule):
 if __name__ == '__main__':
 
     try:
-        module = SpatialMemory()
-        module.run()
+
+        starter = AgentStarter()
+        starter.start(module_name="SpatialMemory")
 
     except Exception as e:
         print e

@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
-from lidapy.framework.module import FrameworkModule
-from lidapy.framework.msg import built_in_topics
-
-# TODO: This is a ROS specific detail.  Need to figure out how to hide this!
-from lida.srv import ccqGetLastNBroadcasts, ccqGetLastNBroadcastsResponse
 from collections import deque
 from itertools import islice
+
+from lida.srv import ccqGetLastNBroadcasts, ccqGetLastNBroadcastsResponse
+
+from lidapy.framework.agent_starter import AgentStarter
+from lidapy.framework.module import FrameworkModule
+from lidapy.framework.msg import built_in_topics
 
 
 class ConsciousContentsQueue(FrameworkModule):
@@ -51,8 +52,9 @@ class ConsciousContentsQueue(FrameworkModule):
 if __name__ == '__main__':
 
     try:
-        module = ConsciousContentsQueue()
-        module.run()
+
+        starter = AgentStarter()
+        starter.start(module_name="ConsciousContentsQueue")
 
     except Exception as e:
         print e

@@ -5,7 +5,9 @@ from lida.srv import csmFindContent, csmFindContentRequest, csmFindContentRespon
 from lida.srv import csmListContent, csmListContentRequest, csmListContentResponse
 from lida.srv import csmUpdateContent, csmUpdateContentRequest, csmUpdateContentResponse
 
+from lidapy.framework.agent_starter import AgentStarter
 from lidapy.framework.module import FrameworkModule
+from lidapy.util import logger
 
 
 class CurrentSituationalModel(FrameworkModule):
@@ -24,25 +26,25 @@ class CurrentSituationalModel(FrameworkModule):
 
     def receive_add_csm_content_request(self, request):
         # type: (csmAddContentRequest) -> csmAddContentResponse
-        self.logger.debug("Receiving add_csm_content request: {}".format(request))
+        logger.debug("Receiving add_csm_content request: {}".format(request))
 
         return csmAddContentResponse()
 
     def receive_find_csm_content_request(self, request):
         # type: (csmFindContentRequest) -> csmFindContentResponse
-        self.logger.debug("Receiving find_csm_content request: {}".format(request))
+        logger.debug("Receiving find_csm_content request: {}".format(request))
 
         return csmFindContentResponse()
 
     def receive_list_csm_content_request(self, request):
         # type: (csmListContentRequest) -> csmListContentResponse
-        self.logger.debug("Receiving list_csm_content request: {}".format(request))
+        logger.debug("Receiving list_csm_content request: {}".format(request))
 
         return csmListContentResponse()
 
     def receive_update_csm_content_request(self, request):
         # type: (csmUpdateContentRequest) -> csmUpdateContentResponse
-        self.logger.debug("Receiving update_csm_content request: {}".format(request))
+        logger.debug("Receiving update_csm_content request: {}".format(request))
 
         return csmUpdateContentResponse()
 
@@ -53,11 +55,38 @@ class CurrentSituationalModel(FrameworkModule):
 if __name__ == '__main__':
 
     try:
-        module = CurrentSituationalModel()
-        module.run()
+
+        starter = AgentStarter()
+        starter.start(module_name="CurrentSituationalModel")
 
     except Exception as e:
         print e
 
     finally:
+        pass
+
+
+class WorkspaceBuffer(object):
+    def __init__(self):
+        pass
+
+    def add(self, obj):
+        pass
+
+    def update(self, obj):
+        pass
+
+    def get(self, obj):
+        pass
+
+    def remove(self, obj):
+        pass
+
+    def decay(self, obj):
+        pass
+
+    def __init__(self):
+        pass
+
+    def __getitem__(self, item):
         pass
