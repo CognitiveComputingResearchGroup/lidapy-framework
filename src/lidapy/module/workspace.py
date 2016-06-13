@@ -1,8 +1,5 @@
-#!/usr/bin/env python
-
 from lida.srv import csmAddContent, csmAddContentRequest
 
-from lidapy.framework.agent_starter import AgentStarter
 from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import built_in_topics
 from lidapy.framework.service import FrameworkServiceClient
@@ -35,17 +32,3 @@ class Workspace(FrameworkModule):
             request.content = [percepts]
 
             self.csm_add_content_srv_client(request)
-
-
-if __name__ == '__main__':
-
-    try:
-
-        starter = AgentStarter()
-        starter.start(module_name="Workspace")
-
-    except Exception as e:
-        print e
-
-    finally:
-        pass

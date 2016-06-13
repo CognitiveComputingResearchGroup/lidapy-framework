@@ -1,11 +1,8 @@
-#!/usr/bin/env python
-
 from collections import deque
 from itertools import islice
 
 from lida.srv import ccqGetLastNBroadcasts, ccqGetLastNBroadcastsResponse
 
-from lidapy.framework.agent_starter import AgentStarter
 from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import built_in_topics
 
@@ -47,17 +44,3 @@ class ConsciousContentsQueue(FrameworkModule):
 
         if broadcast is not None:
             self.queue.append(broadcast)
-
-
-if __name__ == '__main__':
-
-    try:
-
-        starter = AgentStarter()
-        starter.start(module_name="ConsciousContentsQueue")
-
-    except Exception as e:
-        print e
-
-    finally:
-        pass

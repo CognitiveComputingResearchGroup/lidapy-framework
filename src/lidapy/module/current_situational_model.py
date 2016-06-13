@@ -1,11 +1,8 @@
-#!/usr/bin/env python
-
 from lida.srv import csmAddContent, csmAddContentRequest, csmAddContentResponse
 from lida.srv import csmFindContent, csmFindContentRequest, csmFindContentResponse
 from lida.srv import csmListContent, csmListContentRequest, csmListContentResponse
 from lida.srv import csmUpdateContent, csmUpdateContentRequest, csmUpdateContentResponse
 
-from lidapy.framework.agent_starter import AgentStarter
 from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import built_in_topics
 from lidapy.util import logger
@@ -57,20 +54,6 @@ class CurrentSituationalModel(FrameworkModule):
         return csmUpdateContentResponse()
 
     def call(self):
-        pass
-
-
-if __name__ == '__main__':
-
-    try:
-
-        starter = AgentStarter()
-        starter.start(module_name="CurrentSituationalModel")
-
-    except Exception as e:
-        print e
-
-    finally:
         pass
 
 

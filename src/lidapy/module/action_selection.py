@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-
-from lidapy.framework.agent_starter import AgentStarter
 from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import built_in_topics
 
@@ -28,17 +25,3 @@ class ActionSelection(FrameworkModule):
             selected_behaviors = candidate_behaviors
 
             self.publishers["selected_behaviors"].publish(selected_behaviors)
-
-
-if __name__ == '__main__':
-
-    try:
-
-        starter = AgentStarter()
-        starter.start(module_name="ActionSelection")
-
-    except Exception as e:
-        print e
-
-    finally:
-        pass

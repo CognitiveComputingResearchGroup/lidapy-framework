@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-
-from lidapy.framework.agent_starter import AgentStarter
 from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import built_in_topics
 
@@ -22,17 +19,3 @@ class SensoryMotorMemory(FrameworkModule):
     # Must be overridden
     def call(self):
         super(SensoryMotorMemory, self).call()
-
-
-if __name__ == '__main__':
-
-    try:
-
-        starter = AgentStarter()
-        starter.start(module_name="SensoryMotorMemory")
-
-    except Exception as e:
-        print e
-
-    finally:
-        pass

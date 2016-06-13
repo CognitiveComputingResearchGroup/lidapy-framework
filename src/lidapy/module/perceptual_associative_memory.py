@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-
-from lidapy.framework.agent_starter import AgentStarter
 from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import built_in_topics
 
@@ -29,17 +26,3 @@ class PerceptualAssociativeMemory(FrameworkModule):
             active_percepts = detected_features
 
             self.publishers["percepts"].publish(active_percepts)
-
-
-if __name__ == '__main__':
-
-    try:
-
-        starter = AgentStarter()
-        starter.start(module_name="PerceptualAssociativeMemory")
-
-    except Exception as e:
-        print e
-
-    finally:
-        pass

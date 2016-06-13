@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-
-from lidapy.framework.agent_starter import AgentStarter
 from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import built_in_topics
 
@@ -26,17 +23,3 @@ class ProceduralMemory(FrameworkModule):
             candidate_behaviors = global_broadcast
 
             self.publishers["candidate_behaviors"].publish(candidate_behaviors)
-
-
-if __name__ == '__main__':
-
-    try:
-
-        starter = AgentStarter()
-        starter.start(module_name="ProceduralMemory")
-
-    except Exception as e:
-        print e
-
-    finally:
-        pass
