@@ -1,3 +1,4 @@
+import textwrap
 import unittest
 from tempfile import NamedTemporaryFile
 
@@ -9,7 +10,7 @@ test_config = \
     """
     [global_params]
     rate_in_hz = 5
-    use_param_service = True
+    use_param_service = False
 
     [module_1]
     parameter_1 = value1
@@ -22,15 +23,24 @@ test_config = \
 
 
 class AgentConfigTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        pass
+
+    @classmethod
+    def tearDownClass(cls):
+        pass
+
     def test_init(self):
 
         # Use the TemporaryFile context manager for easy clean-up
         with NamedTemporaryFile() as tmp:
-            tmp.write(test_config)
+            cleansed_test_config = textwrap.dedent(test_config).lstrip()
+            tmp.write(cleansed_test_config)
             tmp.flush()
 
             try:
-                config = AgentConfig(config_filepath=tmp.name)
+                config = AgentConfig(config_file=tmp.name)
 
                 # Verify that global_param value from config matches
                 # expected value
@@ -41,7 +51,7 @@ class AgentConfigTest(unittest.TestCase):
 
                 # Verify that global_param value from config matches
                 # expected value
-                expVal = "True"
+                expVal = "False"
                 actVal = config.get_global_param("use_param_service")
 
                 assert (expVal == actVal)
@@ -87,7 +97,6 @@ class AgentConfigTest(unittest.TestCase):
                 actVal = config.get_param("does_not_exist", "parameter_1")
 
                 assert (expVal == actVal)
-
 
             except Exception as e:
                 self.fail("Unexpected Exception: {}".format(e))

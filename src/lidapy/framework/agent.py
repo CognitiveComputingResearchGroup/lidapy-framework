@@ -1,16 +1,11 @@
 from ConfigParser import SafeConfigParser
-from os import getenv
 
 from lidapy.util import logger
 from lidapy.util.comm import ParameterService
 
 
 class AgentConfig(object):
-
-    # Environment variable for agent configuration file
-    agent_config_env_var = "LIDAPY_AGENT_CONFIG"
-
-    # Default filepath for agent configuration file if not set in environment
+    # Default filepath for agent configuration file
     default_agent_config_filepath = "configs/agent.conf"
 
     # shared configuration dictionary containing key/value pairs
@@ -28,11 +23,11 @@ class AgentConfig(object):
 
     _initialized = False
 
-    def __init__(self, config_filepath=None):
+    def __init__(self, config_file=None):
         super(AgentConfig, self).__init__()
 
         if not AgentConfig._initialized:
-            found_filepath = self._find_config_file(config_filepath)
+            found_filepath = self._find_config_file(config_file)
             if not found_filepath:
                 raise IOError("Failed to find usable agent configuration file")
 
@@ -43,7 +38,6 @@ class AgentConfig(object):
 
         candidate_filepaths \
             = [config_filepath,
-               getenv(AgentConfig.agent_config_env_var),
                AgentConfig.default_agent_config_filepath]
 
         for filepath in candidate_filepaths:
@@ -107,7 +101,12 @@ class AgentConfig(object):
 
     def get_param(self, param_type, param_name, default_value=None):
         if AgentConfig._param_service is None:
-            param_value = AgentConfig._file_config[param_type][param_name]
+            try:
+                param_value = AgentConfig._file_config[param_type][param_name]
+            except KeyError:
+                logger.error("Parameter [section: {}][key: {}] does not exist.".format(param_type, param_name))
+                param_value = None
+
         else:
             param_value = AgentConfig._param_service.get_param(param_type,
                                                                param_name,
