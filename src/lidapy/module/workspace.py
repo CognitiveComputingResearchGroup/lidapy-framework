@@ -1,18 +1,22 @@
 #!/usr/bin/env python
 
+from lida.srv import csmAddContent, csmAddContentRequest
+
 from lidapy.framework.agent_starter import AgentStarter
 from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import built_in_topics
+from lidapy.framework.service import FrameworkServiceClient
 
 
 class Workspace(FrameworkModule):
     def __init__(self, **kwargs):
         super(Workspace, self).__init__("Workspace", decayable=True, **kwargs)
 
+        self.csm_add_content_srv_client = FrameworkServiceClient("add_csm_content", csmAddContent).get_service_proxy()
+
     # Override this method to add more publishers
     def add_publishers(self):
         super(Workspace, self).add_publisher(built_in_topics["workspace_coalitions"])
-        super(Workspace, self).add_publisher(built_in_topics["workspace_cues"])
 
     # Override this method to add more subscribers
     def add_subscribers(self):
@@ -27,9 +31,10 @@ class Workspace(FrameworkModule):
         percepts = super(Workspace, self).get_next_msg("percepts")
 
         if percepts is not None:
-            workspace_coalitions = percepts
+            request = csmAddContentRequest()
+            request.content = [percepts]
 
-            self.publishers["workspace_coalitions"].publish(workspace_coalitions)
+            self.csm_add_content_srv_client(request)
 
 
 if __name__ == '__main__':

@@ -7,12 +7,16 @@ from lida.srv import csmUpdateContent, csmUpdateContentRequest, csmUpdateContent
 
 from lidapy.framework.agent_starter import AgentStarter
 from lidapy.framework.module import FrameworkModule
+from lidapy.framework.msg import built_in_topics
 from lidapy.util import logger
 
 
 class CurrentSituationalModel(FrameworkModule):
     def __init__(self, **kwargs):
         super(CurrentSituationalModel, self).__init__("CurrentSituationalModel", decayable=True, **kwargs)
+
+    def add_publishers(self):
+        super(CurrentSituationalModel, self).add_publisher(built_in_topics["workspace_cues"])
 
     def add_services(self):
         super(CurrentSituationalModel, self).add_service("add_csm_content", csmAddContent,
@@ -27,6 +31,8 @@ class CurrentSituationalModel(FrameworkModule):
     def receive_add_csm_content_request(self, request):
         # type: (csmAddContentRequest) -> csmAddContentResponse
         logger.debug("Receiving add_csm_content request: {}".format(request))
+
+        # TODO: Adding content will initiatiate a publication to workspace cues
 
         return csmAddContentResponse()
 
@@ -45,6 +51,8 @@ class CurrentSituationalModel(FrameworkModule):
     def receive_update_csm_content_request(self, request):
         # type: (csmUpdateContentRequest) -> csmUpdateContentResponse
         logger.debug("Receiving update_csm_content request: {}".format(request))
+
+        # TODO: Updating content will initiatiate a publication to workspace cues
 
         return csmUpdateContentResponse()
 
