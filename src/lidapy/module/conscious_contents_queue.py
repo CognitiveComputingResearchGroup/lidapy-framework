@@ -4,7 +4,7 @@ from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import built_in_topics
 
 # TODO: This is a ROS specific detail.  Need to figure out how to hide this!
-from lida.srv import ccqGetLastNBroadcasts, ccqGetLastNBroadcastsResponse
+from lidapy_rosdeps.srv import ccqGetLastNBroadcasts, ccqGetLastNBroadcastsResponse
 from collections import deque
 from itertools import islice
 

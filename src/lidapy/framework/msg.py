@@ -1,6 +1,6 @@
 from cPickle import dumps, loads  # Object Serialization / Deserialization
 
-from lida.msg import CognitiveContent  # ROS specific message class import
+from lidapy_rosdeps.msg import CognitiveContent  # ROS specific message class import
 
 from lidapy.util import comm, logger
 
