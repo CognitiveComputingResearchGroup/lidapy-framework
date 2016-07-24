@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
 from lidapy.framework.agent_starter import AgentStarter
+from lidapy.framework.agent import AgentConfig
 from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import FrameworkTopic
 
@@ -21,7 +22,8 @@ class TalkerModule(FrameworkModule):
         self.publishers[TOPIC.topic_name].publish(next_msg)
 
     def create_next_msg(self):
-        return String("Hello LidaPy!")
+        next_msg = self.config.get_param("talker", "message")
+        return next_msg
 
 
 class ListenerModule(FrameworkModule):
