@@ -1,6 +1,6 @@
 from collections import deque
 
-from lida.srv import decayModule, cueModule
+from lidapy_rosdeps.srv import decayModule, cueModule
 
 from lidapy.framework.agent import AgentConfig
 from lidapy.framework.process import FrameworkProcess
