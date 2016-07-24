@@ -12,7 +12,7 @@ TOPIC = FrameworkTopic("lida/comm", String)
 
 class TalkerModule(FrameworkModule):
     def __init__(self):
-        super(TalkerModule, self).__init__("Talker")
+        super(TalkerModule, self).__init__("talker")
         super(TalkerModule, self).add_publisher(TOPIC)
 
     def call(self):
@@ -26,7 +26,7 @@ class TalkerModule(FrameworkModule):
 
 class ListenerModule(FrameworkModule):
     def __init__(self):
-        super(ListenerModule, self).__init__("Listener")
+        super(ListenerModule, self).__init__("listener")
         super(ListenerModule, self).add_subscriber(TOPIC)
 
     def call(self):
