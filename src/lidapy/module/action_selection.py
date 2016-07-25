@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import built_in_topics
 
@@ -27,16 +25,3 @@ class ActionSelection(FrameworkModule):
             selected_behaviors = candidate_behaviors
 
             self.publishers["selected_behaviors"].publish(selected_behaviors)
-
-
-if __name__ == '__main__':
-
-    try:
-        module = ActionSelection()
-        module.run()
-
-    except Exception as e:
-        print e
-
-    finally:
-        pass

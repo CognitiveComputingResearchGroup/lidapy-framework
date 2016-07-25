@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import built_in_topics
 
@@ -26,16 +24,3 @@ class GlobalWorkspace(FrameworkModule):
             global_broadcast = workspace_coalitions
 
             self.publishers["global_broadcast"].publish(global_broadcast)
-
-
-if __name__ == '__main__':
-
-    try:
-        module = GlobalWorkspace()
-        module.run()
-
-    except Exception as e:
-        print e
-
-    finally:
-        pass
