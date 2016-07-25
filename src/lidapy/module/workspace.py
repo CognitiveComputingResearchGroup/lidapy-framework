@@ -1,4 +1,4 @@
-from lida.srv import csmAddContent, csmAddContentRequest
+from lidapy_rosdeps.srv import csmAddContent, csmAddContentRequest
 
 from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import built_in_topics
