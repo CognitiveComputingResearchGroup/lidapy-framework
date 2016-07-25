@@ -1,10 +1,12 @@
-from collections import deque
-from itertools import islice
-
-from lida.srv import ccqGetLastNBroadcasts, ccqGetLastNBroadcastsResponse
+#!/usr/bin/env python
 
 from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import built_in_topics
+
+# TODO: This is a ROS specific detail.  Need to figure out how to hide this!
+from lidapy_rosdeps.srv import ccqGetLastNBroadcasts, ccqGetLastNBroadcastsResponse
+from collections import deque
+from itertools import islice
 
 
 class ConsciousContentsQueue(FrameworkModule):
@@ -44,3 +46,16 @@ class ConsciousContentsQueue(FrameworkModule):
 
         if broadcast is not None:
             self.queue.append(broadcast)
+
+
+if __name__ == '__main__':
+
+    try:
+        module = ConsciousContentsQueue()
+        module.run()
+
+    except Exception as e:
+        print e
+
+    finally:
+        pass
