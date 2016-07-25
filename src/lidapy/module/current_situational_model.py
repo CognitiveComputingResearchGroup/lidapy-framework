@@ -1,7 +1,7 @@
-from lida.srv import csmAddContent, csmAddContentRequest, csmAddContentResponse
-from lida.srv import csmFindContent, csmFindContentRequest, csmFindContentResponse
-from lida.srv import csmListContent, csmListContentRequest, csmListContentResponse
-from lida.srv import csmUpdateContent, csmUpdateContentRequest, csmUpdateContentResponse
+from lidapy_rosdeps.srv import csmAddContent, csmAddContentRequest, csmAddContentResponse
+from lidapy_rosdeps.srv import csmFindContent, csmFindContentRequest, csmFindContentResponse
+from lidapy_rosdeps.srv import csmListContent, csmListContentRequest, csmListContentResponse
+from lidapy_rosdeps.srv import csmUpdateContent, csmUpdateContentRequest, csmUpdateContentResponse
 
 from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import built_in_topics
