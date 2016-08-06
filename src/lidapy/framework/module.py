@@ -36,7 +36,7 @@ class FrameworkModule(FrameworkProcess):
         # }
         self.topics = {}
 
-        # A dictionary of FrameworkTopics
+        # A dictionary of FrameworkTopicPublishers
         #
         # format:
         # {
