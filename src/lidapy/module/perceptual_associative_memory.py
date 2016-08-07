@@ -13,6 +13,7 @@ class PerceptualAssociativeMemory(FrameworkModule):
 
     # Override this method to add more subscribers
     def add_subscribers(self):
+        super(PerceptualAssociativeMemory, self).add_subscriber(built_in_topics["ventral_stream"])
         super(PerceptualAssociativeMemory, self).add_subscriber(built_in_topics["detected_features"])
         super(PerceptualAssociativeMemory, self).add_subscriber(built_in_topics["workspace_cues"])
         super(PerceptualAssociativeMemory, self).add_subscriber(built_in_topics["global_broadcast"])
