@@ -17,7 +17,7 @@ void GazeboRayScanSensorPlugin::InitPublisher()
     ros::NodeHandle nh;
 
     this->publisher
-        = nh.advertise<ccrg_custom_msgs::RayScanSensor>(
+        = nh.advertise<simple_youbot_nav::RayScanSensor>(
               this->topicName, 1000);
 
     ROS_INFO_STREAM("RayScanPlugin reporting for duty!");
@@ -44,13 +44,13 @@ void GazeboRayScanSensorPlugin::Load(sensors::SensorPtr _sensor, sdf::ElementPtr
 
 void GazeboRayScanSensorPlugin::OnUpdate()
 {
-    ccrg_custom_msgs::RayScanSensor msg;
+    simple_youbot_nav::RayScanSensor msg;
 
     getRanges(msg);
     publish(msg);
 }
 
-void GazeboRayScanSensorPlugin::getRanges(ccrg_custom_msgs::RayScanSensor& msg)
+void GazeboRayScanSensorPlugin::getRanges(simple_youbot_nav::RayScanSensor& msg)
 {
     this->parentSensor->SetActive(false);
     for (int i = 0; i < this->parentSensor->GetRangeCount(); ++i)
@@ -60,7 +60,7 @@ void GazeboRayScanSensorPlugin::getRanges(ccrg_custom_msgs::RayScanSensor& msg)
     this->parentSensor->SetActive(true);
 }
 
-void GazeboRayScanSensorPlugin::publish(ccrg_custom_msgs::RayScanSensor& msg)
+void GazeboRayScanSensorPlugin::publish(simple_youbot_nav::RayScanSensor& msg)
 {
     if (ros::ok()) {
         this->publisher.publish(msg);

@@ -24,7 +24,7 @@
 #include <gazebo/common/Plugin.hh>
 #include <gazebo/common/Events.hh>
 
-#include <ccrg_custom_msgs/WheelCommand.h>
+#include <simple_youbot_nav/WheelCommand.h>
 
 namespace gazebo
 {
@@ -49,7 +49,7 @@ protected:
     virtual void UpdateChild();
 
 private:
-    void UpdateObjectForce(const boost::shared_ptr< ccrg_custom_msgs::WheelCommand const > & _msg);
+    void UpdateObjectForce(const boost::shared_ptr< simple_youbot_nav::WheelCommand const > & _msg);
 
 private:
     void QueueThread();
@@ -96,7 +96,7 @@ private:
     boost::thread callback_queue_thread_;
 
 private:
-    ccrg_custom_msgs::WheelCommand wheelCmd;
+    simple_youbot_nav::WheelCommand wheelCmd;
 
 private:
     event::ConnectionPtr update_connection_;

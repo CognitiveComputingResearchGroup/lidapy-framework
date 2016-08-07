@@ -41,7 +41,7 @@ void GazeboJointCmdPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
     else
         this->topic_name_ = _sdf->GetElement("topicName")->Get<std::string>();
 
-    ros::SubscribeOptions so = ros::SubscribeOptions::create<ccrg_custom_msgs::WheelCommand>(
+    ros::SubscribeOptions so = ros::SubscribeOptions::create<simple_youbot_nav::WheelCommand>(
                                    this->topic_name_,1,
                                    boost::bind(&GazeboJointCmdPlugin::UpdateObjectForce,this,_1),
                                    ros::VoidPtr(),
@@ -86,7 +86,7 @@ void GazeboJointCmdPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
     ROS_INFO("GazeboJointCmdPlugin reporting for duty!");
 }
 
-void GazeboJointCmdPlugin::UpdateObjectForce(const boost::shared_ptr< ccrg_custom_msgs::WheelCommand const > & _msg)
+void GazeboJointCmdPlugin::UpdateObjectForce(const boost::shared_ptr< simple_youbot_nav::WheelCommand const > & _msg)
 {
     this->wheelCmd.angle = _msg->angle;
     this->wheelCmd.force = _msg->force;
