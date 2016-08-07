@@ -2,10 +2,10 @@ from collections import deque
 
 from lidapy_rosdeps.srv import decayModule, cueModule
 
+from lidapy.framework.msg import MsgSerializer
 from lidapy.framework.process import FrameworkProcess
 from lidapy.framework.service import FrameworkService
 from lidapy.util import logger
-
 
 class FrameworkModule(FrameworkProcess):
     """ The FrameworkModule class is used to sub-divide an agent into high-level processing components called modules.
@@ -98,7 +98,7 @@ class FrameworkModule(FrameworkProcess):
             msg_queue = self.received_msgs[topic_name]
             msg_queue.append(msg)
 
-    def get_next_msg(self, topic_name):
+    def get_next_msg(self, topic):
         """ Returns a message (in FIFO order) for the specified topic or None if no messages are available.
 
         This is a default implementation for retrieving messages over a topic.  This implementation assumes
@@ -108,15 +108,21 @@ class FrameworkModule(FrameworkProcess):
         :param topic_name: the name of the topic for which a previously retrieved message will be returned.
         :return: a message for the specified topic_name.
         """
-        msg_queue = self.received_msgs[topic_name]
+        msg_queue = self.received_msgs[topic.topic_name]
 
-        next_msg = None
         if len(msg_queue) == 0:
-            logger.debug("Message queue is empty for topic {}".format(topic_name))
+            logger.debug("Message queue is empty for topic {}".format(topic.topic_name))
+            return None
         else:
             next_msg = msg_queue.popleft()
 
+            if self.topics[topic.topic_name].use_serializer:
+                next_msg = MsgSerializer.deserialize(next_msg.data)
+
         return next_msg
+
+    def publish(self, topic, msg):
+        self.publishers[topic.topic_name].publish(msg)
 
     def add_publisher(self, topic):
         """ Registers a publisher for a topic.
@@ -127,6 +133,8 @@ class FrameworkModule(FrameworkProcess):
         :return: None
         """
         logger.info("Adding publisher for topic {}".format(topic.topic_name))
+
+        self.topics[topic.topic_name] = topic
 
         self.publishers[topic.topic_name] = topic.get_publisher()
 
@@ -140,8 +148,10 @@ class FrameworkModule(FrameworkProcess):
         """
         logger.info("Adding subscriber for topic {}".format(topic.topic_name))
 
+        self.topics[topic.topic_name] = topic
+
         # Initial message queue
-        max_queue_size = self.config.get_type_or_global_param(self.name, "max_queue_size", 10)
+        max_queue_size = int(self.config.get_type_or_global_param(self.name, "max_queue_size", 10))
         self.received_msgs[topic.topic_name] = deque(maxlen=max_queue_size)
 
         if callback is None:

@@ -34,6 +34,10 @@ def wait(rate):
     waiter.sleep()
 
 
+def get_current_time():
+    return rospy.get_rostime()
+
+
 class ParameterService(object):
     def get_param(self, param_type, param_name, default_value=None):
         fully_qualified_name = self.get_fully_qualified_param_name(param_type, param_name)

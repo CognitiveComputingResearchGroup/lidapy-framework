@@ -4,7 +4,7 @@ from lidapy.framework.msg import built_in_topics
 
 class GlobalWorkspace(FrameworkModule):
     def __init__(self, **kwargs):
-        super(GlobalWorkspace, self).__init__("GlobalWorkspace", decayable=True, **kwargs)
+        super(GlobalWorkspace, self).__init__("global_workspace", decayable=True, **kwargs)
 
     # Override this method to add more publishers
     def add_publishers(self):

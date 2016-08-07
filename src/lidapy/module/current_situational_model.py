@@ -10,7 +10,7 @@ from lidapy.util import logger
 
 class CurrentSituationalModel(FrameworkModule):
     def __init__(self, **kwargs):
-        super(CurrentSituationalModel, self).__init__("CurrentSituationalModel", decayable=True, **kwargs)
+        super(CurrentSituationalModel, self).__init__("current_situational_model", decayable=True, **kwargs)
 
     def add_publishers(self):
         super(CurrentSituationalModel, self).add_publisher(built_in_topics["workspace_cues"])
