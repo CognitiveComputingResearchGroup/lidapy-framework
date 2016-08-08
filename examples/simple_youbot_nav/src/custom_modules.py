@@ -68,22 +68,28 @@ class BasicSensoryMotorMemory(SensoryMotorMemory):
         self.stateMachine.execute()
 
     def create_state_machine(self):
-        default_force = float(self.config.get_param("sensory_motor_memory", "default_wheel_force"))
-        angle_left = 0.8
-        angle_right = -0.8
-
-        new_state_machine = StateMachine(outcomes=['complete', 'failure'])
+        new_state_machine = StateMachine(outcomes=['COMPLETE'])
         with new_state_machine:
             StateMachine.add("SCAN", CheckEnv(self), transitions={"clear_front": "FORWARD",
                                                                   "clear_left": "TURN_LEFT",
                                                                   "clear_right": "TURN_RIGHT",
                                                                   "blocked": "REVERSE",
-                                                                  "unknown": "ALL_STOP"})
-            StateMachine.add("FORWARD", Forward(self, 1, 0.1), transitions={"success": "complete"})
-            StateMachine.add("REVERSE", Turn(self, angle_left, -1, 4), transitions={"success": "complete"})
-            StateMachine.add("TURN_LEFT", Turn(self, angle_left, 1, 0.1), transitions={"success": "complete"})
-            StateMachine.add("TURN_RIGHT", Turn(self, angle_right, 1, 0.1), transitions={"success": "complete"})
-            StateMachine.add("ALL_STOP", Forward(self, 0.0, 0.1), transitions={"success": "complete"})
+                                                                  "unknown": "STOP"})
+            StateMachine.add("FORWARD",
+                             LinearMove(self, direction=LinearMove.FORWARD, duration=0.1),
+                             transitions={"success": "COMPLETE"})
+            StateMachine.add("REVERSE",
+                             Turn(self, angle=0.8, direction=LinearMove.REVERSE, duration=4),
+                             transitions={"success": "COMPLETE"})
+            StateMachine.add("TURN_LEFT",
+                             Turn(self, angle=0.8, direction=Turn.FORWARD, duration=0.1),
+                             transitions={"success": "COMPLETE"})
+            StateMachine.add("TURN_RIGHT",
+                             Turn(self, angle=-0.8, direction=Turn.FORWARD, duration=0.1),
+                             transitions={"success": "COMPLETE"})
+            StateMachine.add("STOP",
+                             LinearMove(self, direction=LinearMove.STOP, duration=0.1),
+                             transitions={"success": "COMPLETE"})
 
         return new_state_machine
 
@@ -138,7 +144,12 @@ class CheckEnv(State):
         return max_dir
 
 
-class Forward(State):
+class LinearMove(State):
+
+    FORWARD = 1
+    STOP = 0
+    REVERSE = -1
+
     def __init__(self, smm, direction, duration):
         State.__init__(self, outcomes=['success', 'failure'])
         self.smm = smm
@@ -161,6 +172,9 @@ class Forward(State):
 
 
 class Turn(State):
+    FORWARD = 1
+    REVERSE = -1
+
     def __init__(self, smm, angle, direction, duration):
         State.__init__(self, outcomes=['success', 'failure'])
         self.smm = smm
