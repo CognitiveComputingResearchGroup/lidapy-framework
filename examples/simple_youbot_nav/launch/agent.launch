@@ -1,11 +1,14 @@
 <launch>
-    <node name="gazebo" pkg="gazebo_ros" type="gazebo" required="true" args="$(find simple_youbot_nav)/gazebo/worlds/simple_maze.world"/>
-    <node name="sensory_memory" pkg="simple_youbot_nav" type="custom_agent_starter.py" required="true" args="-m SensoryMemory -f $(find simple_youbot_nav)/configs/agent.conf"/>
-    <node name="sensory_motor_memory" pkg="simple_youbot_nav" type="custom_agent_starter.py" required="true" args="-m SensoryMotorMemory -f $(find simple_youbot_nav)/configs/agent.conf"/>
-    <node name="perceptual_associative_memory" pkg="simple_youbot_nav" type="custom_agent_starter.py" required="true" args="-m PerceptualAssociativeMemory -f $(find simple_youbot_nav)/configs/agent.conf"/>
-    <node name="workspace" pkg="simple_youbot_nav" type="custom_agent_starter.py" required="true" args="-m Workspace -f $(find simple_youbot_nav)/configs/agent.conf"/>
-    <node name="global_workspace" pkg="simple_youbot_nav" type="custom_agent_starter.py" required="true" args="-m GlobalWorkspace -f $(find simple_youbot_nav)/configs/agent.conf"/>
-    <node name="conscious_contents_queue" pkg="simple_youbot_nav" type="custom_agent_starter.py" required="true" args="-m ConsciousContentsQueue -f $(find simple_youbot_nav)/configs/agent.conf"/>
-    <node name="procedural_memory" pkg="simple_youbot_nav" type="custom_agent_starter.py" required="true" args="-m ProceduralMemory -f $(find simple_youbot_nav)/configs/agent.conf"/>
-    <node name="action_selection" pkg="simple_youbot_nav" type="custom_agent_starter.py" required="true" args="-m ActionSelection -f $(find simple_youbot_nav)/configs/agent.conf"/>
+    <node name="gazebo" pkg="gazebo_ros" type="gzserver" required="true" args="$(find simple_youbot_nav)/gazebo/worlds/simple_maze.world"/>
+    <node name="action_selection" pkg="simple_youbot_nav" type="custom_agent_starter.py" required="true" args="-m action_selection -f $(find simple_youbot_nav)/configs/agent.conf"/>
+    <node name="conscious_contents_queue" pkg="simple_youbot_nav" type="custom_agent_starter.py" required="true" args="-m conscious_contents_queue -f $(find simple_youbot_nav)/configs/agent.conf"/>
+    <node name="episodic_memory" pkg="simple_youbot_nav" type="custom_agent_starter.py" required="true" args="-m episodic_memory -f $(find simple_youbot_nav)/configs/agent.conf"/>
+    <node name="global_workspace" pkg="simple_youbot_nav" type="custom_agent_starter.py" required="true" args="-m global_workspace -f $(find simple_youbot_nav)/configs/agent.conf"/>
+    <node name="perceptual_associative_memory" pkg="simple_youbot_nav" type="custom_agent_starter.py" required="true" args="-m perceptual_associative_memory -f $(find simple_youbot_nav)/configs/agent.conf"/>
+    <node name="procedural_memory" pkg="simple_youbot_nav" type="custom_agent_starter.py" required="true" args="-m procedural_memory -f $(find simple_youbot_nav)/configs/agent.conf"/>
+    <node name="sensory_memory" pkg="simple_youbot_nav" type="custom_agent_starter.py" required="true" args="-m sensory_memory -f $(find simple_youbot_nav)/configs/agent.conf"/>
+    <node name="sensory_motor_memory" pkg="simple_youbot_nav" type="custom_agent_starter.py" required="true" args="-m sensory_motor_memory -f $(find simple_youbot_nav)/configs/agent.conf"/>
+    <node name="spatial_memory" pkg="simple_youbot_nav" type="custom_agent_starter.py" required="true" args="-m spatial_memory -f $(find simple_youbot_nav)/configs/agent.conf"/>
+    <node name="transient_episodic_memory" pkg="simple_youbot_nav" type="custom_agent_starter.py" required="true" args="-m transient_episodic_memory -f $(find simple_youbot_nav)/configs/agent.conf"/>
+    <node name="workspace" pkg="simple_youbot_nav" type="custom_agent_starter.py" required="true" args="-m workspace -f $(find simple_youbot_nav)/configs/agent.conf"/>
 </launch>

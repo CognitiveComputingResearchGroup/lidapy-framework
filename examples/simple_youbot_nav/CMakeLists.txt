@@ -116,9 +116,9 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-include_directories("/home/skugele/CCRG/examples_workspace/src/simple_youbot_nav/plugins")
+#include_directories("/home/skugele/CCRG/examples_workspace/src/simple_youbot_nav/plugins")
 
-include_directories(${Boost_INCLUDE_DIR} ${catkin_INCLUDE_DIRS} ${GAZEBO_INCLUDE_DIRS})
+include_directories(simple_youbot_nav/include simple_youbot_nav/plugins ${Boost_INCLUDE_DIR} ${catkin_INCLUDE_DIRS} ${GAZEBO_INCLUDE_DIRS})
 
 ## Declare a C++ library
 # add_library(simple_youbot_nav

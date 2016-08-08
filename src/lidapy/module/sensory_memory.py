@@ -1,24 +1,38 @@
 from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import built_in_topics
 
+# By default, the name of the module is the name of the ros node; however, this
+# behavior can be overridden by passing a name to the initializer.
+MODULE_NAME = "sensory_memory"
+
+# Topics used by this module
+DORSAL_STREAM_TOPIC = built_in_topics["dorsal_stream"]
+VENTRAL_STREAM_TOPIC = built_in_topics["ventral_stream"]
+DETECTED_FEATURES_TOPIC = built_in_topics["detected_features"]
+GLOBAL_BROADCAST_TOPIC = built_in_topics["global_broadcast"]
+
 
 class SensoryMemory(FrameworkModule):
-    def __init__(self, **kwargs):
-        super(SensoryMemory, self).__init__("sensory_memory", decayable=True, **kwargs)
+    def __init__(self, name=MODULE_NAME, **kwargs):
+        super(SensoryMemory, self).__init__(name, decayable=True, **kwargs)
 
-        self.add_publishers()
-        self.add_subscribers()
+    @classmethod
+    def get_module_name(cls):
+        return MODULE_NAME
 
-    # Override this method to add more publishers
     def add_publishers(self):
-        super(SensoryMemory, self).add_publisher(built_in_topics["dorsal_stream"])
-        super(SensoryMemory, self).add_publisher(built_in_topics["ventral_stream"])
-        super(SensoryMemory, self).add_publisher(built_in_topics["detected_features"])
+        super(SensoryMemory, self).add_publisher(DORSAL_STREAM_TOPIC)
+        super(SensoryMemory, self).add_publisher(VENTRAL_STREAM_TOPIC)
+        super(SensoryMemory, self).add_publisher(DETECTED_FEATURES_TOPIC)
 
-    # Override this method to add more subscribers
     def add_subscribers(self):
-        super(SensoryMemory, self).add_subscriber(built_in_topics["global_broadcast"])
+        super(SensoryMemory, self).add_subscriber(GLOBAL_BROADCAST_TOPIC)
 
-    # Must be overridden
+    def get_next_msg(self, topic):
+        return super(SensoryMemory, self).get_next_msg(topic)
+
+    def publish(self, topic, msg):
+        super(SensoryMemory, self).publish(topic, msg)
+
     def call(self):
-        super(SensoryMemory, self).call()
+        pass

@@ -1,6 +1,6 @@
 from time import sleep
 
-from ccrg_custom_msgs.msg import RayScanSensor, WheelCommand
+from simple_youbot_nav.msg import RayScanSensor, WheelCommand
 from numpy import average
 from smach import State, StateMachine
 
@@ -47,91 +47,6 @@ class BasicSensoryMemory(SensoryMemory):
         if rayscan_data is not None:
             self.publish(DORSAL_STREAM_TOPIC, CognitiveContent(rayscan_data))
             self.publish(VENTRAL_STREAM_TOPIC, CognitiveContent(rayscan_data))
-
-
-class BasicPerceptualAssociativeMemory(PerceptualAssociativeMemory):
-    def __init__(self, **kwargs):
-        super(BasicPerceptualAssociativeMemory, self).__init__(**kwargs)
-
-    def get_next_msg(self, topic):
-        return super(BasicPerceptualAssociativeMemory, self).get_next_msg(topic)
-
-    def publish(self, topic, msg):
-        super(BasicPerceptualAssociativeMemory, self).publish(topic, msg)
-
-    def call(self):
-        ventral_stream_msg = self.get_next_msg(VENTRAL_STREAM_TOPIC)
-
-        if ventral_stream_msg is not None:
-            self.publish(PERCEPTS_TOPIC, ventral_stream_msg)
-
-
-class BasicWorkspace(Workspace):
-    def __init__(self, **kwargs):
-        super(BasicWorkspace, self).__init__(**kwargs)
-
-    def get_next_msg(self, topic):
-        return super(BasicWorkspace, self).get_next_msg(topic)
-
-    def publish(self, topic, msg):
-        super(BasicWorkspace, self).publish(topic, msg)
-
-    def call(self):
-        percept_msg = self.get_next_msg(PERCEPTS_TOPIC)
-
-        if percept_msg is not None:
-            self.publish(WORKSPACE_COALITIONS_TOPIC, percept_msg)
-
-
-class BasicGlobalWorkspace(GlobalWorkspace):
-    def __init__(self, **kwargs):
-        super(BasicGlobalWorkspace, self).__init__(**kwargs)
-
-    def get_next_msg(self, topic):
-        return super(BasicGlobalWorkspace, self).get_next_msg(topic)
-
-    def publish(self, topic, msg):
-        super(BasicGlobalWorkspace, self).publish(topic, msg)
-
-    def call(self):
-        coalitions_msg = self.get_next_msg(WORKSPACE_COALITIONS_TOPIC)
-
-        if coalitions_msg is not None:
-            self.publish(GLOBAL_BROADCAST_TOPIC, coalitions_msg)
-
-
-class BasicProceduralMemory(ProceduralMemory):
-    def __init__(self, **kwargs):
-        super(BasicProceduralMemory, self).__init__(**kwargs)
-
-    def get_next_msg(self, topic):
-        return super(BasicProceduralMemory, self).get_next_msg(topic)
-
-    def publish(self, topic, msg):
-        super(BasicProceduralMemory, self).publish(topic, msg)
-
-    def call(self):
-        global_broadcast_msg = self.get_next_msg(GLOBAL_BROADCAST_TOPIC)
-
-        if global_broadcast_msg is not None:
-            self.publish(CANDIDATE_BEHAVIORS_TOPIC, global_broadcast_msg)
-
-
-class BasicActionSelection(ActionSelection):
-    def __init__(self, **kwargs):
-        super(BasicActionSelection, self).__init__(**kwargs)
-
-    def get_next_msg(self, topic):
-        return super(BasicActionSelection, self).get_next_msg(topic)
-
-    def publish(self, topic, msg):
-        super(BasicActionSelection, self).publish(topic, msg)
-
-    def call(self):
-        candidate_behaviors_msg = self.get_next_msg(CANDIDATE_BEHAVIORS_TOPIC)
-
-        if candidate_behaviors_msg is not None:
-            self.publish(SELECTED_BEHAVIORS_TOPIC, candidate_behaviors_msg)
 
 
 class BasicSensoryMotorMemory(SensoryMotorMemory):

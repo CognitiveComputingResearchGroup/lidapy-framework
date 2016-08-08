@@ -4,6 +4,7 @@ from lidapy.framework.agent import AgentConfig
 from lidapy.module.action_selection import ActionSelection
 from lidapy.module.conscious_contents_queue import ConsciousContentsQueue
 from lidapy.module.current_situational_model import CurrentSituationalModel
+from lidapy.module.episodic_memory import EpisodicMemory
 from lidapy.module.global_workspace import GlobalWorkspace
 from lidapy.module.perceptual_associative_memory import PerceptualAssociativeMemory
 from lidapy.module.procedural_memory import ProceduralMemory
@@ -36,19 +37,23 @@ class AgentStarter(object):
     def _initialize_module_dict(self, module_dict=None):
 
         if module_dict is None:
-            self._module_dict = {
-                "ActionSelection": ActionSelection,
-                "ConsciousContentsQueue": ConsciousContentsQueue,
-                "CurrentSituationalModel": CurrentSituationalModel,
-                "GlobalWorkspace": GlobalWorkspace,
-                "PerceptualAssociativeMemory": PerceptualAssociativeMemory,
-                "ProceduralMemory": ProceduralMemory,
-                "SensoryMemory": SensoryMemory,
-                "SensoryMotorMemory": SensoryMotorMemory,
-                "SpatialMemory": SpatialMemory,
-                "TransientEpisodicMemory": TransientEpisodicMemory,
-                "Workspace": Workspace,
-            }
+
+            modules = [
+                ActionSelection,
+                ConsciousContentsQueue,
+                CurrentSituationalModel,
+                EpisodicMemory,
+                GlobalWorkspace,
+                PerceptualAssociativeMemory,
+                ProceduralMemory,
+                SensoryMemory,
+                SensoryMotorMemory,
+                SpatialMemory,
+                TransientEpisodicMemory,
+                Workspace,
+            ]
+
+            self._module_dict = {module.get_module_name(): module for module in modules}
         else:
             self._module_dict = module_dict
 
@@ -58,12 +63,12 @@ class AgentStarter(object):
             self._config = AgentConfig(config_file=cf)
 
         return self._config
-    
-    def add_module(self, module_name, module_class):
-        self._module_dict[module_name] = module_class
 
-    def remove_module(self, module_name):
-        self._module_dict.pop(module_name)
+    def add_module(self, module):
+        self._module_dict[module.get_module_name()] = module
+
+    def remove_module(self, module):
+        self._module_dict.pop(module.name)
 
     def start(self, **kwargs):
 

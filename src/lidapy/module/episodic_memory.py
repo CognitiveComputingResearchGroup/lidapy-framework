@@ -1,20 +1,36 @@
 from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import built_in_topics
 
+# By default, the name of the module is the name of the ros node; however, this
+# behavior can be overridden by passing a name to the initializer.
+MODULE_NAME = "episodic_memory"
+
+# Topics used by this module
+EPISODES_TOPIC = built_in_topics["episodes"]
+WORKSPACE_CUES_TOPIC = built_in_topics["workspace_cues"]
+GLOBAL_BROADCAST_TOPIC = built_in_topics["global_broadcast"]
+
 
 class EpisodicMemory(FrameworkModule):
-    def __init__(self, **kwargs):
-        super(EpisodicMemory, self).__init__("episodic_memory", decayable=True, cueable=True, **kwargs)
+    def __init__(self, name=MODULE_NAME, **kwargs):
+        super(EpisodicMemory, self).__init__(name, decayable=True, cueable=True, **kwargs)
 
-    # Override this method to add more publishers
+    @classmethod
+    def get_module_name(cls):
+        return MODULE_NAME
+
     def add_publishers(self):
-        super(EpisodicMemory, self).add_publisher(built_in_topics["episodes"])
+        super(EpisodicMemory, self).add_publisher(EPISODES_TOPIC)
 
-    # Override this method to add more subscribers
     def add_subscribers(self):
-        super(EpisodicMemory, self).add_subscriber(built_in_topics["workspace_cues"])
-        super(EpisodicMemory, self).add_subscriber(built_in_topics["global_broadcast"])
+        super(EpisodicMemory, self).add_subscriber(WORKSPACE_CUES_TOPIC)
+        super(EpisodicMemory, self).add_subscriber(GLOBAL_BROADCAST_TOPIC)
 
-    # Must be overridden
+    def get_next_msg(self, topic):
+        return super(EpisodicMemory, self).get_next_msg(topic)
+
+    def publish(self, topic, msg):
+        super(EpisodicMemory, self).publish(topic, msg)
+
     def call(self):
-        super(EpisodicMemory, self).call()
+        pass

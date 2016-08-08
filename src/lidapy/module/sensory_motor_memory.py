@@ -1,21 +1,37 @@
 from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import built_in_topics
 
+# By default, the name of the module is the name of the ros node; however, this
+# behavior can be overridden by passing a name to the initializer.
+MODULE_NAME = "sensory_motor_memory"
+
+# Topics used by this module
+SELECTED_BEHAVIORS_TOPIC = built_in_topics["selected_behaviors"]
+GLOBAL_BROADCAST_TOPIC = built_in_topics["global_broadcast"]
+DORSAL_STREAM_TOPIC = built_in_topics["dorsal_stream"]
+
 
 class SensoryMotorMemory(FrameworkModule):
-    def __init__(self, **kwargs):
-        super(SensoryMotorMemory, self).__init__("sensory_motor_memory", decayable=True, **kwargs)
+    def __init__(self, name=MODULE_NAME, **kwargs):
+        super(SensoryMotorMemory, self).__init__(name, decayable=True, **kwargs)
 
-    # Override this method to add more publishers
+    @classmethod
+    def get_module_name(cls):
+        return MODULE_NAME
+
     def add_publishers(self):
         pass
 
-    # Override this method to add more subscribers
     def add_subscribers(self):
-        super(SensoryMotorMemory, self).add_subscriber(built_in_topics["selected_behaviors"])
-        super(SensoryMotorMemory, self).add_subscriber(built_in_topics["global_broadcast"])
-        super(SensoryMotorMemory, self).add_subscriber(built_in_topics["dorsal_stream"])
+        super(SensoryMotorMemory, self).add_subscriber(SELECTED_BEHAVIORS_TOPIC)
+        super(SensoryMotorMemory, self).add_subscriber(GLOBAL_BROADCAST_TOPIC)
+        super(SensoryMotorMemory, self).add_subscriber(DORSAL_STREAM_TOPIC)
 
-    # Must be overridden
+    def get_next_msg(self, topic):
+        return super(SensoryMotorMemory, self).get_next_msg(topic)
+
+    def publish(self, topic, msg):
+        super(SensoryMotorMemory, self).publish(topic, msg)
+
     def call(self):
-        super(SensoryMotorMemory, self).call()
+        pass

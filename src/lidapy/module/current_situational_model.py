@@ -7,10 +7,18 @@ from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import built_in_topics
 from lidapy.util import logger
 
+# By default, the name of the module is the name of the ros node; however, this
+# behavior can be overridden by passing a name to the initializer.
+MODULE_NAME = "current_situational_model"
+
 
 class CurrentSituationalModel(FrameworkModule):
-    def __init__(self, **kwargs):
-        super(CurrentSituationalModel, self).__init__("current_situational_model", decayable=True, **kwargs)
+    def __init__(self, name=MODULE_NAME, **kwargs):
+        super(CurrentSituationalModel, self).__init__(name, decayable=True, **kwargs)
+
+    @classmethod
+    def get_module_name(cls):
+        return MODULE_NAME
 
     def add_publishers(self):
         super(CurrentSituationalModel, self).add_publisher(built_in_topics["workspace_cues"])
@@ -24,6 +32,12 @@ class CurrentSituationalModel(FrameworkModule):
                                                          self.receive_list_csm_content_request)
         super(CurrentSituationalModel, self).add_service("update_csm_content", csmUpdateContent,
                                                          self.receive_update_csm_content_request)
+
+    def get_next_msg(self, topic):
+        return super(CurrentSituationalModel, self).get_next_msg(topic)
+
+    def publish(self, topic, msg):
+        super(CurrentSituationalModel, self).publish(topic, msg)
 
     def receive_add_csm_content_request(self, request):
         # type: (csmAddContentRequest) -> csmAddContentResponse
