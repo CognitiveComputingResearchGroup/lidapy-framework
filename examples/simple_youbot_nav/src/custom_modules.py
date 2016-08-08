@@ -68,7 +68,7 @@ class BasicSensoryMotorMemory(SensoryMotorMemory):
         self.stateMachine.execute()
 
     def create_state_machine(self):
-        new_state_machine = StateMachine(outcomes=['COMPLETE'])
+        new_state_machine = StateMachine(outcomes=['success', 'failure'])
         with new_state_machine:
             StateMachine.add("SCAN", CheckEnv(self), transitions={"clear_front": "FORWARD",
                                                                   "clear_left": "TURN_LEFT",
@@ -77,19 +77,19 @@ class BasicSensoryMotorMemory(SensoryMotorMemory):
                                                                   "unknown": "STOP"})
             StateMachine.add("FORWARD",
                              LinearMove(self, direction=LinearMove.FORWARD, duration=0.1),
-                             transitions={"success": "COMPLETE"})
+                             transitions={"success": "success"})
             StateMachine.add("REVERSE",
                              Turn(self, angle=0.8, direction=LinearMove.REVERSE, duration=4),
-                             transitions={"success": "COMPLETE"})
+                             transitions={"success": "success"})
             StateMachine.add("TURN_LEFT",
                              Turn(self, angle=0.8, direction=Turn.FORWARD, duration=0.1),
-                             transitions={"success": "COMPLETE"})
+                             transitions={"success": "success"})
             StateMachine.add("TURN_RIGHT",
                              Turn(self, angle=-0.8, direction=Turn.FORWARD, duration=0.1),
-                             transitions={"success": "COMPLETE"})
+                             transitions={"success": "success"})
             StateMachine.add("STOP",
                              LinearMove(self, direction=LinearMove.STOP, duration=0.1),
-                             transitions={"success": "COMPLETE"})
+                             transitions={"success": "success"})
 
         return new_state_machine
 
@@ -145,7 +145,6 @@ class CheckEnv(State):
 
 
 class LinearMove(State):
-
     FORWARD = 1
     STOP = 0
     REVERSE = -1
