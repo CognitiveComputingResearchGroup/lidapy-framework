@@ -1,7 +1,4 @@
-from lidapy_rosdeps.srv import csmAddContent, csmAddContentRequest, csmAddContentResponse
-from lidapy_rosdeps.srv import csmFindContent, csmFindContentRequest, csmFindContentResponse
-from lidapy_rosdeps.srv import csmListContent, csmListContentRequest, csmListContentResponse
-from lidapy_rosdeps.srv import csmUpdateContent, csmUpdateContentRequest, csmUpdateContentResponse
+from lidapy_rosdeps.srv import GenericService, GenericServiceRequest, GenericServiceResponse
 
 from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import built_in_topics
@@ -24,13 +21,13 @@ class CurrentSituationalModel(FrameworkModule):
         super(CurrentSituationalModel, self).add_publisher(built_in_topics["workspace_cues"])
 
     def add_services(self):
-        super(CurrentSituationalModel, self).add_service("add_csm_content", csmAddContent,
+        super(CurrentSituationalModel, self).add_service("add_csm_content", GenericService,
                                                          self.receive_add_csm_content_request)
-        super(CurrentSituationalModel, self).add_service("find_csm_content", csmFindContent,
+        super(CurrentSituationalModel, self).add_service("find_csm_content", GenericService,
                                                          self.receive_find_csm_content_request)
-        super(CurrentSituationalModel, self).add_service("list_csm_content", csmListContent,
+        super(CurrentSituationalModel, self).add_service("list_csm_content", GenericService,
                                                          self.receive_list_csm_content_request)
-        super(CurrentSituationalModel, self).add_service("update_csm_content", csmUpdateContent,
+        super(CurrentSituationalModel, self).add_service("update_csm_content", GenericService,
                                                          self.receive_update_csm_content_request)
 
     def get_next_msg(self, topic):
@@ -45,19 +42,19 @@ class CurrentSituationalModel(FrameworkModule):
 
         # TODO: Adding content will initiatiate a publication to workspace cues
 
-        return csmAddContentResponse()
+        return GenericServiceResponse()
 
     def receive_find_csm_content_request(self, request):
         # type: (csmFindContentRequest) -> csmFindContentResponse
         logger.debug("Receiving find_csm_content request: {}".format(request))
 
-        return csmFindContentResponse()
+        return GenericServiceResponse()
 
     def receive_list_csm_content_request(self, request):
         # type: (csmListContentRequest) -> csmListContentResponse
         logger.debug("Receiving list_csm_content request: {}".format(request))
 
-        return csmListContentResponse()
+        return GenericServiceResponse()
 
     def receive_update_csm_content_request(self, request):
         # type: (csmUpdateContentRequest) -> csmUpdateContentResponse
@@ -65,7 +62,7 @@ class CurrentSituationalModel(FrameworkModule):
 
         # TODO: Updating content will initiatiate a publication to workspace cues
 
-        return csmUpdateContentResponse()
+        return GenericServiceResponse()
 
     def call(self):
         pass

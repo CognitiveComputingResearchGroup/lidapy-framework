@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 from lidapy.framework.module import FrameworkModule
-from lidapy.framework.msg import built_in_topics
+from lidapy.framework.msg import built_in_topics, MsgSerializer
 
-from lidapy_rosdeps.srv import ccqGetLastNBroadcasts, ccqGetLastNBroadcastsResponse
+from lidapy_rosdeps.srv import GenericService
 
 from collections import deque
 from itertools import islice
@@ -33,20 +33,21 @@ class ConsciousContentsQueue(FrameworkModule):
     # Override this method to add more services
     def add_services(self):
         super(ConsciousContentsQueue, self).add_service("get_last_n_broadcasts",
-                                                        ccqGetLastNBroadcasts,
+                                                        GenericService,
                                                         self.process_last_n_broadcasts_request)
 
     def get_next_msg(self, topic):
         return super(ConsciousContentsQueue, self).get_next_msg(topic)
 
-    def process_last_n_broadcasts_request(self, request):
+    def process_last_n_broadcasts_request(self, raw_request):
 
+        request = MsgSerializer.deserialize(raw_request)
         queue_size = len(self.queue)
-        if request.last_n > queue_size:
-            request.last_n = queue_size
+        if request.n > queue_size:
+            request.n = queue_size
 
-        response = ccqGetLastNBroadcastsResponse()
-        response.items = list(islice(self.queue, queue_size - request.last_n, queue_size))
+        response = CcqGetLastNBroadcastsResponse()
+        response.last_n_broadcasts = list(islice(self.queue, queue_size - request.last_n, queue_size))
 
         return response
 
@@ -55,6 +56,16 @@ class ConsciousContentsQueue(FrameworkModule):
 
         if broadcast is not None:
             self.queue.append(broadcast)
+
+
+class CcqGetLastNBroadcastsRequest(object):
+    def __init__(self, n):
+        self.n = n
+
+
+class CcqGetLastNBroadcastsResponse(object):
+    def __init__(self, last_n_broadcasts):
+        self.last_n_broadcasts = last_n_broadcasts
 
 
 if __name__ == '__main__':

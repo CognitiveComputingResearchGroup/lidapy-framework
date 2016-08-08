@@ -1,6 +1,6 @@
 from collections import deque
 
-from lidapy_rosdeps.srv import decayModule, cueModule
+from lidapy_rosdeps.srv import GenericService
 
 from lidapy.framework.msg import MsgSerializer
 from lidapy.framework.process import FrameworkProcess
@@ -202,10 +202,10 @@ class FrameworkModule(FrameworkProcess):
         logger.debug("Adding services")
 
         if self.cueable:
-            self.add_service("cue", cueModule, self.receive_cue_request)
+            self.add_service("cue", GenericService, self.receive_cue_request)
 
         if self.decayable:
-            self.add_service("decay", decayModule, self.receive_decay_request)
+            self.add_service("decay", GenericService, self.receive_decay_request)
 
     def call(self):
         """ The entry-point for FrameworkModule execution.
@@ -243,20 +243,10 @@ class FrameworkModule(FrameworkProcess):
         """
         logger.debug("Decaying")
 
-    def receive_decay_request(self, request):
-        logger.debug("Receiving decay request: {}".format(request))
+    # TODO: Need to add handling for decay requests
+    def receive_decay_request(self, raw_request):
+        pass
 
-        if request is None:
-            return
-
-        n = request.n
-        strategy = request.strategy
-
-        for i in xrange(1..n):
-            self.decay(strategy)
-
-    def receive_cue_request(self, request):
-        logger.debug("Receiving cue request: {}".format(request))
-
-        if request is None:
-            return
+    # TODO: Need to add handling for cue requests
+    def receive_cue_request(self, raw_request):
+        pass

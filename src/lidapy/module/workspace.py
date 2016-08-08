@@ -1,4 +1,4 @@
-from lidapy_rosdeps.srv import csmAddContent, csmAddContentRequest
+from lidapy_rosdeps.srv import GenericService, GenericServiceRequest
 
 from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import built_in_topics
@@ -21,7 +21,7 @@ class Workspace(FrameworkModule):
     def __init__(self, name=MODULE_NAME, **kwargs):
         super(Workspace, self).__init__(name, decayable=True, **kwargs)
 
-        self.csm_add_content_srv_client = FrameworkServiceClient("add_csm_content", csmAddContent).get_service_proxy()
+        self.csm_add_content_srv_client = FrameworkServiceClient("add_csm_content", GenericService).get_service_proxy()
 
     @classmethod
     def get_module_name(cls):
@@ -47,7 +47,7 @@ class Workspace(FrameworkModule):
         percepts = self.get_next_msg(PERCEPTS_TOPIC)
 
         if percepts is not None:
-            request = csmAddContentRequest()
-            request.content = [percepts]
+            request = GenericServiceRequest()
 
+            # TODO: Populate request details.
             self.csm_add_content_srv_client(request)
