@@ -62,7 +62,7 @@ fi
 
 display_yn_prompt "Workspace directory = $workspace_dir" 
 if [[ $choice == "N" ]]; then
-    echo "Aborting. (By user request.)"
+    echo "Aborting."
     exit 1
 fi
 
@@ -88,7 +88,7 @@ done
 
 display_yn_prompt "LidaPy Framework = $lidapy_framework_dir" 
 if [[ $choice == "N" ]]; then
-    echo "Aborting. (By user request.)"
+    echo "Aborting."
     exit 1
 fi
 
