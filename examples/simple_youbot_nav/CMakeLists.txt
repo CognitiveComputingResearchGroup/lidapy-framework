@@ -127,6 +127,9 @@ include_directories(simple_youbot_nav/include simple_youbot_nav/plugins ${Boost_
 add_library(wheelcmd SHARED plugins/GazeboJointCmdPlugin.cc)
 add_library(rayscan SHARED plugins/GazeboRayScanSensorPlugin.cc)
 
+add_dependencies(wheelcmd WheelCommand.msg)
+add_dependencies(rayscan RayScanSensor.msg)
+
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure

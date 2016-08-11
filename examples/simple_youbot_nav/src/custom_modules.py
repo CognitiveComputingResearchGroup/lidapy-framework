@@ -133,10 +133,21 @@ class CheckEnv(State):
                     "clear_left": average(left_ranges),
                     "clear_right": average(right_ranges)}
 
-        max_dir = max(averages, key=averages.get)
+        # Obstacle avoidance
+        while len(averages) > 0:
+            max_dir = max(averages, key=averages.get)
+
+            if max_dir == "clear_front" and min(front_ranges) < 0.5:
+                averages.pop(max_dir)
+            elif max_dir == "clear_left" and min(left_ranges) < 0.5:
+                averages.pop(max_dir)
+            elif max_dir == "clear_right" and min(right_ranges) < 0.5:
+                averages.pop(max_dir)
+            else:
+                break
 
         # Blocked if all visible directions show less than 1 meter of available room
-        if averages[max_dir] < 1.0:
+        if len(averages) == 0:
             return "blocked"
 
         # If not blocked, then move in the direction with the greatest average
