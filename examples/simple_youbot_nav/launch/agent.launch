@@ -1,5 +1,7 @@
 <launch>
     <node name="gazebo" pkg="gazebo_ros" type="gzserver" required="true" args="$(find simple_youbot_nav)/gazebo/worlds/simple_maze.world"/>
+
+    <param name="robot_description" textfile="$(find simple_youbot_nav)/models/youbot.urdf"/>
     <node name="action_selection" pkg="simple_youbot_nav" type="custom_agent_starter.py" required="true" args="-m action_selection -f $(find simple_youbot_nav)/configs/agent.conf"/>
     <node name="conscious_contents_queue" pkg="simple_youbot_nav" type="custom_agent_starter.py" required="true" args="-m conscious_contents_queue -f $(find simple_youbot_nav)/configs/agent.conf"/>
     <node name="episodic_memory" pkg="simple_youbot_nav" type="custom_agent_starter.py" required="true" args="-m episodic_memory -f $(find simple_youbot_nav)/configs/agent.conf"/>

@@ -17,7 +17,7 @@ void GazeboRayScanSensorPlugin::InitPublisher()
     ros::NodeHandle nh;
 
     this->publisher
-        = nh.advertise<simple_youbot_nav::RayScanSensor>(
+        = nh.advertise<sensor_msgs::LaserScan>(
               this->topicName, 1000);
 
     ROS_INFO_STREAM("RayScanPlugin reporting for duty!");
@@ -44,13 +44,16 @@ void GazeboRayScanSensorPlugin::Load(sensors::SensorPtr _sensor, sdf::ElementPtr
 
 void GazeboRayScanSensorPlugin::OnUpdate()
 {
-    simple_youbot_nav::RayScanSensor msg;
+    sensor_msgs::LaserScan msg;
+
+    msg.range_min = this->parentSensor->GetRangeMin();
+    msg.range_max = this->parentSensor->GetRangeMax();
 
     getRanges(msg);
     publish(msg);
 }
 
-void GazeboRayScanSensorPlugin::getRanges(simple_youbot_nav::RayScanSensor& msg)
+void GazeboRayScanSensorPlugin::getRanges(sensor_msgs::LaserScan& msg)
 {
     this->parentSensor->SetActive(false);
     for (int i = 0; i < this->parentSensor->GetRangeCount(); ++i)
@@ -60,7 +63,7 @@ void GazeboRayScanSensorPlugin::getRanges(simple_youbot_nav::RayScanSensor& msg)
     this->parentSensor->SetActive(true);
 }
 
-void GazeboRayScanSensorPlugin::publish(simple_youbot_nav::RayScanSensor& msg)
+void GazeboRayScanSensorPlugin::publish(sensor_msgs::LaserScan& msg)
 {
     if (ros::ok()) {
         this->publisher.publish(msg);

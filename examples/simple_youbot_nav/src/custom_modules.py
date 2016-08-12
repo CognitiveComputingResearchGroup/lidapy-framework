@@ -1,6 +1,6 @@
 from time import sleep
 
-from simple_youbot_nav.msg import RayScanSensor, WheelCommand
+from simple_youbot_nav.msg import WheelCommand
 from numpy import average
 from smach import State, StateMachine
 
@@ -15,8 +15,10 @@ from lidapy.module.sensory_motor_memory import SensoryMotorMemory
 from lidapy.module.workspace import Workspace
 from lidapy.util import logger
 
+from sensor_msgs.msg import LaserScan
+
 # Topic definitions
-RAYSCAN_TOPIC = FrameworkTopic("/gazebo/sensors/rayscan", RayScanSensor)
+RAYSCAN_TOPIC = FrameworkTopic("/gazebo/sensors/rayscan", LaserScan)
 WHEELCMD_TOPIC = FrameworkTopic("/gazebo/commands", WheelCommand)
 DORSAL_STREAM_TOPIC = built_in_topics["dorsal_stream"]
 VENTRAL_STREAM_TOPIC = built_in_topics["ventral_stream"]

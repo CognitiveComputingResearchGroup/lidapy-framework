@@ -13,7 +13,7 @@
 #include <gazebo/gazebo.hh>
 #include <gazebo/sensors/sensors.hh>
 
-#include <simple_youbot_nav/RayScanSensor.h>
+#include <sensor_msgs/LaserScan.h>
 
 namespace gazebo
 {
@@ -35,10 +35,10 @@ private:
     void InitPublisher();
 
 private:
-    void getRanges(simple_youbot_nav::RayScanSensor& msg);
+    void getRanges(sensor_msgs::LaserScan& msg);
 
 private:
-    void publish(simple_youbot_nav::RayScanSensor& msg);
+    void publish(sensor_msgs::LaserScan& msg);
 
 private:
     sensors::RaySensorPtr parentSensor;
