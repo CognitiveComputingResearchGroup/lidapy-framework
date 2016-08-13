@@ -50,7 +50,6 @@ find_package(gazebo REQUIRED)
 add_message_files(
   FILES
   WheelCommand.msg
-  RayScanSensor.msg
 )
 
 ## Generate services in the 'srv' folder
