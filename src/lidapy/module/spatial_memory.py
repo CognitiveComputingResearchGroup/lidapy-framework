@@ -13,7 +13,7 @@ GLOBAL_BROADCAST_TOPIC = built_in_topics["global_broadcast"]
 
 class SpatialMemory(FrameworkModule):
     def __init__(self, name=MODULE_NAME, **kwargs):
-        super(SpatialMemory, self).__init__(name, decayable=True, cueable=True, **kwargs)
+        super(SpatialMemory, self).__init__(name, **kwargs)
 
     @classmethod
     def get_module_name(cls):

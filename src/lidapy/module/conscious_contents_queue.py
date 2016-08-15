@@ -18,7 +18,7 @@ GLOBAL_BROADCAST_TOPIC = built_in_topics["global_broadcast"]
 
 class ConsciousContentsQueue(FrameworkModule):
     def __init__(self, name=MODULE_NAME, **kwargs):
-        super(ConsciousContentsQueue, self).__init__(name, decayable=True, **kwargs)
+        super(ConsciousContentsQueue, self).__init__(name, **kwargs)
 
         self.max_queue_size = self.config.get_param(name, "max_queue_size", 10)
         self.queue = deque(maxlen=self.max_queue_size)

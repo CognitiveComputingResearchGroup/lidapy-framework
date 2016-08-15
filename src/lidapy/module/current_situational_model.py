@@ -11,7 +11,7 @@ MODULE_NAME = "current_situational_model"
 
 class CurrentSituationalModel(FrameworkModule):
     def __init__(self, name=MODULE_NAME, **kwargs):
-        super(CurrentSituationalModel, self).__init__(name, decayable=True, **kwargs)
+        super(CurrentSituationalModel, self).__init__(name, **kwargs)
 
     @classmethod
     def get_module_name(cls):

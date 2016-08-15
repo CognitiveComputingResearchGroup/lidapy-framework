@@ -19,7 +19,7 @@ GLOBAL_BROADCAST_TOPIC = built_in_topics["global_broadcast"]
 
 class Workspace(FrameworkModule):
     def __init__(self, name=MODULE_NAME, **kwargs):
-        super(Workspace, self).__init__(name, decayable=True, **kwargs)
+        super(Workspace, self).__init__(name, **kwargs)
 
         self.csm_add_content_srv_client = FrameworkServiceClient("add_csm_content", GenericService).get_service_proxy()
 

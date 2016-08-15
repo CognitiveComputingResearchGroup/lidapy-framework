@@ -24,9 +24,6 @@ class FrameworkModule(FrameworkProcess):
 
         self.name = name
 
-        self.cueable = kwargs.get("cueable", False)
-        self.decayable = kwargs.get("decayable", False)
-
         # A dictionary of FrameworkTopics
         #
         # format:
@@ -201,11 +198,8 @@ class FrameworkModule(FrameworkProcess):
         """
         logger.debug("Adding services")
 
-        if self.cueable:
-            self.add_service("cue", GenericService, self.receive_cue_request)
 
-        if self.decayable:
-            self.add_service("decay", GenericService, self.receive_decay_request)
+
 
     def call(self):
         """ The entry-point for FrameworkModule execution.
