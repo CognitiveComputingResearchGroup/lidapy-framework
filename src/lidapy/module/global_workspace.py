@@ -19,16 +19,10 @@ class GlobalWorkspace(FrameworkModule):
         return MODULE_NAME
 
     def add_publishers(self):
-        super(GlobalWorkspace, self).add_publisher(GLOBAL_BROADCAST_TOPIC)
+        self.add_publisher(GLOBAL_BROADCAST_TOPIC)
 
     def add_subscribers(self):
-        super(GlobalWorkspace, self).add_subscriber(WORKSPACE_COALITIONS_TOPIC)
-
-    def get_next_msg(self, topic):
-        return super(GlobalWorkspace, self).get_next_msg(topic)
-
-    def publish(self, topic, msg):
-        super(GlobalWorkspace, self).publish(topic, msg)
+        self.add_subscriber(WORKSPACE_COALITIONS_TOPIC)
 
     def call(self):
         workspace_coalitions = self.get_next_msg(WORKSPACE_COALITIONS_TOPIC)

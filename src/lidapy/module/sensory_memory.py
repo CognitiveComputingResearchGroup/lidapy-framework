@@ -21,18 +21,12 @@ class SensoryMemory(FrameworkModule):
         return MODULE_NAME
 
     def add_publishers(self):
-        super(SensoryMemory, self).add_publisher(DORSAL_STREAM_TOPIC)
-        super(SensoryMemory, self).add_publisher(VENTRAL_STREAM_TOPIC)
-        super(SensoryMemory, self).add_publisher(DETECTED_FEATURES_TOPIC)
+        self.add_publisher(DORSAL_STREAM_TOPIC)
+        self.add_publisher(VENTRAL_STREAM_TOPIC)
+        self.add_publisher(DETECTED_FEATURES_TOPIC)
 
     def add_subscribers(self):
-        super(SensoryMemory, self).add_subscriber(GLOBAL_BROADCAST_TOPIC)
-
-    def get_next_msg(self, topic):
-        return super(SensoryMemory, self).get_next_msg(topic)
-
-    def publish(self, topic, msg):
-        super(SensoryMemory, self).publish(topic, msg)
+        self.add_subscriber(GLOBAL_BROADCAST_TOPIC)
 
     def call(self):
         pass

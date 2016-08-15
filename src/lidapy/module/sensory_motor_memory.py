@@ -23,15 +23,9 @@ class SensoryMotorMemory(FrameworkModule):
         pass
 
     def add_subscribers(self):
-        super(SensoryMotorMemory, self).add_subscriber(SELECTED_BEHAVIORS_TOPIC)
-        super(SensoryMotorMemory, self).add_subscriber(GLOBAL_BROADCAST_TOPIC)
-        super(SensoryMotorMemory, self).add_subscriber(DORSAL_STREAM_TOPIC)
-
-    def get_next_msg(self, topic):
-        return super(SensoryMotorMemory, self).get_next_msg(topic)
-
-    def publish(self, topic, msg):
-        super(SensoryMotorMemory, self).publish(topic, msg)
+        self.add_subscriber(SELECTED_BEHAVIORS_TOPIC)
+        self.add_subscriber(GLOBAL_BROADCAST_TOPIC)
+        self.add_subscriber(DORSAL_STREAM_TOPIC)
 
     def call(self):
         pass

@@ -1,5 +1,8 @@
 from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import built_in_topics
+from lidapy.framework.process import FrameworkTask
+
+from lidapy.util import logger
 
 # By default, the name of the module is the name of the ros node; however, this
 # behavior can be overridden by passing a name to the initializer.
@@ -12,7 +15,6 @@ GLOBAL_BROADCAST_TOPIC = built_in_topics["global_broadcast"]
 
 
 class ActionSelection(FrameworkModule):
-
     def __init__(self, name=MODULE_NAME, **kwargs):
         super(ActionSelection, self).__init__(name, **kwargs)
 
@@ -21,17 +23,11 @@ class ActionSelection(FrameworkModule):
         return MODULE_NAME
 
     def add_publishers(self):
-        super(ActionSelection, self).add_publisher(SELECTED_BEHAVIORS_TOPIC)
+        self.add_publisher(SELECTED_BEHAVIORS_TOPIC)
 
     def add_subscribers(self):
-        super(ActionSelection, self).add_subscriber(CANDIDATE_BEHAVIORS_TOPIC)
-        super(ActionSelection, self).add_subscriber(GLOBAL_BROADCAST_TOPIC)
-
-    def get_next_msg(self, topic):
-        return super(ActionSelection, self).get_next_msg(topic)
-
-    def publish(self, topic, msg):
-        super(ActionSelection, self).publish(topic, msg)
+        self.add_subscriber(CANDIDATE_BEHAVIORS_TOPIC)
+        self.add_subscriber(GLOBAL_BROADCAST_TOPIC)
 
     def call(self):
         candidate_behaviors = self.get_next_msg(CANDIDATE_BEHAVIORS_TOPIC)

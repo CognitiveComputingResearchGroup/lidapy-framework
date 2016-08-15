@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 
-from lidapy.framework.module import FrameworkModule
-from lidapy.framework.msg import built_in_topics, MsgSerializer
-
-from lidapy_rosdeps.srv import GenericService
-
 from collections import deque
 from itertools import islice
+
+from lidapy.framework.module import FrameworkModule
+from lidapy.framework.msg import built_in_topics, MsgSerializer
+from lidapy_rosdeps.srv import GenericService
 
 # By default, the name of the module is the name of the ros node; however, this
 # behavior can be overridden by passing a name to the initializer.
@@ -28,16 +27,11 @@ class ConsciousContentsQueue(FrameworkModule):
         return MODULE_NAME
 
     def add_subscribers(self):
-        super(ConsciousContentsQueue, self).add_subscriber(GLOBAL_BROADCAST_TOPIC)
+        self.add_subscriber(GLOBAL_BROADCAST_TOPIC)
 
     # Override this method to add more services
     def add_services(self):
-        super(ConsciousContentsQueue, self).add_service("get_last_n_broadcasts",
-                                                        GenericService,
-                                                        self.process_last_n_broadcasts_request)
-
-    def get_next_msg(self, topic):
-        return super(ConsciousContentsQueue, self).get_next_msg(topic)
+        self.add_service("get_last_n_broadcasts", GenericService, self.process_last_n_broadcasts_request)
 
     def process_last_n_broadcasts_request(self, raw_request):
 

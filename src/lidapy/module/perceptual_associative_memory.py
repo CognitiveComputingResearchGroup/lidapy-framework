@@ -22,19 +22,13 @@ class PerceptualAssociativeMemory(FrameworkModule):
         return MODULE_NAME
 
     def add_publishers(self):
-        super(PerceptualAssociativeMemory, self).add_publisher(PERCEPTS_TOPIC)
+        self.add_publisher(PERCEPTS_TOPIC)
 
     def add_subscribers(self):
-        super(PerceptualAssociativeMemory, self).add_subscriber(VENTRAL_STREAM_TOPIC)
-        super(PerceptualAssociativeMemory, self).add_subscriber(DETECTED_FEATURES_TOPIC)
-        super(PerceptualAssociativeMemory, self).add_subscriber(WORKSPACE_CUES_TOPIC)
-        super(PerceptualAssociativeMemory, self).add_subscriber(GLOBAL_BROADCAST_TOPIC)
-
-    def get_next_msg(self, topic):
-        return super(PerceptualAssociativeMemory, self).get_next_msg(topic)
-
-    def publish(self, topic, msg):
-        super(PerceptualAssociativeMemory, self).publish(topic, msg)
+        self.add_subscriber(VENTRAL_STREAM_TOPIC)
+        self.add_subscriber(DETECTED_FEATURES_TOPIC)
+        self.add_subscriber(WORKSPACE_CUES_TOPIC)
+        self.add_subscriber(GLOBAL_BROADCAST_TOPIC)
 
     def call(self):
         detected_features = self.get_next_msg(DETECTED_FEATURES_TOPIC)

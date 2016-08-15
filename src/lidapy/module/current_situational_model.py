@@ -1,8 +1,7 @@
-from lidapy_rosdeps.srv import GenericService, GenericServiceRequest, GenericServiceResponse
-
 from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import built_in_topics
 from lidapy.util import logger
+from lidapy_rosdeps.srv import GenericService, GenericServiceResponse
 
 # By default, the name of the module is the name of the ros node; however, this
 # behavior can be overridden by passing a name to the initializer.
@@ -18,23 +17,13 @@ class CurrentSituationalModel(FrameworkModule):
         return MODULE_NAME
 
     def add_publishers(self):
-        super(CurrentSituationalModel, self).add_publisher(built_in_topics["workspace_cues"])
+        self.add_publisher(built_in_topics["workspace_cues"])
 
     def add_services(self):
-        super(CurrentSituationalModel, self).add_service("add_csm_content", GenericService,
-                                                         self.receive_add_csm_content_request)
-        super(CurrentSituationalModel, self).add_service("find_csm_content", GenericService,
-                                                         self.receive_find_csm_content_request)
-        super(CurrentSituationalModel, self).add_service("list_csm_content", GenericService,
-                                                         self.receive_list_csm_content_request)
-        super(CurrentSituationalModel, self).add_service("update_csm_content", GenericService,
-                                                         self.receive_update_csm_content_request)
-
-    def get_next_msg(self, topic):
-        return super(CurrentSituationalModel, self).get_next_msg(topic)
-
-    def publish(self, topic, msg):
-        super(CurrentSituationalModel, self).publish(topic, msg)
+        self.add_service("add_csm_content", GenericService, self.receive_add_csm_content_request)
+        self.add_service("find_csm_content", GenericService, self.receive_find_csm_content_request)
+        self.add_service("list_csm_content", GenericService, self.receive_list_csm_content_request)
+        self.add_service("update_csm_content", GenericService, self.receive_update_csm_content_request)
 
     def receive_add_csm_content_request(self, request):
         # type: (csmAddContentRequest) -> csmAddContentResponse

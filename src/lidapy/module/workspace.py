@@ -1,8 +1,7 @@
-from lidapy_rosdeps.srv import GenericService, GenericServiceRequest
-
 from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import built_in_topics
 from lidapy.framework.service import FrameworkServiceClient
+from lidapy_rosdeps.srv import GenericService, GenericServiceRequest
 
 # By default, the name of the module is the name of the ros node; however, this
 # behavior can be overridden by passing a name to the initializer.
@@ -21,27 +20,22 @@ class Workspace(FrameworkModule):
     def __init__(self, name=MODULE_NAME, **kwargs):
         super(Workspace, self).__init__(name, **kwargs)
 
-        self.csm_add_content_srv_client = FrameworkServiceClient("add_csm_content", GenericService).get_service_proxy()
+        self.csm_add_content_srv_client \
+            = FrameworkServiceClient("add_csm_content", GenericService).get_service_proxy()
 
     @classmethod
     def get_module_name(cls):
         return MODULE_NAME
 
     def add_publishers(self):
-        super(Workspace, self).add_publisher(WORKSPACE_COALITIONS_TOPIC)
-        super(Workspace, self).add_publisher(WORKSPACE_CUES_TOPIC)
+        self.add_publisher(WORKSPACE_COALITIONS_TOPIC)
+        self.add_publisher(WORKSPACE_CUES_TOPIC)
 
     def add_subscribers(self):
-        super(Workspace, self).add_subscriber(PERCEPTS_TOPIC)
-        super(Workspace, self).add_subscriber(SPATIAL_MAPS_TOPIC)
-        super(Workspace, self).add_subscriber(EPISODES_TOPIC)
-        super(Workspace, self).add_subscriber(GLOBAL_BROADCAST_TOPIC)
-
-    def get_next_msg(self, topic):
-        return super(Workspace, self).get_next_msg(topic)
-
-    def publish(self, topic, msg):
-        super(Workspace, self).publish(topic, msg)
+        self.add_subscriber(PERCEPTS_TOPIC)
+        self.add_subscriber(SPATIAL_MAPS_TOPIC)
+        self.add_subscriber(EPISODES_TOPIC)
+        self.add_subscriber(GLOBAL_BROADCAST_TOPIC)
 
     def call(self):
         percepts = self.get_next_msg(PERCEPTS_TOPIC)

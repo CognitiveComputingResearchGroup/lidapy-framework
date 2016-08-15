@@ -20,17 +20,11 @@ class TransientEpisodicMemory(FrameworkModule):
         return MODULE_NAME
 
     def add_publishers(self):
-        super(TransientEpisodicMemory, self).add_publisher(EPISODES_TOPIC)
+        self.add_publisher(EPISODES_TOPIC)
 
     def add_subscribers(self):
-        super(TransientEpisodicMemory, self).add_subscriber(WORKSPACE_CUES_TOPIC)
-        super(TransientEpisodicMemory, self).add_subscriber(GLOBAL_BROADCAST_TOPIC)
-
-    def get_next_msg(self, topic):
-        return super(TransientEpisodicMemory, self).get_next_msg(topic)
-
-    def publish(self, topic, msg):
-        super(TransientEpisodicMemory, self).publish(topic, msg)
+        self.add_subscriber(WORKSPACE_CUES_TOPIC)
+        self.add_subscriber(GLOBAL_BROADCAST_TOPIC)
 
     def call(self):
         pass

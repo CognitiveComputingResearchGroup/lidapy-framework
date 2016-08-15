@@ -1,11 +1,31 @@
 import os
 from multiprocessing import Process
+from threading import Thread
 
 from lidapy.util import comm, logger
 
+# Status codes
+COMPLETE = "complete"
+ERROR = "error"
+RUNNING = "running"
+STARTING = "starting"
 
-class FrameworkProcess(Process):
 
+class FrameworkRunnable(object):
+    def __init__(self):
+        self.status = STARTING
+
+    def is_running(self):
+        return RUNNING == self.status
+
+    def is_complete(self):
+        return COMPLETE == self.status or comm.shutting_down()
+
+    def wait(self, rate_in_hz):
+        comm.wait(rate_in_hz)
+
+
+class FrameworkProcess(Process, FrameworkRunnable):
     def __init__(self, name, **kwargs):
         super(FrameworkProcess, self).__init__(name=name)
 
@@ -16,8 +36,6 @@ class FrameworkProcess(Process):
         self.config = kwargs.get("config")
         if self.config is None:
             raise RuntimeError("Illegal state: agent configuration is undefined.")
-
-        self._status = "starting"
 
     def run(self):
 
@@ -31,20 +49,19 @@ class FrameworkProcess(Process):
                 if self.is_running():
                     self.call()
 
-                self.wait()
+                rate_in_hz = self.get_rate()
+                self.wait(rate_in_hz)
 
         except Exception as e:
             logger.fatal(
                 "Process [name = {}; pid = {}] caught exception in run method: {}".format(self.name, os.getpid(), e))
-            self.status = "error"
+
+            self.status = ERROR
 
         self.finalize()
 
     def get_rate(self):
         return int(self.config.get_type_or_global_param(self.name, "rate_in_hz", 100))
-
-    def wait(self):
-        comm.wait(self.get_rate())
 
     # May be overridden to customize initialization
     def initialize(self):
@@ -53,29 +70,45 @@ class FrameworkProcess(Process):
         # Register this process with communication infrastructure
         comm.initialize(self.name, log_level=self.log_level)
 
-        self.status = "running"
+        self.status = RUNNING
 
     # May be overridden to customize finalization
     def finalize(self):
         logger.info("Process [name = {}; pid = {}] complete with status = {}".format(self.name, os.getpid(),
                                                                                      self.status))
 
-        self.status = "complete"
+        if self.status != ERROR:
+            self.status = COMPLETE
 
     # Must be overridden
     def call(self):
         pass
 
-    def is_running(self):
-        return "running" == self.status
 
-    def is_complete(self):
-        return "complete" == self.status or comm.shutting_down()
+class FrameworkTask(Thread, FrameworkRunnable):
+    def __init__(self, name=None, callback=None, rate_in_hz=None, args=None):
+        Thread.__init__(self, name=name)
+        FrameworkRunnable.__init__(self)
 
-    @property
-    def status(self):
-        return self._status
+        self.callback = callback
+        self.rate_in_hz = rate_in_hz
+        self.args = args
 
-    @status.setter
-    def status(self, new_status):
-        self._status = new_status
+    def run(self):
+
+        try:
+            self.status = RUNNING
+
+            while not self.is_complete():
+                if self.is_running():
+                    self.callback(self.args)
+
+                self.wait(self.rate_in_hz)
+
+        except Exception as e:
+            logger.fatal(
+                "Task [name = {}; pid = {}] caught exception: {}".format(self.name, os.getpid(), e))
+            self.status = ERROR
+
+        if self.status != ERROR:
+            self.status = COMPLETE

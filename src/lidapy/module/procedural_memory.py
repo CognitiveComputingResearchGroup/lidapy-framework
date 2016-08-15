@@ -19,16 +19,10 @@ class ProceduralMemory(FrameworkModule):
         return MODULE_NAME
 
     def add_publishers(self):
-        super(ProceduralMemory, self).add_publisher(CANDIDATE_BEHAVIORS_TOPIC)
+        self.add_publisher(CANDIDATE_BEHAVIORS_TOPIC)
 
     def add_subscribers(self):
-        super(ProceduralMemory, self).add_subscriber(GLOBAL_BROADCAST_TOPIC)
-
-    def get_next_msg(self, topic):
-        return super(ProceduralMemory, self).get_next_msg(topic)
-
-    def publish(self, topic, msg):
-        super(ProceduralMemory, self).publish(topic, msg)
+        self.add_subscriber(GLOBAL_BROADCAST_TOPIC)
 
     def call(self):
         global_broadcast = self.get_next_msg(GLOBAL_BROADCAST_TOPIC)

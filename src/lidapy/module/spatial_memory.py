@@ -20,17 +20,17 @@ class SpatialMemory(FrameworkModule):
         return MODULE_NAME
 
     def add_publishers(self):
-        super(SpatialMemory, self).add_publisher(SPATIAL_MAPS_TOPIC)
+        self.add_publisher(SPATIAL_MAPS_TOPIC)
 
     def add_subscribers(self):
-        super(SpatialMemory, self).add_subscriber(WORKSPACE_CUES_TOPIC)
-        super(SpatialMemory, self).add_subscriber(GLOBAL_BROADCAST_TOPIC)
+        self.add_subscriber(WORKSPACE_CUES_TOPIC)
+        self.add_subscriber(GLOBAL_BROADCAST_TOPIC)
 
     def get_next_msg(self, topic):
-        return super(SpatialMemory, self).get_next_msg(topic)
+        return self.get_next_msg(topic)
 
     def publish(self, topic, msg):
-        super(SpatialMemory, self).publish(topic, msg)
+        self.publish(topic, msg)
 
     def call(self):
         pass

@@ -20,17 +20,11 @@ class EpisodicMemory(FrameworkModule):
         return MODULE_NAME
 
     def add_publishers(self):
-        super(EpisodicMemory, self).add_publisher(EPISODES_TOPIC)
+        self.add_publisher(EPISODES_TOPIC)
 
     def add_subscribers(self):
-        super(EpisodicMemory, self).add_subscriber(WORKSPACE_CUES_TOPIC)
-        super(EpisodicMemory, self).add_subscriber(GLOBAL_BROADCAST_TOPIC)
-
-    def get_next_msg(self, topic):
-        return super(EpisodicMemory, self).get_next_msg(topic)
-
-    def publish(self, topic, msg):
-        super(EpisodicMemory, self).publish(topic, msg)
+        self.add_subscriber(WORKSPACE_CUES_TOPIC)
+        self.add_subscriber(GLOBAL_BROADCAST_TOPIC)
 
     def call(self):
         pass

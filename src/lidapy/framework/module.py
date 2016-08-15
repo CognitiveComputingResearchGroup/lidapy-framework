@@ -1,11 +1,10 @@
 from collections import deque
 
-from lidapy_rosdeps.srv import GenericService
-
 from lidapy.framework.msg import MsgSerializer
 from lidapy.framework.process import FrameworkProcess
 from lidapy.framework.service import FrameworkService
 from lidapy.util import logger
+
 
 class FrameworkModule(FrameworkProcess):
     """ The FrameworkModule class is used to sub-divide an agent into high-level processing components called modules.
@@ -51,6 +50,15 @@ class FrameworkModule(FrameworkProcess):
         # }
         self.services = {}
 
+        # A list of FrameworkTasks
+        #
+        # format:
+        # [
+        #     FrameworkTask1,
+        #     FrameworkTask2,
+        # ]
+        self.background_tasks = []
+
         # A dictionary of message queues.
         #
         # format:
@@ -64,8 +72,9 @@ class FrameworkModule(FrameworkProcess):
         """A template method that initializes the FrameworkModule instance by invoking a set of standard methods.
 
         These standard method implementations can be overridden in subclasses of FrameworkModule
-        to provide custom behaviors (e.g., adding publishers, subscribers, and services).  This method
-        can be overridden to customize module initialization.
+        to provide custom behaviors (e.g., adding publishers, subscribers, services, and background tasks).
+
+        This method can be overridden to customize module initialization.
 
         :return: None
         """
@@ -74,6 +83,8 @@ class FrameworkModule(FrameworkProcess):
         self.add_publishers()
         self.add_subscribers()
         self.add_services()
+        self.add_background_tasks()
+        self.launch_background_tasks()
 
     def receive_msg(self, msg, args):
         """ A default callback for topic subscribers used for receiving messages.
@@ -167,7 +178,19 @@ class FrameworkModule(FrameworkProcess):
         decorated_svc_name = "{}/{}".format(self.name, svc_name)
         self.service = FrameworkService(decorated_svc_name, svc_msg_class, callback)
 
-    # This method must be overridden
+    def add_background_task(self, task):
+        """ Registers a background task associated with this framework module.
+
+        Background tasks are used to schedule the concurrent execution of methods
+        at regular intervals.  These methods are executed independent of the usual
+        FrameworkModule flow of control.
+
+        :param task: a FrameworkTask to register as a background task.
+        :return: None
+        """
+        logger.info("Adding background task ({})".format(task.name))
+        self.background_tasks.append(task)
+
     def add_publishers(self):
         """ Adds publishers to this FrameworkModule to enable asynchronous transmission of messages over topics.
 
@@ -191,15 +214,24 @@ class FrameworkModule(FrameworkProcess):
 
         This method must be overridden to add subscribers to this FrameworkModule.
 
-        Note that the default implementation will add a cue and decay service based on arguments to the class
-        initializer.
+        :return: None
+        """
+        pass
+
+    def add_background_tasks(self):
+        """ Adds background tasks to this FrameworkModule to enable the concurrent execution of FrameworkTasks.
+
+        This method must be overridden to add background tasks to this FrameworkModule.
 
         :return: None
         """
-        logger.debug("Adding services")
+        pass
 
+    def launch_background_tasks(self):
 
-
+        for t in self.background_tasks:
+            logger.info("Starting background task \"{}\"".format(t.name))
+            t.start()
 
     def call(self):
         """ The entry-point for FrameworkModule execution.
@@ -214,33 +246,9 @@ class FrameworkModule(FrameworkProcess):
 
         Care should be taken not to execute long running operations in a blocking mode within
         the call method as that will result in the module becoming unresponsive.  If long-running
-        operations are required they should be invoked in non-blocking mode.
+        operations are required they should be scheduled in a separate background task or using
+        non-blocking mode.
 
         :return: None
         """
         super(FrameworkModule, self).call()
-
-    def learn(self):
-        """ Updates the representations within this module based on a received global broadcast.
-
-        This method must be overridden.
-
-        :return: None
-        """
-        logger.debug("Learning")
-
-    def decay(self, decay_strategy):
-        """ Decays the representations within this module based on the supplied decay strategy.
-
-        :param decay_strategy: a decay strategy that controls the rate of module decay.
-        :return: None
-        """
-        logger.debug("Decaying")
-
-    # TODO: Need to add handling for decay requests
-    def receive_decay_request(self, raw_request):
-        pass
-
-    # TODO: Need to add handling for cue requests
-    def receive_cue_request(self, raw_request):
-        pass
