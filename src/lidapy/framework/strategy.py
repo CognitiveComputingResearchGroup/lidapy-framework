@@ -37,8 +37,9 @@ class LinearExciteStrategy(object):
         return new_activation
 
 
-class SigmoidDecayStrategy(object):
-    def get_time_from_activation(self, current_activation):
+class SigmoidHelper(object):
+    @staticmethod
+    def get_time_from_activation(current_activation):
         if current_activation >= 1.0:
             current_activation = 1.0 - EPSILON_MIN
         elif current_activation <= 0.0:
@@ -46,11 +47,13 @@ class SigmoidDecayStrategy(object):
 
         return -log(1.0 / current_activation - 1)
 
+
+class SigmoidDecayStrategy(object):
     def apply(self, current_activation, rate_in_hz):
         if rate_in_hz <= 0:
             raise ValueError("Invalid value for rate_in_hz ({})".format(rate_in_hz))
 
-        t = self.get_time_from_activation(current_activation) - 1.0 / rate_in_hz
+        t = SigmoidHelper.get_time_from_activation(current_activation) - 1.0 / rate_in_hz
 
         new_activation = 1.0 / (1.0 + exp(-t))
         if new_activation < MIN_ACTIVATION:
@@ -60,19 +63,11 @@ class SigmoidDecayStrategy(object):
 
 
 class SigmoidExciteStrategy(object):
-    def get_time_from_activation(self, current_activation):
-        if current_activation >= 1.0:
-            current_activation = 1.0 - EPSILON_MIN
-        elif current_activation <= 0.0:
-            current_activation = EPSILON_MIN
-
-        return -log(1.0 / current_activation - 1)
-
     def apply(self, current_activation, rate_in_hz):
         if rate_in_hz <= 0:
             raise ValueError("Invalid value for rate_in_hz ({})".format(rate_in_hz))
 
-        t = self.get_time_from_activation(current_activation) + 1.0 / rate_in_hz
+        t = SigmoidHelper.get_time_from_activation(current_activation) + 1.0 / rate_in_hz
 
         new_activation = 1.0 / (1 + exp(-t))
         if new_activation > MAX_ACTIVATION:
