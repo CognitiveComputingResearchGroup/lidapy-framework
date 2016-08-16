@@ -22,13 +22,21 @@ class ActivatableTest(unittest.TestCase):
         a = Activatable()
         assert (a.incentive_salience == 0.0)
 
+        # Verify initial base_level_activation is 0.0
+        a = Activatable()
+        assert (a.base_level_activation == 0.0)
+
         # Verify that initial activation can be set during initialization
-        a = Activatable(0.25, 0.5)
+        a = Activatable(0.25, 0.5, 0.05)
         assert (a.activation == 0.25)
 
         # Verify that initial incentive salience can be set during initialization
-        a = Activatable(0.25, 0.5)
+        a = Activatable(0.25, 0.5, 0.05)
         assert (a.incentive_salience == 0.5)
+
+        # Verify that initial base_level_activation can be set during initialization
+        a = Activatable(0.25, 0.5, 0.05)
+        assert (a.base_level_activation == 0.05)
 
         # Verify small change of activation and incentive salience within
         # expected range bounds works
@@ -46,8 +54,15 @@ class ActivatableTest(unittest.TestCase):
         a.incentive_salience -= 0.1
         assert (a.incentive_salience == 0.15)
 
-        # Verify that reduction of activation and incentive salience to below lower bound
-        # is scaled to lower bound
+        a = Activatable()
+        a.base_level_activation += 0.25
+        assert (a.base_level_activation == 0.25)
+
+        a.base_level_activation -= 0.1
+        assert (a.base_level_activation == 0.15)
+
+        # Verify that reduction of activation and incentive salience and base_level_activation
+        # to below lower bound is scaled to lower bound
         a = Activatable()
         a.activation -= 0.25
         assert (a.activation == 0.0)
@@ -56,8 +71,12 @@ class ActivatableTest(unittest.TestCase):
         a.incentive_salience -= 0.25
         assert (a.incentive_salience == 0.0)
 
-        # Verify that increase of activation and incentive salience to above upper bound
-        # is scaled to upper bound
+        a = Activatable()
+        a.base_level_activation -= 0.25
+        assert (a.base_level_activation == 0.0)
+
+        # Verify that increase of activation and incentive salience and base_level_activation
+        # to above upper bound is scaled to upper bound
         a = Activatable()
         a.activation += 2.0
         assert (a.activation == 1.0)
@@ -66,6 +85,9 @@ class ActivatableTest(unittest.TestCase):
         a.incentive_salience += 2.0
         assert (a.incentive_salience == 1.0)
 
+        a = Activatable()
+        a.base_level_activation += 2.0
+        assert (a.base_level_activation == 1.0)
 
 class CognitiveContentStructureIteratorTest(unittest.TestCase):
     @classmethod

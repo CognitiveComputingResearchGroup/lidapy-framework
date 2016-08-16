@@ -1,7 +1,12 @@
 class Activatable(object):
-    def __init__(self, initial_activation=0.0, initial_incentive_salience=0.0):
+    def __init__(self, initial_activation=0.0, initial_incentive_salience=0.0, initial_base_level_activation=0.0):
+        self._activation = 0.0
+        self._incentive_salience = 0.0
+        self._base_level_activation = 0.0
+
         self.activation = initial_activation
         self.incentive_salience = initial_incentive_salience
+        self.base_level_activation = initial_base_level_activation
 
     @property
     def activation(self):
@@ -15,6 +20,19 @@ class Activatable(object):
             self._activation = 1.0
         else:
             self._activation = activation
+
+    @property
+    def base_level_activation(self):
+        return self._base_level_activation
+
+    @base_level_activation.setter
+    def base_level_activation(self, base_level_activation):
+        if base_level_activation < 0.0:
+            self._base_level_activation = 0.0
+        elif base_level_activation > 1.0:
+            self._base_level_activation = 1.0
+        else:
+            self._base_level_activation = base_level_activation
 
     @property
     def incentive_salience(self):
