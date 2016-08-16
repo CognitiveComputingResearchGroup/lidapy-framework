@@ -15,7 +15,7 @@ class LinearExciteStrategyTest(unittest.TestCase):
     def tearDownClass(cls):
         pass
 
-    def test_init(self):
+    def test_change(self):
 
         # Verify linear increase in activation
         strategy = LinearExciteStrategy(0.01)
@@ -51,7 +51,7 @@ class LinearDecayStrategyTest(unittest.TestCase):
     def tearDownClass(cls):
         pass
 
-    def test_init(self):
+    def test_change(self):
 
         # Verify linear decrease in activation
         strategy = LinearDecayStrategy(0.01)
@@ -88,7 +88,7 @@ class SigmoidDecayStrategyTest(unittest.TestCase):
     def tearDownClass(cls):
         pass
 
-    def test_init(self):
+    def test_change(self):
         # Verify expected value after decrease starting a activation = 0.5
         strategy = SigmoidDecayStrategy()
         current_activation = 0.5
@@ -97,6 +97,26 @@ class SigmoidDecayStrategyTest(unittest.TestCase):
         new_activation = strategy.apply(current_activation, rate_in_hz)
         new_activation_rnded = "{0:.6f}".format(new_activation)
         assert (new_activation_rnded == str(0.268941))
+
+        # Verify expected value after decrease starting a activation = 0.5 with
+        # rate_multiplier = 2.0
+        strategy = SigmoidDecayStrategy(2.0)
+        current_activation = 0.5
+        rate_in_hz = 1.0
+
+        new_activation = strategy.apply(current_activation, rate_in_hz)
+        new_activation_rnded = "{0:.6f}".format(new_activation)
+        assert (new_activation_rnded == str(0.119203))
+
+        # Verify expected value after decrease starting a activation = 0.5 with
+        # rate_multiplier = 2.0
+        strategy = SigmoidDecayStrategy(0.5)
+        current_activation = 0.5
+        rate_in_hz = 1.0
+
+        new_activation = strategy.apply(current_activation, rate_in_hz)
+        new_activation_rnded = "{0:.6f}".format(new_activation)
+        assert (new_activation_rnded == str(0.377541))
 
         # Verify expected value after decrease starting at activation = MIN_ACTIVATION is
         # still approximately MIN_ACTIVATION
@@ -109,12 +129,18 @@ class SigmoidDecayStrategyTest(unittest.TestCase):
 
     # Verify ValueError raised when rate_in_hz < 0
     @raises(ValueError)
-    def test_exception(self):
+    def test_rate_in_hz_exception(self):
         strategy = SigmoidDecayStrategy()
         current_activation = MAX_ACTIVATION
         rate_in_hz = 0
 
         strategy.apply(current_activation, rate_in_hz)
+
+    # Verify ValueError raised when rate_multiplier <= 0
+    @raises(ValueError)
+    def test_rate_multiplier_exception(self):
+        SigmoidDecayStrategy(0)
+
 
 class SigmoidExciteStrategyTest(unittest.TestCase):
     @classmethod
@@ -125,7 +151,7 @@ class SigmoidExciteStrategyTest(unittest.TestCase):
     def tearDownClass(cls):
         pass
 
-    def test_init(self):
+    def test_change(self):
         # Verify expected value after decrease starting a activation = 0.5
         strategy = SigmoidExciteStrategy()
         current_activation = 0.5
@@ -134,6 +160,26 @@ class SigmoidExciteStrategyTest(unittest.TestCase):
         new_activation = strategy.apply(current_activation, rate_in_hz)
         new_activation_rnded = "{0:.6f}".format(new_activation)
         assert (new_activation_rnded == str(0.731059))
+
+        # Verify expected value after decrease starting a activation = 0.5 with
+        # rate_multiplier = 2.0
+        strategy = SigmoidExciteStrategy(2.0)
+        current_activation = 0.5
+        rate_in_hz = 1.0
+
+        new_activation = strategy.apply(current_activation, rate_in_hz)
+        new_activation_rnded = "{0:.6f}".format(new_activation)
+        assert (new_activation_rnded == str(0.880797))
+
+        # Verify expected value after decrease starting a activation = 0.5 with
+        # rate_multiplier = 2.0
+        strategy = SigmoidExciteStrategy(0.5)
+        current_activation = 0.5
+        rate_in_hz = 1.0
+
+        new_activation = strategy.apply(current_activation, rate_in_hz)
+        new_activation_rnded = "{0:.6f}".format(new_activation)
+        assert (new_activation_rnded == str(0.622459))
 
         # Verify expected value after excitation starting at activation = MAX_ACTIVATION is
         # still approximately MAX_ACTIVATION
@@ -146,11 +192,15 @@ class SigmoidExciteStrategyTest(unittest.TestCase):
 
     # Verify ValueError raised when rate_in_hz < 0
     @raises(ValueError)
-    def test_exception(self):
+    def test_rate_in_hz_exception(self):
         strategy = SigmoidExciteStrategy()
         current_activation = MAX_ACTIVATION
         rate_in_hz = 0
 
         strategy.apply(current_activation, rate_in_hz)
 
+    # Verify ValueError raised when rate_multiplier <= 0
+    @raises(ValueError)
+    def test_rate_multiplier_exception(self):
+        SigmoidExciteStrategy(0)
 

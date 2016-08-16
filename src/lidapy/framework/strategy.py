@@ -49,11 +49,17 @@ class SigmoidHelper(object):
 
 
 class SigmoidDecayStrategy(object):
+    def __init__(self, rate_multiplier=1.0):
+        if rate_multiplier <= 0.0:
+            raise ValueError("Invalid value for rate_multiplier (must be > 0).")
+
+        self.rate_multiplier = rate_multiplier
+
     def apply(self, current_activation, rate_in_hz):
         if rate_in_hz <= 0:
-            raise ValueError("Invalid value for rate_in_hz ({})".format(rate_in_hz))
+            raise ValueError("Invalid value for rate_in_hz (must be > 0)".format(rate_in_hz))
 
-        t = SigmoidHelper.get_time_from_activation(current_activation) - 1.0 / rate_in_hz
+        t = SigmoidHelper.get_time_from_activation(current_activation) - self.rate_multiplier / rate_in_hz
 
         new_activation = 1.0 / (1.0 + exp(-t))
         if new_activation < MIN_ACTIVATION:
@@ -63,11 +69,17 @@ class SigmoidDecayStrategy(object):
 
 
 class SigmoidExciteStrategy(object):
+    def __init__(self, rate_multiplier=1.0):
+        if rate_multiplier <= 0.0:
+            raise ValueError("Invalid value for rate_multiplier (must be > 0).")
+
+        self.rate_multiplier = rate_multiplier
+
     def apply(self, current_activation, rate_in_hz):
         if rate_in_hz <= 0:
-            raise ValueError("Invalid value for rate_in_hz ({})".format(rate_in_hz))
+            raise ValueError("Invalid value for rate_in_hz (must be > 0)".format(rate_in_hz))
 
-        t = SigmoidHelper.get_time_from_activation(current_activation) + 1.0 / rate_in_hz
+        t = SigmoidHelper.get_time_from_activation(current_activation) + self.rate_multiplier / rate_in_hz
 
         new_activation = 1.0 / (1 + exp(-t))
         if new_activation > MAX_ACTIVATION:
