@@ -5,6 +5,18 @@ from itertools import islice
 
 from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import built_in_topics, MsgSerializer
+
+import os, sys, inspect
+
+# realpath() will make your script run, even if you symlink it :)
+cmd_folder = os.path.realpath(os.path.abspath(os.path.split(inspect.getfile(inspect.currentframe()))[0]))
+if "src" in cmd_folder:
+    cmd_folder = cmd_folder[:cmd_folder.index("src")]
+    cmd_folder = os.path.join(cmd_folder, "ros")
+print "From  lidapy", cmd_folder
+if cmd_folder not in sys.path:
+    sys.path.insert(0, cmd_folder)
+
 from lidapy_rosdeps.srv import GenericService
 
 # By default, the name of the module is the name of the ros node; however, this

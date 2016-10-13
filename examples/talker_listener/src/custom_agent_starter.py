@@ -1,5 +1,16 @@
-#! /usr/bin/env python
+# To enable finding the lidapy package
+import os, sys, inspect
 
+# realpath() will make your script run, even if you symlink it :)
+cmd_folder = os.path.realpath(os.path.abspath(os.path.split(inspect.getfile(inspect.currentframe()))[0]))
+if "examples" in cmd_folder:
+    cmd_folder = cmd_folder[:cmd_folder.index("examples")]
+    cmd_folder = os.path.join(cmd_folder, "src")
+print cmd_folder
+if cmd_folder not in sys.path:
+    sys.path.insert(0, cmd_folder)
+
+# Start loading the lidapy packages
 from lidapy.framework.agent_starter import AgentStarter
 from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import FrameworkTopic
