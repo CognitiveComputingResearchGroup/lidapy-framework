@@ -108,12 +108,16 @@ if [[ $choice == "Y" || $interactive -eq 0 ]]; then
     catkin_make
 fi
 
-echo "Success! Workspace directory ($workspace_dir) created."
-
 display_yn_prompt "Add devel/setup.bash to .bashrc?"
 if [[ $choice == "Y" || $interactive -eq 0 ]]; then
     echo -e "\nsource $workspace_dir/devel/setup.bash" >> $HOME/.bashrc
 fi
 
+display_yn_prompt "Update .bashrc with PYTHONPATH for lidapy-framework?"
+if [[ $choice == "Y" || $interactive -eq 0 ]]; then
+    echo -e "\nexport PYTHONPATH=\$PYTHONPATH:$lidapy_framework_dir/src" >> $HOME/.bashrc
+fi
+
+echo "Success!  Please restart your terminal for changes to take effect."
 
 exit 0
