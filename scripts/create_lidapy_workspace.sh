@@ -60,6 +60,10 @@ if [[ -z $workspace_dir ]]; then
     exit 1
 fi
 
+if [[ ! "$workspace_dir" = /* ]]; then
+    workspace_dir="$PWD/$workspace_dir"
+fi
+
 display_yn_prompt "Workspace directory = $workspace_dir" 
 if [[ $choice == "N" ]]; then
     echo "Aborting."
@@ -108,12 +112,24 @@ if [[ $choice == "Y" || $interactive -eq 0 ]]; then
     catkin_make
 fi
 
-echo "Success! Workspace directory ($workspace_dir) created."
+mkdir $HOME/.lidapy
 
-display_yn_prompt "Add devel/setup.bash to .bashrc?"
-if [[ $choice == "Y" || $interactive -eq 0 ]]; then
-    echo -e "\nsource $workspace_dir/devel/setup.bash" >> $HOME/.bashrc
+if [[ -e "$HOME/.lidapy/setup.bash" ]]; then
+    display_yn_prompt "A lidapy-framework configuration file already exists.  Override?"
+    if [[ $choice == "Y" || $interactive -eq 0 ]]; then
+        rm -v "$HOME/.lidapy/setup.bash"
+    fi
 fi
 
+echo -e "\nsource $workspace_dir/devel/setup.bash" >> $HOME/.lidapy/setup.bash
+echo -e "\nexport PYTHONPATH=\$PYTHONPATH:$lidapy_framework_dir/src" >> $HOME/.lidapy/setup.bash
+
+display_yn_prompt "Update BASH configuration for lidapy-framework?"
+if [[ $choice == "Y" || $interactive -eq 0 ]]; then
+    echo "Adding \"source \$HOME/.lidapy/setup.bash\" to .bashrc."
+    echo -e "\nsource \$HOME/.lidapy/setup.bash" >> $HOME/.bashrc
+fi
+
+echo "Execute \"source \$HOME/.lidapy/setup.bash\" to update environment for lidapy framework."
 
 exit 0
