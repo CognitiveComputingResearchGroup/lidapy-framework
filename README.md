@@ -31,3 +31,13 @@ Example:
       
         roslaunch talker_listener agent.launch
       
+## Create an agent
+
+To create your own lidapy-framework based agents run:
+
+catkin_create_pkg [agent-name] lidapy-rosdeps [other-ros-package-dependencies]
+
+Example:
+
+      catkin_create_pkg text-attractor lidapy-rosdeps
+     
