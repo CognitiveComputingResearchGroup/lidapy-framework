@@ -1,14 +1,16 @@
 # lidapy-framework
 A proof of concept for a distributed Python-based LIDA framework using ROS
 
-## Prerequisites
-### ROS
+## Setup lidapy
+
+### Prerequisites
+
+Setting up existing machine:
+#### ROS
 To install ROS run (on Ubuntu 14.x+): 
 
       sudo apt-get install ros-jade-ros-base
-
-
-## Setup lidapy
+      
 ### Get lidapy
   To setup lidapy you need to download or clone this repository. To download click [here](https://github.com/CognitiveComputingResearchGroup/lidapy-framework/archive/master.zip) and unzip the downloaded file or to clone into a directory where you want lidapy-framework to live run the following from that directory:
     
