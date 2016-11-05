@@ -22,6 +22,8 @@ Usage ./scripts/setup.sh [full-path-of-workspace-directory]
 Example:
   
     ./scripts/setup.sh /home/user/lidapy-workspace
+   
+When running the script the first time, you will have to run ```source ~/.lidapy/setup.bash```. The setup.sh script will automatically update your bash environment configuration file (i.e, .bashrc) to execute setup.bash for all subsequent bash sessions.
     
 ## Run an agent
 
