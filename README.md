@@ -6,6 +6,7 @@ A proof of concept for a distributed Python-based LIDA framework using ROS
 ### Prerequisites
 
 Setting up existing machine:
+Setting up virtual machine:
 #### ROS
 To install ROS run (on Ubuntu 14.x+): 
 
