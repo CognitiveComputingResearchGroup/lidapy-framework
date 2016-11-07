@@ -4,7 +4,7 @@ from collections import deque
 from itertools import islice
 
 from lidapy.framework.module import FrameworkModule
-from lidapy.framework.msg import built_in_topics, MsgSerializer
+from lidapy.framework.msg import FrameworkTopic, MsgSerializer
 from lidapy_rosdeps.srv import GenericService
 
 # By default, the name of the module is the name of the ros node; however, this
@@ -12,14 +12,14 @@ from lidapy_rosdeps.srv import GenericService
 MODULE_NAME = "conscious_contents_queue"
 
 # Topics used by this module
-GLOBAL_BROADCAST_TOPIC = built_in_topics["global_broadcast"]
+GLOBAL_BROADCAST_TOPIC = FrameworkTopic("global_broadcast")
 
 
 class ConsciousContentsQueue(FrameworkModule):
-    def __init__(self, name=MODULE_NAME, **kwargs):
-        super(ConsciousContentsQueue, self).__init__(name, **kwargs)
+    def __init__(self, **kwargs):
+        super(ConsciousContentsQueue, self).__init__(**kwargs)
 
-        self.max_queue_size = self.config.get_param(name, "max_queue_size", 10)
+        self.max_queue_size = self.config.get_param(self.name, "max_queue_size", 10)
         self.queue = deque(maxlen=self.max_queue_size)
 
     @classmethod

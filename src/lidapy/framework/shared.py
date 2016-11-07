@@ -1,3 +1,84 @@
+from lidapy.util.meta import Singleton
+
+
+class FrameworkObject(object):
+    def __init__(self):
+        self._dependencies = {"config": FrameworkDependency("config"),
+                              "logger": FrameworkDependency("logger"),
+                              "ipc_proxy": FrameworkDependency("ipc_proxy")}
+
+    @property
+    def logger(self):
+        logger = self._dependencies["logger"].resolve()
+        return logger
+
+    @property
+    def ipc_proxy(self):
+        ipc_proxy = self._dependencies["ipc_proxy"].resolve()
+        return ipc_proxy
+
+    @property
+    def config(self):
+        config = self._dependencies["config"].resolve()
+        return config
+
+
+class FrameworkDependency(object):
+    def __init__(self, name):
+        self.name = name
+
+        self._fds = FrameworkDependencyService()
+
+    def resolve(self):
+        return self._fds[self.name]
+
+    def is_satisfied(self):
+        return self._fds.has(self.name)
+
+        # def __getattr__(self, attr):
+        #     resolved_attr = self._depend.__getattribute__(attr)
+        #     if callable(resolved_attr):
+        #
+        #         def wrapped(*args, **kwargs):
+        #             result = resolved_attr(*args, **kwargs)
+        #             if result == self._depend:
+        #                 return self
+        #             return result
+        #         return wrapped
+        #
+        #     else:
+        #         return resolved_attr
+
+
+class FrameworkDependencyService(object):
+    __metaclass__ = Singleton
+
+    def __init__(self, allow_overrides=False):
+        self.allow_overrides = allow_overrides
+
+        self._dependencies = {}
+
+    def __setitem__(self, key, dependency):
+        if self._dependencies.has_key(key):
+            if not self.allow_overrides:
+                raise Exception("Dependency overrides not allowed.")
+        else:
+            self._dependencies[key] = dependency
+
+    def __getitem__(self, key):
+        dependency = self._dependencies.get(key, None)
+        if dependency is None:
+            raise Exception("Dependency for key {} does not exist".format(key))
+
+        return dependency
+
+    def __len__(self):
+        return len(self._dependencies)
+
+    def has(self, key):
+        return self._dependencies.has_key(key)
+
+
 class Activatable(object):
     def __init__(self, initial_activation=0.0, initial_incentive_salience=0.0, initial_base_level_activation=0.0):
         self._activation = 0.0

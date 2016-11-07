@@ -1,7 +1,119 @@
 import unittest
 
 from lidapy.framework.shared import Activatable, CognitiveContent, CognitiveContentStructure, \
-    CognitiveContentStructureIterator
+    CognitiveContentStructureIterator, FrameworkDependencyService, FrameworkDependency
+from lidapy.util.comm import StubCommunicationProxy
+from lidapy.util.logger import ConsoleLogger
+from lidapy.util.meta import Singleton
+
+
+class FrameworkDependencyTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        fd = FrameworkDependencyService()
+
+        fd["logger"] = ConsoleLogger()
+        fd["ipc_proxy"] = StubCommunicationProxy()
+        fd["string_dep"] = "just a string"
+
+    @classmethod
+    def tearDownClass(cls):
+        pass
+
+    def test_satisfied(self):
+        logger_depend = FrameworkDependency("logger")
+        assert (logger_depend.satisfied())
+
+        non_existent_dependency = FrameworkDependency("nobody home")
+        assert (not non_existent_dependency.satisfied())
+
+    def test_resolve(self):
+        logger_depend = FrameworkDependency("logger")
+        logger = logger_depend.resolve()
+
+        assert (type(logger) is ConsoleLogger)
+
+        non_existent_dependency = FrameworkDependency("nobody home")
+        try:
+            non_existent = non_existent_dependency.resolve()
+            self.fail("Failed to generate exception from non-existent dependency")
+        except:
+            pass
+
+
+class FrameworkDependencyServiceTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        pass
+
+    @classmethod
+    def tearDownClass(cls):
+        pass
+
+    @classmethod
+    def tearDown(cls):
+        # Removes all previously created singleton objects between tests
+        Singleton._clear()
+
+    def test_singleton_property(self):
+
+        # Verify that singleton property is working (separately created dependency
+        # services must be identical)
+        fds1 = FrameworkDependencyService()
+        fds2 = FrameworkDependencyService()
+
+        assert (fds1 is fds2)
+
+    def test_add_dependency(self):
+        fds = FrameworkDependencyService()
+
+        # Verify that new dependency was added and length updated
+        fds["dependency1"] = "dependency1"
+        assert (len(fds) == 1)
+
+        # Verify that 2nd dependency was added, length updated,
+        fds["dependency2"] = "dependency2"
+        assert (len(fds) == 2)
+
+        # Verify that disallowing "overrides" by default and raising
+        # an exception if multiple dependency sets occur
+        try:
+            fds["dependency1"] = "dependency1"
+            self.fail("Failed to generate exception when not allowing overrides and duplicate set")
+        except:
+            pass
+
+        fds.allow_overrides = True
+
+        # Verify that multiple sets allowed when allowing overrides
+        try:
+            fds["dependency1"] = "dependency1"
+        except:
+            self.fail("Should not generate exception when duplicate sets and allowing overrides")
+
+    def test_get_dependency(self):
+        fds = FrameworkDependencyService()
+
+        # Verify content from get matches expected value
+        fds["dependency1"] = "dependency1_value"
+        assert (fds["dependency1"] == "dependency1_value")
+
+        # Verify non-existent dependency returns exception
+        try:
+            d = fds["nobody home"]
+            self.fail("Failed to generate expected exception when retrieving non-existent dependency")
+        except:
+            pass
+
+    def test_has_dependency(self):
+        fds = FrameworkDependencyService()
+
+        # Verify has reports True when dependency was added
+        fds["dependency1"] = "dependency1"
+        assert (fds.has("dependency1"))
+
+        # Verify has reports False when dependency not added
+        assert (not fds.has("nobody home"))
 
 
 class ActivatableTest(unittest.TestCase):
@@ -88,6 +200,7 @@ class ActivatableTest(unittest.TestCase):
         a = Activatable()
         a.base_level_activation += 2.0
         assert (a.base_level_activation == 1.0)
+
 
 class CognitiveContentStructureIteratorTest(unittest.TestCase):
     @classmethod

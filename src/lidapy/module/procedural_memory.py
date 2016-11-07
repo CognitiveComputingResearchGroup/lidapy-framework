@@ -1,18 +1,18 @@
 from lidapy.framework.module import FrameworkModule
-from lidapy.framework.msg import built_in_topics
+from lidapy.framework.msg import FrameworkTopic
 
 # By default, the name of the module is the name of the ros node; however, this
 # behavior can be overridden by passing a name to the initializer.
 MODULE_NAME = "procedural_memory"
 
 # Topics used by this module
-CANDIDATE_BEHAVIORS_TOPIC = built_in_topics["candidate_behaviors"]
-GLOBAL_BROADCAST_TOPIC = built_in_topics["global_broadcast"]
+CANDIDATE_BEHAVIORS_TOPIC = FrameworkTopic("candidate_behaviors")
+GLOBAL_BROADCAST_TOPIC = FrameworkTopic("global_broadcast")
 
 
 class ProceduralMemory(FrameworkModule):
-    def __init__(self, name=MODULE_NAME, **kwargs):
-        super(ProceduralMemory, self).__init__(name, **kwargs)
+    def __init__(self, **kwargs):
+        super(ProceduralMemory, self).__init__(**kwargs)
 
     @classmethod
     def get_module_name(cls):

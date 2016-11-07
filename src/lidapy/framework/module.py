@@ -1,12 +1,14 @@
+from abc import ABCMeta, abstractmethod
 from collections import deque
 
 from lidapy.framework.msg import MsgSerializer
 from lidapy.framework.process import FrameworkProcess
 from lidapy.framework.service import FrameworkService
-from lidapy.util import logger
 
 
 class FrameworkModule(FrameworkProcess):
+    __metaclass__ = ABCMeta
+
     """ The FrameworkModule class is used to sub-divide an agent into high-level processing components called modules.
 
     During initialization, the FrameworkModule is registered as a ros node and publishers/subscribers/services
@@ -18,10 +20,8 @@ class FrameworkModule(FrameworkProcess):
 
     """
 
-    def __init__(self, name, **kwargs):
-        super(FrameworkModule, self).__init__(name, **kwargs)
-
-        self.name = name
+    def __init__(self, **kwargs):
+        super(FrameworkModule, self).__init__(self.get_module_name(), **kwargs)
 
         # A dictionary of FrameworkTopics
         #
@@ -68,6 +68,10 @@ class FrameworkModule(FrameworkProcess):
         # }
         self.received_msgs = {}
 
+    @classmethod
+    def get_module_name(cls):
+        raise NotImplemented("FrameworkModule must implement get_module_name classmethod")
+
     def initialize(self):
         """A template method that initializes the FrameworkModule instance by invoking a set of standard methods.
 
@@ -100,7 +104,7 @@ class FrameworkModule(FrameworkProcess):
         """
         topic_name = args["topic"]
 
-        logger.debug("Receiving message on topic {}.  Message = {}".format(topic_name, msg))
+        self.logger.debug("Receiving message on topic {}.  Message = {}".format(topic_name, msg))
 
         if topic_name is not None:
             msg_queue = self.received_msgs[topic_name]
@@ -113,13 +117,13 @@ class FrameworkModule(FrameworkProcess):
         that the default callback (i.e., default receive_msg implementation) was registered with the
         subscriber.
 
-        :param topic_name: the name of the topic for which a previously retrieved message will be returned.
-        :return: a message for the specified topic_name.
+        :param topic: the topic for which a previously retrieved message will be returned.
+        :return: a message for the specified topic.
         """
         msg_queue = self.received_msgs[topic.topic_name]
 
         if len(msg_queue) == 0:
-            logger.debug("Message queue is empty for topic {}".format(topic.topic_name))
+            self.logger.debug("Message queue is empty for topic {}".format(topic.topic_name))
             return None
         else:
             next_msg = msg_queue.popleft()
@@ -140,7 +144,7 @@ class FrameworkModule(FrameworkProcess):
         :param topic: the framework topic for which a publisher will be created.
         :return: None
         """
-        logger.info("Adding publisher for topic {}".format(topic.topic_name))
+        self.logger.info("Adding publisher for topic {}".format(topic.topic_name))
 
         self.topics[topic.topic_name] = topic
 
@@ -154,7 +158,7 @@ class FrameworkModule(FrameworkProcess):
         :param callback_args: a list of arguments will be provided to the callback method when invoked
         :return: None
         """
-        logger.info("Adding subscriber for topic {}".format(topic.topic_name))
+        self.logger.info("Adding subscriber for topic {}".format(topic.topic_name))
 
         self.topics[topic.topic_name] = topic
 
@@ -176,7 +180,7 @@ class FrameworkModule(FrameworkProcess):
         :return: None
         """
         decorated_svc_name = "{}/{}".format(self.name, svc_name)
-        self.service = FrameworkService(decorated_svc_name, svc_msg_class, callback)
+        self.services[decorated_svc_name] = FrameworkService(decorated_svc_name, svc_msg_class, callback)
 
     def add_background_task(self, task):
         """ Registers a background task associated with this framework module.
@@ -188,7 +192,7 @@ class FrameworkModule(FrameworkProcess):
         :param task: a FrameworkTask to register as a background task.
         :return: None
         """
-        logger.info("Adding background task ({})".format(task.name))
+        self.logger.info("Adding background task ({})".format(task.name))
         self.background_tasks.append(task)
 
     def add_publishers(self):
@@ -230,9 +234,10 @@ class FrameworkModule(FrameworkProcess):
     def launch_background_tasks(self):
 
         for t in self.background_tasks:
-            logger.info("Starting background task \"{}\"".format(t.name))
+            self.logger.info("Starting background task \"{}\"".format(t.name))
             t.start()
 
+    @abstractmethod
     def call(self):
         """ The entry-point for FrameworkModule execution.
 
@@ -251,4 +256,4 @@ class FrameworkModule(FrameworkProcess):
 
         :return: None
         """
-        super(FrameworkModule, self).call()
+        pass

@@ -3,6 +3,7 @@ import unittest
 from tempfile import NamedTemporaryFile
 
 from lidapy.framework.agent import AgentConfig
+from lidapy.util.logger import ConsoleLogger
 
 # A test version of the content that could appear in
 # an agent.conf file.
@@ -40,7 +41,7 @@ class AgentConfigTest(unittest.TestCase):
             tmp.flush()
 
             try:
-                config = AgentConfig(config_file=tmp.name)
+                config = AgentConfig(config_file=tmp.name, logger=ConsoleLogger())
 
                 # Verify that global_param value from config matches
                 # expected value

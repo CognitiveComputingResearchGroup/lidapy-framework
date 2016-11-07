@@ -1,32 +1,24 @@
+from numpy import average
 from time import sleep
 
-from simple_youbot_nav.msg import WheelCommand
-from numpy import average
-from smach import State, StateMachine
-
-from lidapy.framework.msg import built_in_topics, FrameworkTopic
+from lidapy.framework.msg import FrameworkTopic
 from lidapy.framework.shared import CognitiveContent
-from lidapy.module.action_selection import ActionSelection
-from lidapy.module.global_workspace import GlobalWorkspace
-from lidapy.module.perceptual_associative_memory import PerceptualAssociativeMemory
-from lidapy.module.procedural_memory import ProceduralMemory
 from lidapy.module.sensory_memory import SensoryMemory
 from lidapy.module.sensory_motor_memory import SensoryMotorMemory
-from lidapy.module.workspace import Workspace
-from lidapy.util import logger
-
 from sensor_msgs.msg import LaserScan
+from simple_youbot_nav.msg import WheelCommand
+from smach import State, StateMachine
 
 # Topic definitions
-RAYSCAN_TOPIC = FrameworkTopic("/gazebo/sensors/rayscan", LaserScan)
-WHEELCMD_TOPIC = FrameworkTopic("/gazebo/commands", WheelCommand)
-DORSAL_STREAM_TOPIC = built_in_topics["dorsal_stream"]
-VENTRAL_STREAM_TOPIC = built_in_topics["ventral_stream"]
-PERCEPTS_TOPIC = built_in_topics["percepts"]
-WORKSPACE_COALITIONS_TOPIC = built_in_topics["workspace_coalitions"]
-GLOBAL_BROADCAST_TOPIC = built_in_topics["global_broadcast"]
-CANDIDATE_BEHAVIORS_TOPIC = built_in_topics["candidate_behaviors"]
-SELECTED_BEHAVIORS_TOPIC = built_in_topics["selected_behaviors"]
+RAYSCAN_TOPIC = FrameworkTopic("/gazebo/sensors/rayscan", msg_type=LaserScan)
+WHEELCMD_TOPIC = FrameworkTopic("/gazebo/commands", msg_type=WheelCommand)
+DORSAL_STREAM_TOPIC = FrameworkTopic("dorsal_stream")
+VENTRAL_STREAM_TOPIC = FrameworkTopic("ventral_stream")
+PERCEPTS_TOPIC = FrameworkTopic("percepts")
+WORKSPACE_COALITIONS_TOPIC = FrameworkTopic("workspace_coalitions")
+GLOBAL_BROADCAST_TOPIC = FrameworkTopic("global_broadcast")
+CANDIDATE_BEHAVIORS_TOPIC = FrameworkTopic("candidate_behaviors")
+SELECTED_BEHAVIORS_TOPIC = FrameworkTopic("selected_behaviors")
 
 
 class BasicSensoryMemory(SensoryMemory):
@@ -36,12 +28,6 @@ class BasicSensoryMemory(SensoryMemory):
     def add_subscribers(self):
         super(BasicSensoryMemory, self).add_subscribers()
         super(BasicSensoryMemory, self).add_subscriber(RAYSCAN_TOPIC)
-
-    def get_next_msg(self, topic):
-        return super(BasicSensoryMemory, self).get_next_msg(topic)
-
-    def publish(self, topic, msg):
-        super(BasicSensoryMemory, self).publish(topic, msg)
 
     def call(self):
         rayscan_data = self.get_next_msg(RAYSCAN_TOPIC)
@@ -60,37 +46,32 @@ class BasicSensoryMotorMemory(SensoryMotorMemory):
     def add_publishers(self):
         super(BasicSensoryMotorMemory, self).add_publisher(WHEELCMD_TOPIC)
 
-    def get_next_msg(self, topic):
-        return super(SensoryMotorMemory, self).get_next_msg(topic)
-
-    def publish(self, topic, msg):
-        super(SensoryMotorMemory, self).publish(topic, msg)
-
     def call(self):
         self.stateMachine.execute()
 
     def create_state_machine(self):
         new_state_machine = StateMachine(outcomes=['success', 'failure'])
         with new_state_machine:
-            StateMachine.add("SCAN", CheckEnv(self), transitions={"clear_front": "FORWARD",
-                                                                  "clear_left": "TURN_LEFT",
-                                                                  "clear_right": "TURN_RIGHT",
-                                                                  "blocked": "REVERSE",
-                                                                  "unknown": "STOP"})
+            StateMachine.add("SCAN", CheckEnv(self, logger=self.logger),
+                             transitions={"clear_front": "FORWARD",
+                                          "clear_left": "TURN_LEFT",
+                                          "clear_right": "TURN_RIGHT",
+                                          "blocked": "REVERSE",
+                                          "unknown": "STOP"})
             StateMachine.add("FORWARD",
-                             LinearMove(self, direction=LinearMove.FORWARD, duration=0.1),
+                             LinearMove(self, direction=LinearMove.FORWARD, duration=0.1, logger=self.logger),
                              transitions={"success": "success"})
             StateMachine.add("REVERSE",
-                             Turn(self, angle=0.8, direction=LinearMove.REVERSE, duration=4),
+                             Turn(self, angle=0.8, direction=LinearMove.REVERSE, duration=4, logger=self.logger),
                              transitions={"success": "success"})
             StateMachine.add("TURN_LEFT",
-                             Turn(self, angle=0.8, direction=Turn.FORWARD, duration=0.1),
+                             Turn(self, angle=0.8, direction=Turn.FORWARD, duration=0.1, logger=self.logger),
                              transitions={"success": "success"})
             StateMachine.add("TURN_RIGHT",
-                             Turn(self, angle=-0.8, direction=Turn.FORWARD, duration=0.1),
+                             Turn(self, angle=-0.8, direction=Turn.FORWARD, duration=0.1, logger=self.logger),
                              transitions={"success": "success"})
             StateMachine.add("STOP",
-                             LinearMove(self, direction=LinearMove.STOP, duration=0.1),
+                             LinearMove(self, direction=LinearMove.STOP, duration=0.1, logger=self.logger),
                              transitions={"success": "success"})
 
         return new_state_machine
@@ -98,7 +79,7 @@ class BasicSensoryMotorMemory(SensoryMotorMemory):
 
 # States for FSM
 class CheckEnv(State):
-    def __init__(self, smm):
+    def __init__(self, smm, logger):
         State.__init__(self,
                        outcomes=["clear_front",
                                  "clear_left",
@@ -106,9 +87,10 @@ class CheckEnv(State):
                                  "blocked",
                                  "unknown"])
         self.smm = smm
+        self.logger = logger
 
     def execute(self, userdata):
-        logger.debug("Executing CheckEnv")
+        self.logger.debug("Executing CheckEnv")
 
         dorsal_stream_msg = self.smm.get_next_msg(DORSAL_STREAM_TOPIC)
         if dorsal_stream_msg is None:
@@ -136,6 +118,7 @@ class CheckEnv(State):
                     "clear_right": average(right_ranges)}
 
         # Obstacle avoidance
+        max_dir = "clear_front"
         while len(averages) > 0:
             max_dir = max(averages, key=averages.get)
 
@@ -162,11 +145,13 @@ class LinearMove(State):
     STOP = 0
     REVERSE = -1
 
-    def __init__(self, smm, direction, duration):
+    def __init__(self, smm, direction, duration, logger):
         State.__init__(self, outcomes=['success', 'failure'])
+
         self.smm = smm
         self.direction = direction
         self.duration = duration
+        self.logger = logger
 
     def get_next_cmd(self):
         cmd = WheelCommand()
@@ -175,7 +160,7 @@ class LinearMove(State):
         return cmd
 
     def execute(self, userdata):
-        logger.debug("Executing Forward")
+        self.logger.debug("Executing Forward")
 
         self.smm.publish(WHEELCMD_TOPIC, self.get_next_cmd())
         sleep(self.duration)
@@ -187,12 +172,14 @@ class Turn(State):
     FORWARD = 1
     REVERSE = -1
 
-    def __init__(self, smm, angle, direction, duration):
+    def __init__(self, smm, angle, direction, duration, logger):
         State.__init__(self, outcomes=['success', 'failure'])
+
         self.smm = smm
         self.angle = angle
         self.direction = direction
         self.duration = duration
+        self.logger = logger
 
     def get_next_cmd(self):
         cmd = WheelCommand()
@@ -201,7 +188,7 @@ class Turn(State):
         return cmd
 
     def execute(self, userdata):
-        logger.debug("Executing Turn")
+        self.logger.debug("Executing Turn")
 
         self.smm.publish(WHEELCMD_TOPIC, self.get_next_cmd())
         sleep(self.duration)

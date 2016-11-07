@@ -1,5 +1,5 @@
 from lidapy.framework.module import FrameworkModule
-from lidapy.framework.msg import built_in_topics
+from lidapy.framework.msg import FrameworkTopic
 from lidapy.framework.service import FrameworkServiceClient
 from lidapy_rosdeps.srv import GenericService, GenericServiceRequest
 
@@ -8,17 +8,17 @@ from lidapy_rosdeps.srv import GenericService, GenericServiceRequest
 MODULE_NAME = "workspace"
 
 # Topics used by this module
-WORKSPACE_COALITIONS_TOPIC = built_in_topics["workspace_coalitions"]
-WORKSPACE_CUES_TOPIC = built_in_topics["workspace_cues"]
-PERCEPTS_TOPIC = built_in_topics["percepts"]
-SPATIAL_MAPS_TOPIC = built_in_topics["spatial_maps"]
-EPISODES_TOPIC = built_in_topics["episodes"]
-GLOBAL_BROADCAST_TOPIC = built_in_topics["global_broadcast"]
+WORKSPACE_COALITIONS_TOPIC = FrameworkTopic("workspace_coalitions")
+WORKSPACE_CUES_TOPIC = FrameworkTopic("workspace_cues")
+PERCEPTS_TOPIC = FrameworkTopic("percepts")
+SPATIAL_MAPS_TOPIC = FrameworkTopic("spatial_maps")
+EPISODES_TOPIC = FrameworkTopic("episodes")
+GLOBAL_BROADCAST_TOPIC = FrameworkTopic("global_broadcast")
 
 
 class Workspace(FrameworkModule):
-    def __init__(self, name=MODULE_NAME, **kwargs):
-        super(Workspace, self).__init__(name, **kwargs)
+    def __init__(self, **kwargs):
+        super(Workspace, self).__init__(**kwargs)
 
         self.csm_add_content_srv_client \
             = FrameworkServiceClient("add_csm_content", GenericService).get_service_proxy()

@@ -1,41 +1,40 @@
 import os
+from abc import ABCMeta, abstractmethod
 from multiprocessing import Process
 from threading import Thread
+from traceback import format_exc
 
-from lidapy.util import comm, logger
+from lidapy.framework.shared import FrameworkObject
 
-# Status codes
 COMPLETE = "complete"
 ERROR = "error"
 RUNNING = "running"
 STARTING = "starting"
 
 
-class FrameworkRunnable(object):
-    def __init__(self):
+class FrameworkRunnable(FrameworkObject):
+    def __init__(self, name, **kwargs):
+        super(FrameworkRunnable, self).__init__()
+
+        self.name = name
         self.status = STARTING
 
     def is_running(self):
         return RUNNING == self.status
 
     def is_complete(self):
-        return COMPLETE == self.status or comm.shutting_down()
+        return COMPLETE == self.status or self.ipc_proxy.is_shutting_down()
 
     def wait(self, rate_in_hz):
-        comm.wait(rate_in_hz)
+        self.ipc_proxy.wait(rate_in_hz)
 
 
 class FrameworkProcess(Process, FrameworkRunnable):
+    __metaclass__ = ABCMeta
+
     def __init__(self, name, **kwargs):
-        super(FrameworkProcess, self).__init__(name=name)
-
-        self.name = name
-
-        self.log_level = kwargs.get("log_level")
-
-        self.config = kwargs.get("config")
-        if self.config is None:
-            raise RuntimeError("Illegal state: agent configuration is undefined.")
+        Process.__init__(self, name=name)
+        FrameworkRunnable.__init__(self, name=name, **kwargs)
 
     def run(self):
 
@@ -43,7 +42,7 @@ class FrameworkProcess(Process, FrameworkRunnable):
             self.initialize()
 
             while not self.is_complete():
-                logger.debug(
+                self.logger.debug(
                     "Process [name = {}; pid = {}] has status = \"{}\"".format(self.name, os.getpid(), self.status))
 
                 if self.is_running():
@@ -53,8 +52,9 @@ class FrameworkProcess(Process, FrameworkRunnable):
                 self.wait(rate_in_hz)
 
         except Exception as e:
-            logger.fatal(
+            self.logger.fatal(
                 "Process [name = {}; pid = {}] caught exception in run method: {}".format(self.name, os.getpid(), e))
+            self.logger.fatal("Stacktrace: {}".format(format_exc()))
 
             self.status = ERROR
 
@@ -65,34 +65,40 @@ class FrameworkProcess(Process, FrameworkRunnable):
 
     # May be overridden to customize initialization
     def initialize(self):
-        logger.info("Process [name = {}; pid = {}] beginning execution".format(self.name, os.getpid()))
+        self.logger.info("Process [name = {}; pid = {}] beginning execution".format(self.name, os.getpid()))
 
         # Register this process with communication infrastructure
-        comm.initialize(self.name, log_level=self.log_level)
+        self.ipc_proxy.initialize_node(self.name, log_level=self.logger.log_level)
 
         self.status = RUNNING
 
     # May be overridden to customize finalization
     def finalize(self):
-        logger.info("Process [name = {}; pid = {}] complete with status = {}".format(self.name, os.getpid(),
-                                                                                     self.status))
+        self.logger.info("Process [name = {}; pid = {}] complete with status = {}".format(self.name, os.getpid(),
+                                                                                          self.status))
 
         if self.status != ERROR:
             self.status = COMPLETE
 
     # Must be overridden
+    @abstractmethod
     def call(self):
         pass
 
 
-class FrameworkTask(Thread, FrameworkRunnable):
-    def __init__(self, name=None, callback=None, rate_in_hz=None, args=None):
+class FrameworkThread(Thread, FrameworkRunnable):
+    def __init__(self, name, callback=None, exec_count=None, rate_in_hz=None, args=None, **kwargs):
         Thread.__init__(self, name=name)
-        FrameworkRunnable.__init__(self)
+        FrameworkRunnable.__init__(self, name=name, **kwargs)
 
         self.callback = callback
+        self.exec_count = exec_count
         self.rate_in_hz = rate_in_hz
         self.args = args
+
+        if self.exec_count is not None:
+            if type(self.exec_count) is not int:
+                raise Exception("Execution count must be a positive integer if specified.")
 
     def run(self):
 
@@ -103,11 +109,19 @@ class FrameworkTask(Thread, FrameworkRunnable):
                 if self.is_running():
                     self.callback(self.args)
 
+                    # Check for termination conditions
+                    if self.exec_count is not None:
+                        self.exec_count -= 1
+
+                        if self.exec_count <= 0:
+                            self.status = COMPLETE
+
                 self.wait(self.rate_in_hz)
 
         except Exception as e:
-            logger.fatal(
+            self.logger.fatal(
                 "Task [name = {}; pid = {}] caught exception: {}".format(self.name, os.getpid(), e))
+            self.logger.fatal("Stacktrace: {}".format(format_exc()))
             self.status = ERROR
 
         if self.status != ERROR:

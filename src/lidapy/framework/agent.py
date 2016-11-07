@@ -1,11 +1,13 @@
 from ConfigParser import SafeConfigParser
+from argparse import ArgumentParser
 
-from lidapy.util import logger
+from lidapy.framework.shared import FrameworkDependencyService, FrameworkObject
 from lidapy.util.comm import ParameterService
+from lidapy.util.comm import RosCommunicationProxy
+from lidapy.util.logger import RosLogger
 
 
-class AgentConfig(object):
-
+class AgentConfig(FrameworkObject):
     # Default filepath for agent configuration file
     default_agent_config_filepath = "configs/agent.conf"
 
@@ -28,12 +30,13 @@ class AgentConfig(object):
         super(AgentConfig, self).__init__()
 
         if not AgentConfig._initialized:
-            found_filepath = self._find_config_file(config_file)
-            if not found_filepath:
-                raise IOError("Failed to find usable agent configuration file")
+            if config_file is not None:
+                found_filepath = self._find_config_file(config_file)
+                if not found_filepath:
+                    raise IOError("Failed to find usable agent configuration file")
 
-            self._load_config(found_filepath)
-            AgentConfig._initialized = True
+                self._load_config(found_filepath)
+                AgentConfig._initialized = True
 
     def _find_config_file(self, config_filepath):
 
@@ -43,7 +46,7 @@ class AgentConfig(object):
 
         for filepath in candidate_filepaths:
             if self._found_config_file_at(filepath):
-                logger.info("Using agent configuration at {}".format(filepath))
+                self.logger.info("Using agent configuration at {}".format(filepath))
                 return filepath
 
         return None
@@ -68,20 +71,20 @@ class AgentConfig(object):
             self._load_param_service()
 
     def _load_file_config(self, config_file):
-        logger.info("Loading parameters from configuration file [{}]".format(config_file))
+        self.logger.info("Loading parameters from configuration file [{}]".format(config_file))
 
         parser = SafeConfigParser()
         parser.read(config_file)
 
         for section in parser.sections():
-            logger.info("Loading parameters in section [{}]".format(section))
+            self.logger.info("Loading parameters in section [{}]".format(section))
             AgentConfig._file_config[section] = {}
             for key, value in parser.items(section):
-                logger.info("Loading parameter [{} = {}]".format(key, value))
+                self.logger.info("Loading parameter [{} = {}]".format(key, value))
                 AgentConfig._file_config[section][key] = value
 
     def _load_param_service(self):
-        logger.info("Initializing parameter service")
+        self.logger.info("Initializing parameter service")
         AgentConfig._param_service = ParameterService()
 
         for param_type in AgentConfig._file_config:
@@ -96,16 +99,22 @@ class AgentConfig(object):
         else:
             return False
 
+    def set_global_param(self, param_name, value):
+        self.set_param("global_params", param_name, value)
+
     def get_global_param(self, param_name, default_value=None):
         param_value = self.get_param("global_params", param_name, default_value)
         return param_value
+
+    def set_param(self, param_type, param_name, value):
+        AgentConfig._file_config[param_type][param_name] = value
 
     def get_param(self, param_type, param_name, default_value=None):
         if AgentConfig._param_service is None:
             try:
                 param_value = AgentConfig._file_config[param_type][param_name]
             except KeyError:
-                logger.error("Parameter [section: {}][key: {}] does not exist.".format(param_type, param_name))
+                self.logger.error("Parameter [section: {}][key: {}] does not exist.".format(param_type, param_name))
                 param_value = None
 
         else:
@@ -132,3 +141,57 @@ class AgentConfig(object):
 
         return default_value
 
+
+class AgentStarter(FrameworkObject):
+    def __init__(self, **kwargs):
+        super(AgentStarter, self).__init__()
+
+        self._module_dict = {}
+        self._args_parser = None
+        self._config = None
+
+        self._fds = FrameworkDependencyService()
+
+        # Add logger and communication proxy to dependencyService
+        self._fds["logger"] = RosLogger()
+        self._fds["ipc_proxy"] = RosCommunicationProxy()
+
+        self._initialize_args_parser()
+
+        self._args, self._unknown = self._args_parser.parse_known_args()
+
+        self._config = self._initialize_agent_config(config_file=kwargs.get("config_file"))
+        self._fds["config"] = self._config
+
+    def _initialize_args_parser(self):
+        self._args_parser = ArgumentParser()
+        self._args_parser.add_argument("-m", "--module_name", help="The name of the module to launch.")
+        self._args_parser.add_argument("-f", "--config_file", help="The filepath to the agent configuration file.")
+
+    def _initialize_agent_config(self, config_file):
+        cf = config_file or self._args.config_file
+        config = AgentConfig(cf)
+
+        return config
+
+    def _initialize_dependency_service(self):
+        fds = FrameworkDependencyService()
+
+        fds["config"] = self._config
+
+    def add_module(self, module):
+        module_name = module.get_module_name()
+        self._module_dict[module_name] = module
+
+    def start(self, **kwargs):
+
+        module_name = kwargs.get("module_name") or self._args.module_name
+        module_class = self._module_dict.get(module_name)
+
+        if module_class is not None:
+            self.logger.info("Starting module {}".format(module_name))
+            module_obj = module_class(**kwargs)
+            module_obj.run()
+
+        else:
+            self.logger.fatal("Unknown module: {}".format(module_name))

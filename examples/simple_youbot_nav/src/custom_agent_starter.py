@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 
+from traceback import print_exc
+
+from lidapy.framework.agent import AgentStarter
+
 from custom_modules import BasicSensoryMemory, BasicSensoryMotorMemory
-from lidapy.framework.agent_starter import AgentStarter
 
 if __name__ == '__main__':
 
@@ -14,7 +17,8 @@ if __name__ == '__main__':
         starter.start()
 
     except Exception as e:
-        print "Received an exception: {}".format(e)
+        print_exc()
+        print("Received an exception: {}".format(e))
 
     finally:
         pass

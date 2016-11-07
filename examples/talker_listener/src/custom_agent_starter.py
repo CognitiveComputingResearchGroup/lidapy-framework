@@ -1,12 +1,11 @@
 #! /usr/bin/env python
+from traceback import print_exc
 
-from lidapy.framework.agent_starter import AgentStarter
+from lidapy.framework.agent import AgentStarter
 from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import FrameworkTopic
-from lidapy.util import logger
 
 # Standard message supported by ROS (Robot Operating System)
-from std_msgs.msg import String
 
 # Module names.  These are used for the names of the ROS nodes, and for
 # registering the modules with agent_starter.
@@ -14,12 +13,12 @@ TALKER_MODULE_NAME = "talker"
 LISTENER_MODULE_NAME = "listener"
 
 # Topics used in this example
-TALKER_LISTENER_TOPIC = FrameworkTopic("lida/talker_listener_example", String, use_serializer=True)
+TALKER_LISTENER_TOPIC = FrameworkTopic("lida/talker_listener_example", use_serializer=True)
 
 
 class TalkerModule(FrameworkModule):
     def __init__(self, **kwargs):
-        super(TalkerModule, self).__init__(TALKER_MODULE_NAME, **kwargs)
+        super(TalkerModule, self).__init__(**kwargs)
 
     @classmethod
     def get_module_name(cls):
@@ -36,7 +35,7 @@ class TalkerModule(FrameworkModule):
         msg = self.config.get_param(TALKER_MODULE_NAME, "message")
 
         # Write the message to the logger (/rosout)
-        logger.info("Sending message: {}".format(msg))
+        self.logger.info("Sending message: {}".format(msg))
 
         # Publish the message over the talker/listener topic
         super(TalkerModule, self).publish(TALKER_LISTENER_TOPIC, msg)
@@ -44,7 +43,7 @@ class TalkerModule(FrameworkModule):
 
 class ListenerModule(FrameworkModule):
     def __init__(self, **kwargs):
-        super(ListenerModule, self).__init__(LISTENER_MODULE_NAME, **kwargs)
+        super(ListenerModule, self).__init__(**kwargs)
 
     @classmethod
     def get_module_name(cls):
@@ -62,7 +61,7 @@ class ListenerModule(FrameworkModule):
         msg = super(ListenerModule, self).get_next_msg(TALKER_LISTENER_TOPIC)
 
         if msg is not None:
-            logger.info("Received message: {}".format(msg))
+            self.logger.info("Received message: {}".format(msg))
 
 
 if __name__ == '__main__':
@@ -82,7 +81,8 @@ if __name__ == '__main__':
         starter.start()
 
     except Exception as e:
-        print e
+        print_exc()
+        print(e)
 
     finally:
         pass
