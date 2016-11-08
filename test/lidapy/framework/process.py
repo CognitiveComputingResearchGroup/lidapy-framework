@@ -1,6 +1,7 @@
 import unittest
 
 from lidapy.framework.process import FrameworkThread
+from lidapy.framework.shared import FrameworkDependencyService
 from lidapy.util.comm import StubCommunicationProxy
 from lidapy.util.logger import ConsoleLogger
 
@@ -8,7 +9,10 @@ from lidapy.util.logger import ConsoleLogger
 class FrameworkTaskTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        pass
+        fd = FrameworkDependencyService()
+
+        fd["logger"] = ConsoleLogger()
+        fd["ipc_proxy"] = StubCommunicationProxy()
 
     @classmethod
     def tearDownClass(cls):
@@ -16,23 +20,21 @@ class FrameworkTaskTest(unittest.TestCase):
 
     def test_init(self):
 
-        class callback():
+        class CallBack():
             def __init__(self):
                 self.count = 0
 
             def __call__(self, *args, **kwargs):
                 self.count += 1
 
-        callback_cls = callback()
+        callback_cls = CallBack()
 
         try:
 
             task = FrameworkThread(name="test task",
                                    callback=callback_cls,
                                    exec_count=100,
-                                   rate_in_hz=1000,
-                                   logger=ConsoleLogger(),
-                                   comm_proxy=StubCommunicationProxy())
+                                   rate_in_hz=1000)
 
             # Start task in thread
             task.start()

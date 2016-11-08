@@ -5,16 +5,18 @@ from std_msgs.msg import String
 
 
 class FrameworkTopic(FrameworkObject):
-    def __init__(self, topic_name, msg_type=String, queue_size=0, use_serializer=False):
+    def __init__(self, topic_name, msg_type=String, queue_size=0, use_serializer=True):
         super(FrameworkTopic, self).__init__()
 
         self.msg_type = msg_type
         self.queue_size = queue_size
         self.topic_name = topic_name
-        self.use_serializer = use_serializer
 
-        # self.logger = FrameworkDependency("logger").resolve()
-        # self.comm_proxy = FrameworkDependency("ipc_proxy").resolve()
+        # Serialization only applies when the base message type is String
+        if self.msg_type is not String:
+            self.use_serializer = False
+        else:
+            self.use_serializer = use_serializer
 
     def register_subscriber(self, callback=None, callback_args=None):
         sub_args = {"topic": self.topic_name}
@@ -36,9 +38,6 @@ class FrameworkTopicPublisher(FrameworkObject):
         self.msg_type = msg_type
         self.queue_size = queue_size
         self.use_serializer = use_serializer
-
-        # self.logger = FrameworkDependency("logger").resolve()
-        # self.comm_proxy = FrameworkDependency("ipc_proxy").resolve()
 
         self._publisher \
             = self.ipc_proxy.get_publisher(self.topic_name,

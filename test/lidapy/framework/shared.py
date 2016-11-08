@@ -22,10 +22,10 @@ class FrameworkDependencyTest(unittest.TestCase):
 
     def test_satisfied(self):
         logger_depend = FrameworkDependency("logger")
-        assert (logger_depend.satisfied())
+        assert (logger_depend.is_satisfied())
 
         non_existent_dependency = FrameworkDependency("nobody home")
-        assert (not non_existent_dependency.satisfied())
+        assert (not non_existent_dependency.is_satisfied())
 
     def test_resolve(self):
         logger_depend = FrameworkDependency("logger")

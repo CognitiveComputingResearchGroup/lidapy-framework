@@ -3,7 +3,9 @@ import unittest
 from tempfile import NamedTemporaryFile
 
 from lidapy.framework.agent import AgentConfig
+from lidapy.framework.shared import FrameworkDependencyService
 from lidapy.util.logger import ConsoleLogger
+from lidapy.util.comm import StubCommunicationProxy
 
 # A test version of the content that could appear in
 # an agent.conf file.
@@ -26,7 +28,10 @@ test_config = \
 class AgentConfigTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        pass
+        fd = FrameworkDependencyService()
+
+        fd["logger"] = ConsoleLogger()
+        fd["ipc_proxy"] = StubCommunicationProxy()
 
     @classmethod
     def tearDownClass(cls):
@@ -41,7 +46,7 @@ class AgentConfigTest(unittest.TestCase):
             tmp.flush()
 
             try:
-                config = AgentConfig(config_file=tmp.name, logger=ConsoleLogger())
+                config = AgentConfig(config_file=tmp.name)
 
                 # Verify that global_param value from config matches
                 # expected value

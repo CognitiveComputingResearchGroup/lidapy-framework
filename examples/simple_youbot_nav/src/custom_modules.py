@@ -3,22 +3,16 @@ from time import sleep
 
 from lidapy.framework.msg import FrameworkTopic
 from lidapy.framework.shared import CognitiveContent
-from lidapy.module.sensory_memory import SensoryMemory
+from lidapy.module.sensory_memory import SensoryMemory, DORSAL_STREAM_TOPIC, VENTRAL_STREAM_TOPIC
 from lidapy.module.sensory_motor_memory import SensoryMotorMemory
 from sensor_msgs.msg import LaserScan
 from simple_youbot_nav.msg import WheelCommand
 from smach import State, StateMachine
 
+
 # Topic definitions
 RAYSCAN_TOPIC = FrameworkTopic("/gazebo/sensors/rayscan", msg_type=LaserScan)
 WHEELCMD_TOPIC = FrameworkTopic("/gazebo/commands", msg_type=WheelCommand)
-DORSAL_STREAM_TOPIC = FrameworkTopic("dorsal_stream")
-VENTRAL_STREAM_TOPIC = FrameworkTopic("ventral_stream")
-PERCEPTS_TOPIC = FrameworkTopic("percepts")
-WORKSPACE_COALITIONS_TOPIC = FrameworkTopic("workspace_coalitions")
-GLOBAL_BROADCAST_TOPIC = FrameworkTopic("global_broadcast")
-CANDIDATE_BEHAVIORS_TOPIC = FrameworkTopic("candidate_behaviors")
-SELECTED_BEHAVIORS_TOPIC = FrameworkTopic("selected_behaviors")
 
 
 class BasicSensoryMemory(SensoryMemory):
@@ -27,7 +21,8 @@ class BasicSensoryMemory(SensoryMemory):
 
     def add_subscribers(self):
         super(BasicSensoryMemory, self).add_subscribers()
-        super(BasicSensoryMemory, self).add_subscriber(RAYSCAN_TOPIC)
+
+        self.add_subscriber(RAYSCAN_TOPIC)
 
     def call(self):
         rayscan_data = self.get_next_msg(RAYSCAN_TOPIC)
@@ -44,7 +39,9 @@ class BasicSensoryMotorMemory(SensoryMotorMemory):
         self.stateMachine = self.create_state_machine()
 
     def add_publishers(self):
-        super(BasicSensoryMotorMemory, self).add_publisher(WHEELCMD_TOPIC)
+        super(BasicSensoryMotorMemory, self).add_publishers()
+
+        self.add_publisher(WHEELCMD_TOPIC)
 
     def call(self):
         self.stateMachine.execute()
