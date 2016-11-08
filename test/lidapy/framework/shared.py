@@ -235,14 +235,104 @@ class CognitiveContentStructureTest(unittest.TestCase):
         pass
 
     def test_init(self):
+
         # Check that empty CognitiveContentStructure has len() = 0
-        c = CognitiveContentStructure()
-        assert (len(c)) == 0
+        ccs = CognitiveContentStructure()
+        assert (len(ccs)) == 0
+
+    def test_insert(self):
 
         # Check that adding an element increases the len() by 1
-        c.insert(CognitiveContent(1))
-        assert (len(c) == 1)
+        ccs = CognitiveContentStructure()
+
+        ccs.insert(CognitiveContent(1))
+        assert (len(ccs) == 1)
+
+        ccs.insert(CognitiveContent(2))
+        assert (len(ccs) == 2)
+
+    def test_remove(self):
 
         # Check that removing an element decreases the len() by 1
-        c.remove(CognitiveContent(1))
-        assert (len(c) == 0)
+        ccs = CognitiveContentStructure()
+        assert (len(ccs) == 0)
+        cc = CognitiveContent(1)
+        ccs.insert(cc)
+        assert (len(ccs) == 1)
+        ccs.remove(cc)
+        assert (len(ccs) == 0)
+
+        # Check that removing an non-existent element is ignored
+        ccs.remove(cc)
+        assert (len(ccs) == 0)
+
+    def test_iter(self):
+        ccs = CognitiveContentStructure()
+
+        cc_list = [CognitiveContent(1),
+                   CognitiveContent(2),
+                   CognitiveContent(3)]
+
+        for cc in cc_list:
+            ccs.insert(cc)
+
+        assert (len(cc_list) == len(ccs))
+
+        # Check expected number of loop iterations
+        n = 0
+        for cc in ccs:
+            n += 1
+
+        assert (n == len(cc_list))
+
+        # Check content matches expectation
+        for cc in ccs:
+            if cc not in cc_list:
+                self.fail("CognitiveContentStructure iterator returned unexpected content")
+
+            # Remove found CognitiveContent from original list.  This will
+            # be used to guarantee that the iterator returned exactly the
+            # expected content without duplicates or omissions
+            cc_list.remove(cc)
+
+        # If all CognitiveContent objects returned then the original
+        # list should have no elements.
+        assert (len(cc_list) == 0)
+
+        ccs = CognitiveContentStructure()
+        for cc in ccs:
+            self.fail("Should not have entered loop.  CognitiveContentStructure is empty")
+
+    def test_apply(self):
+        ccs = CognitiveContentStructure()
+
+        cc1 = CognitiveContent(1)
+        cc2 = CognitiveContent(2)
+        cc3 = CognitiveContent(3)
+
+        ccs.insert(cc1)
+        ccs.insert(cc2)
+        ccs.insert(cc3)
+
+        assert (len(ccs) == 3)
+
+        def multiply_value_by_2(cc):
+            cc.value *= 2
+
+        ccs.apply(multiply_value_by_2)
+
+        assert (cc1.value == 2)
+        assert (cc2.value == 4)
+        assert (cc3.value == 6)
+
+    def test_remove_all_matches(self):
+        ccs = CognitiveContentStructure()
+
+        for i in range(0, 100):
+            ccs.insert(CognitiveContent(i))
+
+        assert (len(ccs) == 100)
+
+        ccs.remove_all_matches(lambda x: x.value >= 50)
+
+        assert (len(ccs) == 50)

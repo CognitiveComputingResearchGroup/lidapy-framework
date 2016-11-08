@@ -159,7 +159,24 @@ class CognitiveContentStructure(object):
         self._content_list.append(content)
 
     def remove(self, content):
-        self._content_list.remove(content)
+        try:
+            self._content_list.remove(content)
+        except:
+            # Ignore attempts to remove non-existent content
+            pass
+
+    def remove_all_matches(self, condition):
+        match_list = []
+        for cc in self._content_list:
+            if condition(cc):
+                match_list.append(cc)
+
+        for cc in match_list:
+            self._content_list.remove(cc)
+
+    def apply(self, func):
+        for cc in self._content_list:
+            func(cc)
 
 
 class CognitiveContentStructureIterator(object):

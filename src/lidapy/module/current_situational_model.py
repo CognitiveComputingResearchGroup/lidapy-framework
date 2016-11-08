@@ -77,8 +77,5 @@ class WorkspaceBuffer(object):
     def decay(self, obj):
         pass
 
-    def __init__(self):
-        pass
-
     def __getitem__(self, item):
         pass
