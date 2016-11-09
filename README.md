@@ -30,6 +30,8 @@ When running the script the first time, you will have to run ```source ~/.lidapy
     
 ## Run an agent
 
+NOTE: Before you use the following command to run an agent make sure that the package is in the $ROSPATH or the directory pointed to by the `roscd` command.
+
    roslaunch [package-name] [launch-file]
    
    Example:
