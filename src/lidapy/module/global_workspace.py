@@ -11,23 +11,20 @@ WORKSPACE_COALITIONS_TOPIC = FrameworkTopic("workspace_coalitions")
 
 
 class GlobalWorkspace(FrameworkModule):
-    def __init__(self, **kwargs):
-        super(GlobalWorkspace, self).__init__(**kwargs)
+    def __init__(self):
+        super(GlobalWorkspace, self).__init__()
+
+        self.add_publishers([GLOBAL_BROADCAST_TOPIC])
+        self.add_subscribers([WORKSPACE_COALITIONS_TOPIC])
 
     @classmethod
     def get_module_name(cls):
         return MODULE_NAME
 
-    def add_publishers(self):
-        self.add_publisher(GLOBAL_BROADCAST_TOPIC)
-
-    def add_subscribers(self):
-        self.add_subscriber(WORKSPACE_COALITIONS_TOPIC)
-
     def call(self):
-        workspace_coalitions = self.get_next_msg(WORKSPACE_COALITIONS_TOPIC)
+        workspace_coalitions = WORKSPACE_COALITIONS_TOPIC.subscriber.get_next_msg()
 
         if workspace_coalitions is not None:
             global_broadcast = workspace_coalitions
 
-            self.publish(GLOBAL_BROADCAST_TOPIC, global_broadcast)
+            GLOBAL_BROADCAST_TOPIC.publisher.publish(global_broadcast)

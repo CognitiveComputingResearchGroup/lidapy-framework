@@ -2,7 +2,7 @@ import unittest
 
 from lidapy.framework.shared import Activatable, CognitiveContent, CognitiveContentStructure, \
     CognitiveContentStructureIterator, FrameworkDependencyService, FrameworkDependency
-from lidapy.util.comm import StubCommunicationProxy
+from lidapy.util.comm import LocalCommunicationProxy
 from lidapy.util.logger import ConsoleLogger
 from lidapy.util.meta import Singleton
 
@@ -10,10 +10,12 @@ from lidapy.util.meta import Singleton
 class FrameworkDependencyTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        # Remove any singleton instances of FrameworkDependencyService
+        # to guarantee that test cases are independent
         fd = FrameworkDependencyService()
 
         fd["logger"] = ConsoleLogger()
-        fd["ipc_proxy"] = StubCommunicationProxy()
+        fd["ipc_proxy"] = LocalCommunicationProxy()
         fd["string_dep"] = "just a string"
 
     @classmethod

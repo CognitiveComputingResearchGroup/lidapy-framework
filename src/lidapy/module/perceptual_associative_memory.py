@@ -14,26 +14,23 @@ GLOBAL_BROADCAST_TOPIC = FrameworkTopic("global_broadcast")
 
 
 class PerceptualAssociativeMemory(FrameworkModule):
-    def __init__(self, **kwargs):
-        super(PerceptualAssociativeMemory, self).__init__(**kwargs)
+    def __init__(self):
+        super(PerceptualAssociativeMemory, self).__init__()
+
+        self.add_publishers([PERCEPTS_TOPIC])
+        self.add_subscribers([DETECTED_FEATURES_TOPIC,
+                              GLOBAL_BROADCAST_TOPIC,
+                              VENTRAL_STREAM_TOPIC,
+                              WORKSPACE_CUES_TOPIC])
 
     @classmethod
     def get_module_name(cls):
         return MODULE_NAME
 
-    def add_publishers(self):
-        self.add_publisher(PERCEPTS_TOPIC)
-
-    def add_subscribers(self):
-        self.add_subscriber(VENTRAL_STREAM_TOPIC)
-        self.add_subscriber(DETECTED_FEATURES_TOPIC)
-        self.add_subscriber(WORKSPACE_CUES_TOPIC)
-        self.add_subscriber(GLOBAL_BROADCAST_TOPIC)
-
     def call(self):
-        detected_features = self.get_next_msg(DETECTED_FEATURES_TOPIC)
+        detected_features = DETECTED_FEATURES_TOPIC.subscriber.get_next_msg()
 
         if detected_features is not None:
             active_percepts = detected_features
 
-            self.publish(PERCEPTS_TOPIC, active_percepts)
+            PERCEPTS_TOPIC.publisher.publish(active_percepts)

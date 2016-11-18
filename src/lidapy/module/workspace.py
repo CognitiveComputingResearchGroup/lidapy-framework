@@ -1,7 +1,5 @@
 from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import FrameworkTopic
-from lidapy.framework.service import FrameworkServiceClient
-from lidapy_rosdeps.srv import GenericService, GenericServiceRequest
 
 # By default, the name of the module is the name of the ros node; however, this
 # behavior can be overridden by passing a name to the initializer.
@@ -17,31 +15,22 @@ GLOBAL_BROADCAST_TOPIC = FrameworkTopic("global_broadcast")
 
 
 class Workspace(FrameworkModule):
-    def __init__(self, **kwargs):
-        super(Workspace, self).__init__(**kwargs)
+    def __init__(self):
+        super(Workspace, self).__init__()
 
-        self.csm_add_content_srv_client \
-            = FrameworkServiceClient("add_csm_content", GenericService).get_service_proxy()
+        self.add_publishers([WORKSPACE_COALITIONS_TOPIC,
+                             WORKSPACE_CUES_TOPIC])
+        self.add_subscribers([EPISODES_TOPIC,
+                              GLOBAL_BROADCAST_TOPIC,
+                              PERCEPTS_TOPIC,
+                              SPATIAL_MAPS_TOPIC])
 
     @classmethod
     def get_module_name(cls):
         return MODULE_NAME
 
-    def add_publishers(self):
-        self.add_publisher(WORKSPACE_COALITIONS_TOPIC)
-        self.add_publisher(WORKSPACE_CUES_TOPIC)
-
-    def add_subscribers(self):
-        self.add_subscriber(PERCEPTS_TOPIC)
-        self.add_subscriber(SPATIAL_MAPS_TOPIC)
-        self.add_subscriber(EPISODES_TOPIC)
-        self.add_subscriber(GLOBAL_BROADCAST_TOPIC)
-
     def call(self):
-        percepts = self.get_next_msg(PERCEPTS_TOPIC)
+        percepts = PERCEPTS_TOPIC.subscriber.get_next_msg()
 
         if percepts is not None:
-            request = GenericServiceRequest()
-
-            # TODO: Populate request details.
-            self.csm_add_content_srv_client(request)
+            pass

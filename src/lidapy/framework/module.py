@@ -1,7 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from collections import deque
 
-from lidapy.framework.msg import MsgSerializer
 from lidapy.framework.process import FrameworkProcess
 from lidapy.framework.service import FrameworkService
 
@@ -41,6 +39,15 @@ class FrameworkModule(FrameworkProcess):
         # }
         self.publishers = {}
 
+        # A dictionary of FrameworkTopicSubscribers
+        #
+        # format:
+        # {
+        #     TopicName1 : FrameworkTopicSubscriber1,
+        #     TopicName2 : FrameworkTopicSubscriber2,
+        # }
+        self.subscribers = {}
+
         # A dictionary of FrameworkServices
         #
         # format:
@@ -59,15 +66,6 @@ class FrameworkModule(FrameworkProcess):
         # ]
         self.background_tasks = []
 
-        # A dictionary of message queues.
-        #
-        # format:
-        # {
-        #     TopicName1 : Deque1,
-        #     TopicName2 : Deque2,
-        # }
-        self.received_msgs = {}
-
     @classmethod
     def get_module_name(cls):
         raise NotImplemented("FrameworkModule must implement get_module_name classmethod")
@@ -84,92 +82,7 @@ class FrameworkModule(FrameworkProcess):
         """
         super(FrameworkModule, self).initialize()
 
-        self.add_publishers()
-        self.add_subscribers()
-        self.add_services()
-        self.add_background_tasks()
         self.launch_background_tasks()
-
-    def receive_msg(self, msg, args):
-        """ A default callback for topic subscribers used for receiving messages.
-
-        This method can be overridden to provide different callback behavior; however, if
-        overridden, the method get_next_msg (which depends on this method) may also need
-        to be overridden to ensure consistent behavior.
-
-        :param msg: a message received over a ros topic
-        :param args: a list of arguments to the callback that were set when the callback
-                     was registered for the subscriber.
-        :return: None
-        """
-        topic_name = args["topic"]
-
-        self.logger.debug("Receiving message on topic {}.  Message = {}".format(topic_name, msg))
-
-        if topic_name is not None:
-            msg_queue = self.received_msgs[topic_name]
-            msg_queue.append(msg)
-
-    def get_next_msg(self, topic):
-        """ Returns a message (in FIFO order) for the specified topic or None if no messages are available.
-
-        This is a default implementation for retrieving messages over a topic.  This implementation assumes
-        that the default callback (i.e., default receive_msg implementation) was registered with the
-        subscriber.
-
-        :param topic: the topic for which a previously retrieved message will be returned.
-        :return: a message for the specified topic.
-        """
-        msg_queue = self.received_msgs[topic.topic_name]
-
-        if len(msg_queue) == 0:
-            self.logger.debug("Message queue is empty for topic {}".format(topic.topic_name))
-            return None
-        else:
-            next_msg = msg_queue.popleft()
-
-            if self.topics[topic.topic_name].use_serializer:
-                next_msg = MsgSerializer.deserialize(next_msg.data)
-
-        return next_msg
-
-    def publish(self, topic, msg):
-        self.publishers[topic.topic_name].publish(msg)
-
-    def add_publisher(self, topic):
-        """ Registers a publisher for a topic.
-
-        Publishers are used to asynchronously transmit messages over a ros topic.
-
-        :param topic: the framework topic for which a publisher will be created.
-        :return: None
-        """
-        self.logger.info("Adding publisher for topic {}".format(topic.topic_name))
-
-        self.topics[topic.topic_name] = topic
-
-        self.publishers[topic.topic_name] = topic.get_publisher()
-
-    def add_subscriber(self, topic, callback=None, callback_args=None):
-        """ Registers a subscriber for a topic with the specified callback method.
-
-        :param topic: a FrameworkTopic for this subscriber
-        :param callback: a callback method invoked when a new messages is available
-        :param callback_args: a list of arguments will be provided to the callback method when invoked
-        :return: None
-        """
-        self.logger.info("Adding subscriber for topic {}".format(topic.topic_name))
-
-        self.topics[topic.topic_name] = topic
-
-        # Initial message queue
-        max_queue_size = int(self.config.get_type_or_global_param(self.name, "max_queue_size", 10))
-        self.received_msgs[topic.topic_name] = deque(maxlen=max_queue_size)
-
-        if callback is None:
-            callback = self.receive_msg
-
-        topic.register_subscriber(callback, callback_args)
 
     def add_service(self, svc_name, svc_msg_class, callback):
         """ Registers a service with the specified request/reply message classes and callback methods.
@@ -195,23 +108,27 @@ class FrameworkModule(FrameworkProcess):
         self.logger.info("Adding background task ({})".format(task.name))
         self.background_tasks.append(task)
 
-    def add_publishers(self):
+    def add_publishers(self, topics):
         """ Adds publishers to this FrameworkModule to enable asynchronous transmission of messages over topics.
 
         This method must be overridden to add publishers to this FrameworkModule.
 
+        :param: a list of FrameworkTopics
         :return: None
         """
-        pass
+        self.publishers \
+            = {topic.topic_name: topic.create_publisher() for topic in topics}
 
-    def add_subscribers(self):
+    def add_subscribers(self, topics):
         """ Adds subscribers to this FrameworkModule to enable asynchronous retrieval of messages over topics.
 
         This method must be overridden to add subscribers to this FrameworkModule.
 
+        :param: a list of FrameworkTopics
         :return: None
         """
-        pass
+        self.subscribers \
+            = {topic.topic_name: topic.create_subscriber() for topic in topics}
 
     def add_services(self):
         """ Adds services to this FrameworkModule to enable synchronous (RPC style) communication.
@@ -232,7 +149,6 @@ class FrameworkModule(FrameworkProcess):
         pass
 
     def launch_background_tasks(self):
-
         for t in self.background_tasks:
             self.logger.info("Starting background task \"{}\"".format(t.name))
             t.start()

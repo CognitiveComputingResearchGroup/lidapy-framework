@@ -12,24 +12,21 @@ GLOBAL_BROADCAST_TOPIC = FrameworkTopic("global_broadcast")
 
 
 class ActionSelection(FrameworkModule):
-    def __init__(self, **kwargs):
-        super(ActionSelection, self).__init__(**kwargs)
+    def __init__(self):
+        super(ActionSelection, self).__init__()
+
+        self.add_publishers([SELECTED_BEHAVIORS_TOPIC])
+        self.add_subscribers([CANDIDATE_BEHAVIORS_TOPIC,
+                              GLOBAL_BROADCAST_TOPIC])
 
     @classmethod
     def get_module_name(cls):
         return MODULE_NAME
 
-    def add_publishers(self):
-        self.add_publisher(SELECTED_BEHAVIORS_TOPIC)
-
-    def add_subscribers(self):
-        self.add_subscriber(CANDIDATE_BEHAVIORS_TOPIC)
-        self.add_subscriber(GLOBAL_BROADCAST_TOPIC)
-
     def call(self):
-        candidate_behaviors = self.get_next_msg(CANDIDATE_BEHAVIORS_TOPIC)
+        candidate_behaviors = CANDIDATE_BEHAVIORS_TOPIC.subscriber.get_next_msg()
 
         if candidate_behaviors is not None:
             selected_behaviors = candidate_behaviors
 
-            self.publish(SELECTED_BEHAVIORS_TOPIC, selected_behaviors)
+            SELECTED_BEHAVIORS_TOPIC.publisher.publish(selected_behaviors)

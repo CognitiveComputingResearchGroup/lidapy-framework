@@ -4,7 +4,8 @@ from collections import deque
 from itertools import islice
 
 from lidapy.framework.module import FrameworkModule
-from lidapy.framework.msg import FrameworkTopic, MsgSerializer
+from lidapy.framework.msg import FrameworkTopic
+from lidapy.util.comm import MsgUtils
 from lidapy_rosdeps.srv import GenericService
 
 # By default, the name of the module is the name of the ros node; however, this
@@ -16,26 +17,23 @@ GLOBAL_BROADCAST_TOPIC = FrameworkTopic("global_broadcast")
 
 
 class ConsciousContentsQueue(FrameworkModule):
-    def __init__(self, **kwargs):
-        super(ConsciousContentsQueue, self).__init__(**kwargs)
+    def __init__(self):
+        super(ConsciousContentsQueue, self).__init__()
 
         self.max_queue_size = self.config.get_param(self.name, "max_queue_size", 10)
         self.queue = deque(maxlen=self.max_queue_size)
+
+        self.add_subscribers([GLOBAL_BROADCAST_TOPIC])
+
+        self.add_service("get_last_n_broadcasts", GenericService, self.process_last_n_broadcasts_request)
 
     @classmethod
     def get_module_name(cls):
         return MODULE_NAME
 
-    def add_subscribers(self):
-        self.add_subscriber(GLOBAL_BROADCAST_TOPIC)
-
-    # Override this method to add more services
-    def add_services(self):
-        self.add_service("get_last_n_broadcasts", GenericService, self.process_last_n_broadcasts_request)
-
     def process_last_n_broadcasts_request(self, raw_request):
 
-        request = MsgSerializer.deserialize(raw_request)
+        request = MsgUtils.deserialize(raw_request)
         queue_size = len(self.queue)
         if request.n > queue_size:
             request.n = queue_size
@@ -46,7 +44,7 @@ class ConsciousContentsQueue(FrameworkModule):
         return response
 
     def call(self):
-        broadcast = self.get_next_msg(GLOBAL_BROADCAST_TOPIC)
+        broadcast = GLOBAL_BROADCAST_TOPIC.subscriber.get_next_msg()
 
         if broadcast is not None:
             self.queue.append(broadcast)

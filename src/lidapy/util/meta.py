@@ -13,7 +13,8 @@ class Singleton(type):
 
     @classmethod
     def _remove(cls, target_cls):
-        cls._registry.pop(target_cls)
+        if cls._registry.has_key(target_cls):
+            cls._registry.pop(target_cls)
 
     @classmethod
     def _clear(cls):

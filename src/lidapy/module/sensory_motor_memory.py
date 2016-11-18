@@ -12,20 +12,16 @@ DORSAL_STREAM_TOPIC = FrameworkTopic("dorsal_stream")
 
 
 class SensoryMotorMemory(FrameworkModule):
-    def __init__(self, **kwargs):
-        super(SensoryMotorMemory, self).__init__(**kwargs)
+    def __init__(self):
+        super(SensoryMotorMemory, self).__init__()
+
+        self.add_subscribers([DORSAL_STREAM_TOPIC,
+                              GLOBAL_BROADCAST_TOPIC,
+                              SELECTED_BEHAVIORS_TOPIC])
 
     @classmethod
     def get_module_name(cls):
         return MODULE_NAME
-
-    def add_publishers(self):
-        pass
-
-    def add_subscribers(self):
-        self.add_subscriber(SELECTED_BEHAVIORS_TOPIC)
-        self.add_subscriber(GLOBAL_BROADCAST_TOPIC)
-        self.add_subscriber(DORSAL_STREAM_TOPIC)
 
     def call(self):
         pass

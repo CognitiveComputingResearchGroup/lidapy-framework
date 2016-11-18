@@ -11,23 +11,20 @@ GLOBAL_BROADCAST_TOPIC = FrameworkTopic("global_broadcast")
 
 
 class ProceduralMemory(FrameworkModule):
-    def __init__(self, **kwargs):
-        super(ProceduralMemory, self).__init__(**kwargs)
+    def __init__(self):
+        super(ProceduralMemory, self).__init__()
+
+        self.add_publishers([CANDIDATE_BEHAVIORS_TOPIC])
+        self.add_subscribers([GLOBAL_BROADCAST_TOPIC])
 
     @classmethod
     def get_module_name(cls):
         return MODULE_NAME
 
-    def add_publishers(self):
-        self.add_publisher(CANDIDATE_BEHAVIORS_TOPIC)
-
-    def add_subscribers(self):
-        self.add_subscriber(GLOBAL_BROADCAST_TOPIC)
-
     def call(self):
-        global_broadcast = self.get_next_msg(GLOBAL_BROADCAST_TOPIC)
+        global_broadcast = GLOBAL_BROADCAST_TOPIC.subscriber.get_next_msg()
 
         if global_broadcast is not None:
             candidate_behaviors = global_broadcast
 
-            self.publish(CANDIDATE_BEHAVIORS_TOPIC, candidate_behaviors)
+            CANDIDATE_BEHAVIORS_TOPIC.publisher.publish(candidate_behaviors)

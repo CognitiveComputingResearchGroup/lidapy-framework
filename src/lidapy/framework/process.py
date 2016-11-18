@@ -1,7 +1,7 @@
 import os
 from abc import ABCMeta, abstractmethod
 from multiprocessing import Process
-from threading import Thread
+from threading import Thread, currentThread
 from traceback import format_exc
 
 from lidapy.framework.shared import FrameworkObject
@@ -25,8 +25,12 @@ class FrameworkRunnable(FrameworkObject):
     def is_complete(self):
         return COMPLETE == self.status or self.ipc_proxy.is_shutting_down()
 
-    def wait(self, rate_in_hz):
-        self.ipc_proxy.wait(rate_in_hz)
+    def wait(self):
+        self.ipc_proxy.wait(self.rate_in_hz)
+
+    @property
+    def rate_in_hz(self):
+        return int(self.config.get_type_or_global_param(self.name, "rate_in_hz", 100))
 
 
 class FrameworkProcess(Process, FrameworkRunnable):
@@ -48,10 +52,10 @@ class FrameworkProcess(Process, FrameworkRunnable):
                 if self.is_running():
                     self.call()
 
-                rate_in_hz = self.get_rate()
-                self.wait(rate_in_hz)
+                self.wait()
 
         except Exception as e:
+
             self.logger.fatal(
                 "Process [name = {}; pid = {}] caught exception in run method: {}".format(self.name, os.getpid(), e))
             self.logger.fatal("Stacktrace: {}".format(format_exc()))
@@ -59,9 +63,6 @@ class FrameworkProcess(Process, FrameworkRunnable):
             self.status = ERROR
 
         self.finalize()
-
-    def get_rate(self):
-        return int(self.config.get_type_or_global_param(self.name, "rate_in_hz", 100))
 
     # May be overridden to customize initialization
     def initialize(self):
@@ -87,14 +88,13 @@ class FrameworkProcess(Process, FrameworkRunnable):
 
 
 class FrameworkThread(Thread, FrameworkRunnable):
-    def __init__(self, name, callback=None, exec_count=None, rate_in_hz=None, args=None, **kwargs):
+    def __init__(self, name, callback=None, callback_args=None, exec_count=None):
         Thread.__init__(self, name=name)
-        FrameworkRunnable.__init__(self, name=name, **kwargs)
+        FrameworkRunnable.__init__(self, name=name)
 
         self.callback = callback
+        self.callback_args = callback_args
         self.exec_count = exec_count
-        self.rate_in_hz = rate_in_hz
-        self.args = args
 
         if self.exec_count is not None:
             if type(self.exec_count) is not int:
@@ -107,7 +107,7 @@ class FrameworkThread(Thread, FrameworkRunnable):
 
             while not self.is_complete():
                 if self.is_running():
-                    self.callback(self.args)
+                    self.callback(self.callback_args)
 
                     # Check for termination conditions
                     if self.exec_count is not None:
@@ -116,7 +116,7 @@ class FrameworkThread(Thread, FrameworkRunnable):
                         if self.exec_count <= 0:
                             self.status = COMPLETE
 
-                self.wait(self.rate_in_hz)
+                self.wait()
 
         except Exception as e:
             self.logger.fatal(
@@ -126,3 +126,36 @@ class FrameworkThread(Thread, FrameworkRunnable):
 
         if self.status != ERROR:
             self.status = COMPLETE
+
+
+class FrameworkBackgroundTask(FrameworkRunnable):
+    def __init__(self, name, callback, exec_count=-1):
+        super(FrameworkBackgroundTask, self).__init__(name=name)
+
+        self.callback = callback
+
+        self._thread = FrameworkThread(self.name, callback=self.callback, exec_count=exec_count)
+
+        # Indicates that this thread is a daemon thread.  A python program will exit
+        # if the only remaining threads are daemon threads.
+        self._thread.daemon = True
+
+    def start(self):
+        self.logger.info("FrameworkBackgroundTask [name = {}] beginning execution".format(self.name))
+        self._thread.start()
+
+    def wait_until_complete(self):
+        if currentThread() != self._thread:
+            self._thread.join()
+
+
+class BackgroundDecayTask(FrameworkBackgroundTask):
+    def __init__(self, name, strategy, target, exec_count=-1):
+        super(BackgroundDecayTask, self).__init__(name=name, callback=self.callback, exec_count=exec_count)
+
+        self.strategy = strategy
+        self.target = target
+
+    def callback(self, *args, **kwargs):
+        for x in self.target:
+            self.strategy.apply(x, self.rate_in_hz)

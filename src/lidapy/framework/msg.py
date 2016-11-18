@@ -1,65 +1,69 @@
-from cPickle import dumps, loads  # Object Serialization / Deserialization
+import random
+import string
 
 from lidapy.framework.shared import FrameworkObject
-from std_msgs.msg import String
 
 
 class FrameworkTopic(FrameworkObject):
-    def __init__(self, topic_name, msg_type=String, queue_size=0, use_serializer=True):
+    default_topic_prefix = "Topic_"
+    default_topic_length = 16
+
+    def __init__(self, topic_name=None, msg_type=None):
         super(FrameworkTopic, self).__init__()
 
+        self.topic_name = topic_name if topic_name is not None else FrameworkTopic.generate_random_topic_name()
         self.msg_type = msg_type
-        self.queue_size = queue_size
-        self.topic_name = topic_name
 
-        # Serialization only applies when the base message type is String
-        if self.msg_type is not String:
-            self.use_serializer = False
+        self.publisher = None
+        self.subscriber = None
+
+    def create_publisher(self, max_queue_size=None, preprocessor=None):
+        """ Creates a message publisher for this topic.
+
+        :param max_queue_size: the maximum size for the send queue before messages are dropped in FIFO order.
+        :param preprocessor: a callable that will be invoked prior to publishing a message to the message queue.
+        :return: a FrameworkTopicPublisher
+        """
+        if self.publisher is None:
+            self.logger.info("Initializing publisher for topic {}".format(self.topic_name))
+
+            self.publisher \
+                = self.ipc_proxy.get_publisher(topic_name=self.topic_name,
+                                               msg_type=self.msg_type,
+                                               max_queue_size=max_queue_size,
+                                               preprocessor=preprocessor)
         else:
-            self.use_serializer = use_serializer
+            raise Exception("Publisher already added for topic {}".format(self.topic_name))
 
-    def register_subscriber(self, callback=None, callback_args=None):
-        sub_args = {"topic": self.topic_name}
+        return self.publisher
 
-        if callback_args is not None:
-            sub_args.update(callback_args)
+    def create_subscriber(self, max_queue_size=None, postprocessor=None):
+        """ Creates a subscriber for this topic.  The subscriber will automatically retrieve
+        messages and place them on a local queue to be retrieved later.  A postprocessor
+        callable can be specified to perform operations on the incoming messages after
+        retrieving them from the message queue.
 
-        self.ipc_proxy.get_subscriber(self.topic_name, self.msg_type, callback, sub_args)
+        :param max_queue_size: the maximum size of the receive queue before messages are dropped in FIFO order.
+        :param postprocessor: a callable that will be invoked after receiving a message from the message queue.
+        :return: a FrameworkTopicSubscriber
+        """
+        if self.subscriber is None:
+            self.logger.info("Initializing subscriber for topic {}".format(self.topic_name))
 
-    def get_publisher(self):
-        return FrameworkTopicPublisher(self.topic_name, self.msg_type, self.queue_size, self.use_serializer)
-
-
-class FrameworkTopicPublisher(FrameworkObject):
-    def __init__(self, topic_name, msg_type, queue_size=0, use_serializer=False):
-        super(FrameworkTopicPublisher, self).__init__()
-
-        self.topic_name = topic_name
-        self.msg_type = msg_type
-        self.queue_size = queue_size
-        self.use_serializer = use_serializer
-
-        self._publisher \
-            = self.ipc_proxy.get_publisher(self.topic_name,
-                                           self.msg_type,
-                                           queue_size=self.queue_size)
-
-    def publish(self, msg):
-        self.logger.debug("Publishing msg to topic [{}]".format(self.topic_name))
-
-        if self.use_serializer:
-            outbound_msg = MsgSerializer.serialize(msg)
+            self.subscriber = \
+                self.ipc_proxy.get_subscriber(topic_name=self.topic_name,
+                                              msg_type=self.msg_type,
+                                              max_queue_size=max_queue_size,
+                                              postprocessor=postprocessor)
         else:
-            outbound_msg = msg
+            raise Exception("Subscriber already added for topic {}".format(self.topic_name))
 
-        self._publisher.publish(outbound_msg)
-
-
-class MsgSerializer(object):
-    @staticmethod
-    def serialize(obj):
-        return dumps(obj)
+        return self.subscriber
 
     @staticmethod
-    def deserialize(serialized_obj):
-        return loads(serialized_obj)
+    def generate_random_topic_name(prefix=default_topic_prefix, length=default_topic_length):
+        nonce_len = length - len(prefix)
+        if nonce_len <= 0:
+            raise Exception("Invalid topic name length ({})".format(length))
+
+        return prefix + "".join([random.choice(string.hexdigits) for i in xrange(nonce_len)])

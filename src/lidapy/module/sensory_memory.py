@@ -13,20 +13,17 @@ GLOBAL_BROADCAST_TOPIC = FrameworkTopic("global_broadcast")
 
 
 class SensoryMemory(FrameworkModule):
-    def __init__(self, **kwargs):
-        super(SensoryMemory, self).__init__(**kwargs)
+    def __init__(self):
+        super(SensoryMemory, self).__init__()
+
+        self.add_publishers([DETECTED_FEATURES_TOPIC,
+                             DORSAL_STREAM_TOPIC,
+                             VENTRAL_STREAM_TOPIC])
+        self.add_subscribers([GLOBAL_BROADCAST_TOPIC])
 
     @classmethod
     def get_module_name(cls):
         return MODULE_NAME
-
-    def add_publishers(self):
-        self.add_publisher(DORSAL_STREAM_TOPIC)
-        self.add_publisher(VENTRAL_STREAM_TOPIC)
-        self.add_publisher(DETECTED_FEATURES_TOPIC)
-
-    def add_subscribers(self):
-        self.add_subscriber(GLOBAL_BROADCAST_TOPIC)
 
     def call(self):
         pass

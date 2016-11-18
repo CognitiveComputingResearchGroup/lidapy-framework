@@ -19,24 +19,33 @@ class AgentConfig(FrameworkObject):
     #   section_1 : { key_1 : value_1, key_2 : value_2 }
     #   section_2 : { key_1 : value_1, key_2 : value_2 }
     # }
-    _file_config = {}
+    _config = {}
 
     # a reference to a parameter service (if applicable)
     _param_service = None
 
     _initialized = False
 
-    def __init__(self, config_file):
+    def __init__(self, config_file=None, config_file_override=False):
         super(AgentConfig, self).__init__()
 
         if not AgentConfig._initialized:
-            if config_file is not None:
-                found_filepath = self._find_config_file(config_file)
-                if not found_filepath:
-                    raise IOError("Failed to find usable agent configuration file")
+            if config_file_override is False:
+                if config_file is None:
+                    raise ValueError("Configuration file must be supplied")
+                else:
+                    found_filepath = self._find_config_file(config_file)
+                    if not found_filepath:
+                        raise IOError("Failed to find usable agent configuration file")
 
-                self._load_config(found_filepath)
-                AgentConfig._initialized = True
+                    self._load_config(found_filepath)
+            else:
+                self.logger.warn("Agent configuration file overridden by user request")
+
+            if self._using_param_service():
+                self._load_param_service()
+
+            AgentConfig._initialized = True
 
     def _find_config_file(self, config_filepath):
 
@@ -67,8 +76,6 @@ class AgentConfig(FrameworkObject):
 
     def _load_config(self, config_file):
         self._load_file_config(config_file)
-        if self._using_param_service():
-            self._load_param_service()
 
     def _load_file_config(self, config_file):
         self.logger.info("Loading parameters from configuration file [{}]".format(config_file))
@@ -78,17 +85,17 @@ class AgentConfig(FrameworkObject):
 
         for section in parser.sections():
             self.logger.info("Loading parameters in section [{}]".format(section))
-            AgentConfig._file_config[section] = {}
+            AgentConfig._config[section] = {}
             for key, value in parser.items(section):
                 self.logger.info("Loading parameter [{} = {}]".format(key, value))
-                AgentConfig._file_config[section][key] = value
+                AgentConfig._config[section][key] = value
 
     def _load_param_service(self):
         self.logger.info("Initializing parameter service")
         AgentConfig._param_service = ParameterService()
 
-        for param_type in AgentConfig._file_config:
-            for param_name, param_value in AgentConfig._file_config[param_type].items():
+        for param_type in AgentConfig._config:
+            for param_name, param_value in AgentConfig._config[param_type].items():
                 AgentConfig._param_service.set_param(param_type, param_name, param_value)
 
     def _using_param_service(self):
@@ -107,14 +114,17 @@ class AgentConfig(FrameworkObject):
         return param_value
 
     def set_param(self, param_type, param_name, value):
-        AgentConfig._file_config[param_type][param_name] = value
+        if not AgentConfig._config.has_key(param_type):
+            AgentConfig._config[param_type] = {}
+
+        AgentConfig._config[param_type][param_name] = value
 
     def get_param(self, param_type, param_name, default_value=None):
         if AgentConfig._param_service is None:
             try:
-                param_value = AgentConfig._file_config[param_type][param_name]
+                param_value = AgentConfig._config[param_type][param_name]
             except KeyError:
-                self.logger.error("Parameter [section: {}][key: {}] does not exist.".format(param_type, param_name))
+                self.logger.debug("Parameter [section: {}][key: {}] does not exist.".format(param_type, param_name))
                 param_value = None
 
         else:

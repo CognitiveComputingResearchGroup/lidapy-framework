@@ -9,18 +9,15 @@ class FrameworkObject(object):
 
     @property
     def logger(self):
-        logger = self._dependencies["logger"].resolve()
-        return logger
+        return self._dependencies["logger"].resolve()
 
     @property
     def ipc_proxy(self):
-        ipc_proxy = self._dependencies["ipc_proxy"].resolve()
-        return ipc_proxy
+        return self._dependencies["ipc_proxy"].resolve()
 
     @property
     def config(self):
-        config = self._dependencies["config"].resolve()
-        return config
+        return self._dependencies["config"].resolve()
 
 
 class FrameworkDependency(object):
@@ -34,20 +31,6 @@ class FrameworkDependency(object):
 
     def is_satisfied(self):
         return self._fds.has(self.name)
-
-        # def __getattr__(self, attr):
-        #     resolved_attr = self._depend.__getattribute__(attr)
-        #     if callable(resolved_attr):
-        #
-        #         def wrapped(*args, **kwargs):
-        #             result = resolved_attr(*args, **kwargs)
-        #             if result == self._depend:
-        #                 return self
-        #             return result
-        #         return wrapped
-        #
-        #     else:
-        #         return resolved_attr
 
 
 class FrameworkDependencyService(object):
@@ -80,14 +63,17 @@ class FrameworkDependencyService(object):
 
 
 class Activatable(object):
-    def __init__(self, initial_activation=0.0, initial_incentive_salience=0.0, initial_base_level_activation=0.0):
+    def __init__(self, initial_activation=0.0, initial_incentive_salience=0.0, initial_base_level_activation=0.0,
+                 removal_threshold=0.0):
         self._activation = 0.0
         self._incentive_salience = 0.0
         self._base_level_activation = 0.0
+        self._removal_threshold = 0.0
 
         self.activation = initial_activation
         self.incentive_salience = initial_incentive_salience
         self.base_level_activation = initial_base_level_activation
+        self.removal_threshold = removal_threshold
 
     @property
     def activation(self):
@@ -127,6 +113,19 @@ class Activatable(object):
             self._incentive_salience = 1.0
         else:
             self._incentive_salience = incentive_salience
+
+    @property
+    def removal_threshold(self):
+        return self._activation
+
+    @removal_threshold.setter
+    def removal_threshold(self, removal_threshold):
+        if removal_threshold < 0.0:
+            self._removal_threshold = 0.0
+        elif removal_threshold > 1.0:
+            self._removal_threshold = 1.0
+        else:
+            self._removal_threshold = removal_threshold
 
 
 class CognitiveContent(Activatable):

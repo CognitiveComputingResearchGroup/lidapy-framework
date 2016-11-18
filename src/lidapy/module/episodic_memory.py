@@ -12,19 +12,16 @@ GLOBAL_BROADCAST_TOPIC = FrameworkTopic("global_broadcast")
 
 
 class EpisodicMemory(FrameworkModule):
-    def __init__(self, **kwargs):
-        super(EpisodicMemory, self).__init__(**kwargs)
+    def __init__(self):
+        super(EpisodicMemory, self).__init__()
+
+        self.add_publishers([EPISODES_TOPIC])
+        self.add_subscribers([GLOBAL_BROADCAST_TOPIC,
+                              WORKSPACE_CUES_TOPIC])
 
     @classmethod
     def get_module_name(cls):
         return MODULE_NAME
-
-    def add_publishers(self):
-        self.add_publisher(EPISODES_TOPIC)
-
-    def add_subscribers(self):
-        self.add_subscriber(WORKSPACE_CUES_TOPIC)
-        self.add_subscriber(GLOBAL_BROADCAST_TOPIC)
 
     def call(self):
         pass

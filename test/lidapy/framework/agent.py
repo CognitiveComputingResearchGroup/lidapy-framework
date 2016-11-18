@@ -4,8 +4,9 @@ from tempfile import NamedTemporaryFile
 
 from lidapy.framework.agent import AgentConfig
 from lidapy.framework.shared import FrameworkDependencyService
+from lidapy.util.comm import LocalCommunicationProxy
 from lidapy.util.logger import ConsoleLogger
-from lidapy.util.comm import StubCommunicationProxy
+
 
 # A test version of the content that could appear in
 # an agent.conf file.
@@ -28,10 +29,12 @@ test_config = \
 class AgentConfigTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        # Remove any singleton instances of FrameworkDependencyService
+        # to guarantee that test cases are independent
         fd = FrameworkDependencyService()
 
         fd["logger"] = ConsoleLogger()
-        fd["ipc_proxy"] = StubCommunicationProxy()
+        fd["ipc_proxy"] = LocalCommunicationProxy()
 
     @classmethod
     def tearDownClass(cls):
@@ -50,59 +53,59 @@ class AgentConfigTest(unittest.TestCase):
 
                 # Verify that global_param value from config matches
                 # expected value
-                expVal = "5"
-                actVal = config.get_global_param("rate_in_hz")
+                expected_value = "5"
+                actual_value = config.get_global_param("rate_in_hz")
 
-                assert (expVal == actVal)
+                self.assertEqual(expected_value, actual_value)
 
                 # Verify that global_param value from config matches
                 # expected value
-                expVal = "False"
-                actVal = config.get_global_param("use_param_service")
+                expected_value = "False"
+                actual_value = config.get_global_param("use_param_service")
 
-                assert (expVal == actVal)
+                self.assertEqual(expected_value, actual_value)
 
                 # Verify that none is returned when a global parameter
                 # is requested that does not exist
-                expVal = None
-                actVal = config.get_global_param("does_not_exist")
+                expected_value = None
+                actual_value = config.get_global_param("does_not_exist")
 
-                assert (expVal == actVal)
+                self.assertEqual(expected_value, actual_value)
 
                 # Verify that parameter_1 value from module_1
                 # matches the expected value
-                expVal = "value1"
-                actVal = config.get_param("module_1", "parameter_1")
+                expected_value = "value1"
+                actual_value = config.get_param("module_1", "parameter_1")
 
-                assert (expVal == actVal)
+                self.assertEqual(expected_value, actual_value)
 
                 # Verify that parameter_2 value from module_1
                 # matches the expected value
-                expVal = "value2"
-                actVal = config.get_param("module_1", "parameter_2")
+                expected_value = "value2"
+                actual_value = config.get_param("module_1", "parameter_2")
 
-                assert (expVal == actVal)
+                self.assertEqual(expected_value, actual_value)
 
                 # Verify that parameter_1 value from module_2
                 # matches the expected value
-                expVal = "value1"
-                actVal = config.get_param("module_2", "parameter_1")
+                expected_value = "value1"
+                actual_value = config.get_param("module_2", "parameter_1")
 
-                assert (expVal == actVal)
+                self.assertEqual(expected_value, actual_value)
 
                 # Verify that parameter_2 value from module_2
                 # matches the expected value
-                expVal = "value2"
-                actVal = config.get_param("module_2", "parameter_2")
+                expected_value = "value2"
+                actual_value = config.get_param("module_2", "parameter_2")
 
-                assert (expVal == actVal)
+                self.assertEquals(expected_value, actual_value)
 
                 # Verify that none is returned when a parameter
                 # is requested for a non-existent type
-                expVal = None
-                actVal = config.get_param("does_not_exist", "parameter_1")
+                expected_value = None
+                actual_value = config.get_param("does_not_exist", "parameter_1")
 
-                assert (expVal == actVal)
+                self.assertEquals(expected_value, actual_value)
 
             except Exception as e:
                 self.fail("Unexpected Exception: {}".format(e))

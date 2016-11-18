@@ -26,8 +26,5 @@ class FrameworkServiceClient(FrameworkObject):
         self.service_name = service_name
         self.service_class = service_class
 
-        # self.logger = FrameworkDependency("logger").resolve()
-        # self.comm_proxy = FrameworkDependency("ipc_proxy").resolve()
-
     def get_service_proxy(self):
         return self.ipc_proxy.get_service_proxy(self.service_name, self.service_class)
