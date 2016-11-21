@@ -1,14 +1,13 @@
 import unittest
+import threading
 
-from lidapy.codelet.attention_codelet import AttentionCodelet
 from lidapy.framework.agent import AgentConfig
 from lidapy.framework.msg import FrameworkTopic
 from lidapy.framework.process import FrameworkThread, FrameworkBackgroundTask, BackgroundDecayTask
-from lidapy.framework.shared import FrameworkDependencyService, CognitiveContentStructure, CognitiveContent
+from lidapy.framework.shared import FrameworkDependencyService, Activatable, CognitiveContentStructure, CognitiveContent
 from lidapy.framework.strategy import LinearDecayStrategy
 from lidapy.util.comm import LocalCommunicationProxy
 from lidapy.util.logger import ConsoleLogger
-import threading
 from lidapy.util.meta import Singleton
 
 
@@ -32,7 +31,7 @@ class FrameworkThreadTest(unittest.TestCase):
     def tearDownClass(cls):
         pass
 
-    def test(self):
+    def test_thread(self):
 
         class CallBack():
             def __init__(self):
@@ -82,7 +81,7 @@ class BackgroundTaskTest(unittest.TestCase):
     def tearDownClass(cls):
         pass
 
-    def test_decay_task(self):
+    def test_background_task(self):
         class CallBack():
             def __init__(self):
                 self.count = 0
@@ -93,14 +92,11 @@ class BackgroundTaskTest(unittest.TestCase):
         callback_cls = CallBack()
 
         bg_task = FrameworkBackgroundTask(name="BackgroundTask", callback=callback_cls, exec_count=100)
-
         bg_task.start()
+        bg_task.wait_until_complete()
 
-        if threading.currentThread() == bg_task.parent_thread:
-            bg_task.wait_until_complete()
-
-            # Verify that execution count matches expected number of executions
-            self.assertEqual(100, callback_cls.count)
+        # Verify that execution count matches expected number of executions
+        self.assertEqual(100, callback_cls.count)
 
 
 class BackgroundDecayTaskTest(unittest.TestCase):
@@ -123,20 +119,55 @@ class BackgroundDecayTaskTest(unittest.TestCase):
     def tearDownClass(cls):
         pass
 
-    def test_decay_task(self):
+    def test_init(self):
+        name = "linearDecayTask"
+        strategy = LinearDecayStrategy(slope=0.1)
+        target = Activatable()
+        exec_count = 17
+
+        def a_getter(target):
+            return target.base_level_activation
+
+        def a_setter(target, value):
+            target.base_level_activation = value
+
+        getter = a_getter
+        setter = a_setter
+
+        task = BackgroundDecayTask(name=name, strategy=strategy, target=target, getter=getter, setter=setter,
+                                   exec_count=exec_count)
+
+        self.assertEqual(task.name, name)
+        self.assertEqual(task.strategy, strategy)
+        self.assertEqual(task.target, target)
+        self.assertEqual(task.getter, getter)
+        self.assertEqual(task.setter, setter)
+        self.assertEqual(task.exec_count, exec_count)
+
+        # Test for required values
+        with self.assertRaises(ValueError):
+            BackgroundDecayTask(name=None, strategy=strategy, target=target, getter=getter, setter=setter,
+                                exec_count=exec_count)
+
+        with self.assertRaises(ValueError):
+            BackgroundDecayTask(name=name, strategy=None, target=target, getter=getter, setter=setter,
+                                exec_count=exec_count)
+
+        with self.assertRaises(ValueError):
+            BackgroundDecayTask(name=name, strategy=strategy, target=None, getter=getter, setter=setter,
+                                exec_count=exec_count)
+
+        # Test for defaults
+        task = BackgroundDecayTask(name=name, strategy=strategy, target=target)
+
+        self.assertEqual(task.getter, BackgroundDecayTask.default_getter)
+        self.assertEqual(task.setter, BackgroundDecayTask.default_setter)
+        self.assertEqual(task.exec_count, -1)
+
+    def test_default_decay_task(self):
         ccs = CognitiveContentStructure()
 
-        cc_list = [CognitiveContent(1),
-                   CognitiveContent(2),
-                   CognitiveContent(3),
-                   CognitiveContent(4),
-                   CognitiveContent(5),
-                   CognitiveContent(6),
-                   CognitiveContent(7),
-                   CognitiveContent(8),
-                   CognitiveContent(9),
-                   CognitiveContent(10),
-                   ]
+        cc_list = [CognitiveContent(value) for value in range(10)]
 
         for cc in cc_list:
             cc.activation = 1.0
@@ -144,115 +175,45 @@ class BackgroundDecayTaskTest(unittest.TestCase):
 
         linear_decay = LinearDecayStrategy(slope=0.1)
         decay_task = BackgroundDecayTask(name="linearDecay", strategy=linear_decay, target=ccs, exec_count=10)
+        decay_task.start()
+        decay_task.wait_until_complete()
+
+        # The expected activation is initial activation - exec_count * (slope / rate_in_hz)
+        for cc in ccs:
+            self.assertAlmostEqual(cc.activation, 0.9)
+
+    def test_custom_decay_task(self):
+        ccs = CognitiveContentStructure()
+
+        cc_list = [CognitiveContent(value) for value in range(10)]
+
+        initial_activation = 1.0
+        initial_base_level_activation = 1.0
+
+        for cc in cc_list:
+            cc.activation = initial_activation
+            cc.base_level_activation = initial_base_level_activation
+            ccs.insert(cc)
+
+        linear_decay = LinearDecayStrategy(slope=0.1)
+
+        def bla_getter(target):
+            return target.base_level_activation
+
+        def bla_setter(target, value):
+            target.base_level_activation(value)
+
+        decay_task = BackgroundDecayTask(name="linearDecay", strategy=linear_decay,
+                                         target=ccs, getter=bla_getter, setter=bla_setter,
+                                         exec_count=10)
 
         decay_task.start()
+        decay_task.wait_until_complete()
 
-        if threading.currentThread() == decay_task.parent_thread:
-            decay_task.wait_until_complete()
+        for cc in ccs:
+            # Activation should be unchanged
+            self.assertAlmostEqual(cc.activation, initial_activation)
 
-            # The expected activation is initial activation - exec_count * (slope / rate_in_hz)
-            for cc in ccs:
-                self.assertAlmostEqual(cc.activation, 0.9)
-
-
-class AttentionCodeletTest(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        pass
-
-    @classmethod
-    def tearDownClass(cls):
-        pass
-
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
-
-    def test_codelet(self):
-
-        def some_function(ccs):
-            found_content = []
-            for cc in ccs:
-                if int(cc.value) % 2 == 0:
-                    found_content.append(cc)
-
-            return found_content
-
-        csm = CognitiveContentStructure()
-        csm += CognitiveContent("1")
-        csm += CognitiveContent("2")
-        csm += CognitiveContent("3")
-        csm += CognitiveContent("4")
-
-        ccq = CognitiveContentStructure()
-        ccq += CognitiveContent("5")
-        ccq += CognitiveContent("6")
-        ccq += CognitiveContent("7")
-        ccq += CognitiveContent("8")
-
-        # At a high-level an AttentionCodelet is expected to do the following:
-        #
-        # (1) Look for sought content in a workspace buffer
-        # (2) If sought content is found, create a "coalition" from the sought content
-        # (3) Publish the new coalition to the workspace_coalitions topic
-        codelet = AttentionCodelet(name="attn_codelet",
-                                   search_function=some_function,
-                                   search_targets=[csm, ccq],
-                                   base_level_activation=0.5,
-                                   removal_threshold=0.0,
-                                   exec_count=1)
-
-        # Testing for expected codelet name
-        self.assertEqual(codelet.name, "attn_codelet")
-
-        # Testing for expected search function
-        self.assertEqual(codelet.search_function, some_function)
-
-        # Test for expected targets of search.
-        expected_targets = [csm, ccq]
-        self.assertEqual(len(expected_targets), len(codelet.search_targets))
-        self.assertEqual(set(expected_targets), set(codelet.search_targets))
-
-        # Testing for expected initial base_level_activation
-        self.assertAlmostEqual(codelet.base_level_activation, 0.5)
-
-        # Testing for expected removal_threshold
-        self.assertAlmostEqual(codelet.removal_threshold, 0.0)
-
-        # Starting codelet as a background thread
-        codelet.start()
-
-        if threading.currentThread() == codelet.parent_thread:
-            codelet.wait_until_complete()
-
-            # The expected activation is initial activation - exec_count * (slope / rate_in_hz)
-            for cc in ccs:
-                self.assertAlmostEqual(cc.activation, 0.9)
-
-        # The FrameworkAttentionCodelet must be an Activatable
-        #
-
-        # Need to verify that the coalition created by the attention codelet
-        # contains the expected values
-        # Assuming: Coalition is a cognitive content structure
-        # Need to stub out message publication to make sure that the message
-        # published by the codelet is received (without needing ros)
-
-        GLOBAL_WORKSPACE_TOPIC = FrameworkTopic("global_workspace")
-
-        coalition = CognitiveContentStructure()
-        coalition += CognitiveContent("2")
-        coalition += CognitiveContent("4")
-        coalition += CognitiveContent("6")
-        coalition += CognitiveContent("8")
-
-        GLOBAL_WORKSPACE_TOPIC.publisher.publish(coalition)
-
-        # Need StubFrameworkTopicPublisher
-        # Need to add a add_publisher implementation in StubCommunicationProxy that
-        # returns a StubFrameworkTopicPublisher
-
-
-        # Need to add status tests "RUNNING", "ERROR", etc.
+            # The expected base level activation is
+            #     initial activation - exec_count * (slope / rate_in_hz)
+            self.assertAlmostEqual(cc.base_level_activation, initial_base_level_activation)

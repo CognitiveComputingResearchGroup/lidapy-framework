@@ -11,6 +11,7 @@ from lidapy.framework.shared import FrameworkObject
 
 # ROS specific imports
 import rospy
+from lidapy.util.functions import generate_random_name
 from std_msgs.msg import String
 
 
@@ -126,16 +127,13 @@ class LocalCommunicationProxy(FrameworkCommunicationProxy):
 
     def get_publisher(self, topic_name, msg_type=None, max_queue_size=None, preprocessor=None):
         if topic_name not in self.msg_queues:
-            self.msg_queues[topic_name] \
-                = LocalMessageQueue(topic_name=topic_name,
-                                    msg_type=msg_type)
+            self.msg_queues[topic_name] = LocalMessageQueue(topic_name, msg_type)
 
         return LocalTopicPublisher(self.msg_queues[topic_name], queue_size=max_queue_size, preprocessor=preprocessor)
 
     def get_subscriber(self, topic_name, msg_type=None, max_queue_size=None, postprocessor=None):
         if topic_name not in self.msg_queues:
-            self.msg_queues[topic_name] = LocalMessageQueue(topic_name=topic_name,
-                                                            msg_type=msg_type)
+            self.msg_queues[topic_name] = LocalMessageQueue(topic_name, msg_type)
 
         topic_listener \
             = LocalTopicSubscriber(self.msg_queues[topic_name],
@@ -244,7 +242,7 @@ class RosTopicSubscriber(FrameworkTopicSubscriber):
 
 class LocalTopicPublisher(FrameworkTopicPublisher):
     def __init__(self, msg_queue, queue_size=None, preprocessor=None):
-        super(LocalTopicPublisher, self).__init__(topic_name=msg_queue.topic_name,
+        super(LocalTopicPublisher, self).__init__(topic_name=msg_queue.name,
                                                   msg_type=msg_queue.msg_type,
                                                   queue_size=queue_size,
                                                   preprocessor=preprocessor)
@@ -265,18 +263,14 @@ class LocalTopicPublisher(FrameworkTopicPublisher):
 
 class LocalTopicSubscriber(FrameworkTopicSubscriber):
     def __init__(self, msg_queue, queue_size=None, postprocessor=None):
-        super(LocalTopicSubscriber, self).__init__(topic_name=msg_queue.topic_name,
+        super(LocalTopicSubscriber, self).__init__(topic_name=msg_queue.name,
                                                    msg_type=msg_queue.msg_type,
                                                    queue_size=queue_size,
                                                    postprocessor=postprocessor)
 
         self.msg_queue = msg_queue
 
-        self._thread = FrameworkThread(name="topic_listener",
-                                       callback=self._listener_func)
-
-        # Indicates that this thread is a daemon thread.  A python program will exit
-        # if the only remaining threads are daemon threads.
+        self._thread = FrameworkThread(name="topic_listener", callback=self._listener_func)
         self._thread.daemon = True
 
     def _listener_func(self, *args):
@@ -293,13 +287,17 @@ class LocalTopicSubscriber(FrameworkTopicSubscriber):
 
 
 class LocalMessageQueue(FrameworkObject):
-    def __init__(self, topic_name, msg_type=None, queue_size=None):
+    def __init__(self, name=None, msg_type=None, max_queue_size=None):
         super(LocalMessageQueue, self).__init__()
 
-        self.topic_name = topic_name
-        self.msg_type = msg_type
+        if name is None:
+            name = generate_random_name(prefix="LocalQueue_", length=16)
 
-        self._queue = deque(maxlen=queue_size)
+        self.name = name
+        self.msg_type = msg_type
+        self.max_queue_size = max_queue_size
+
+        self._queue = deque(maxlen=max_queue_size)
 
     def push(self, msg):
         if msg is not None:

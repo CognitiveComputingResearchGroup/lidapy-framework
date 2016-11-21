@@ -8,12 +8,9 @@ from lidapy.framework.msg import FrameworkTopic
 from lidapy.util.comm import MsgUtils
 from lidapy_rosdeps.srv import GenericService
 
-# By default, the name of the module is the name of the ros node; however, this
-# behavior can be overridden by passing a name to the initializer.
-MODULE_NAME = "conscious_contents_queue"
 
 # Topics used by this module
-GLOBAL_BROADCAST_TOPIC = FrameworkTopic("global_broadcast")
+GLOBAL_BROADCAST = FrameworkTopic("global_broadcast")
 
 
 class ConsciousContentsQueue(FrameworkModule):
@@ -23,13 +20,13 @@ class ConsciousContentsQueue(FrameworkModule):
         self.max_queue_size = self.config.get_param(self.name, "max_queue_size", 10)
         self.queue = deque(maxlen=self.max_queue_size)
 
-        self.add_subscribers([GLOBAL_BROADCAST_TOPIC])
+        self.add_subscribers([GLOBAL_BROADCAST])
 
         self.add_service("get_last_n_broadcasts", GenericService, self.process_last_n_broadcasts_request)
 
     @classmethod
     def get_module_name(cls):
-        return MODULE_NAME
+        return "conscious_contents_queue"
 
     def process_last_n_broadcasts_request(self, raw_request):
 
@@ -44,7 +41,7 @@ class ConsciousContentsQueue(FrameworkModule):
         return response
 
     def call(self):
-        broadcast = GLOBAL_BROADCAST_TOPIC.subscriber.get_next_msg()
+        broadcast = GLOBAL_BROADCAST.subscriber.get_next_msg()
 
         if broadcast is not None:
             self.queue.append(broadcast)

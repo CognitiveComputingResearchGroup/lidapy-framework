@@ -142,11 +142,46 @@ class CognitiveContent(Activatable):
 
 
 class CognitiveContentStructure(object):
-    def __init__(self):
-        self._content_list = []
+    def __init__(self, content_list=None):
+
+        try:
+            if content_list is None:
+                self._content_list = list()
+            else:
+                self._content_list = list(content_list)
+        except TypeError:
+            raise TypeError("CognitiveContentStructure: content_list must be of iterable type")
+
+        for value in self._content_list:
+            if not issubclass(value.__class__, CognitiveContent):
+                raise TypeError("CognitiveContentStructure: all elements in content_list must be of iterable type")
 
     def __add__(self, other):
-        self._content_list += other
+        temp = CognitiveContentStructure()
+
+        if issubclass(other.__class__, CognitiveContentStructure):
+            temp._content_list += self._content_list + other._content_list
+        else:
+            try:
+                temp._content_list += self._content_list + other
+            except TypeError:
+                raise TypeError("Add operand must be either a CognitiveContentStructure or an iterable")
+
+        return temp
+
+    def __radd__(self, other):
+        return self.__add__(other)
+
+    def __iadd__(self, other):
+        if issubclass(other.__class__, CognitiveContentStructure):
+            self._content_list += other._content_list
+        else:
+            try:
+                self._content_list += other
+            except TypeError:
+                raise TypeError("Add operand must be either a CognitiveContentStructure or an iterable")
+
+        return self
 
     def __len__(self):
         return len(self._content_list)

@@ -1,7 +1,9 @@
 from abc import ABCMeta, abstractmethod
 
-from lidapy.framework.process import FrameworkProcess
+from lidapy.framework.process import FrameworkProcess, FrameworkBackgroundTask
 from lidapy.framework.service import FrameworkService
+from lidapy.framework.msg import FrameworkTopic
+from lidapy.util.comm import FrameworkTopicPublisher, FrameworkTopicSubscriber
 
 
 class FrameworkModule(FrameworkProcess):
@@ -48,15 +50,6 @@ class FrameworkModule(FrameworkProcess):
         # }
         self.subscribers = {}
 
-        # A dictionary of FrameworkServices
-        #
-        # format:
-        # {
-        #     ServiceName1 : FrameworkService1,
-        #     ServiceName2 : FrameworkService2,
-        # }
-        self.services = {}
-
         # A list of FrameworkTasks
         #
         # format:
@@ -66,23 +59,14 @@ class FrameworkModule(FrameworkProcess):
         # ]
         self.background_tasks = []
 
-    @classmethod
-    def get_module_name(cls):
-        raise NotImplemented("FrameworkModule must implement get_module_name classmethod")
-
-    def initialize(self):
-        """A template method that initializes the FrameworkModule instance by invoking a set of standard methods.
-
-        These standard method implementations can be overridden in subclasses of FrameworkModule
-        to provide custom behaviors (e.g., adding publishers, subscribers, services, and background tasks).
-
-        This method can be overridden to customize module initialization.
-
-        :return: None
-        """
-        super(FrameworkModule, self).initialize()
-
-        self.launch_background_tasks()
+        # A dictionary of FrameworkServices
+        #
+        # format:
+        # {
+        #     ServiceName1 : FrameworkService1,
+        #     ServiceName2 : FrameworkService2,
+        # }
+        self.services = {}
 
     def add_service(self, svc_name, svc_msg_class, callback):
         """ Registers a service with the specified request/reply message classes and callback methods.
@@ -95,23 +79,8 @@ class FrameworkModule(FrameworkProcess):
         decorated_svc_name = "{}/{}".format(self.name, svc_name)
         self.services[decorated_svc_name] = FrameworkService(decorated_svc_name, svc_msg_class, callback)
 
-    def add_background_task(self, task):
-        """ Registers a background task associated with this framework module.
-
-        Background tasks are used to schedule the concurrent execution of methods
-        at regular intervals.  These methods are executed independent of the usual
-        FrameworkModule flow of control.
-
-        :param task: a FrameworkTask to register as a background task.
-        :return: None
-        """
-        self.logger.info("Adding background task ({})".format(task.name))
-        self.background_tasks.append(task)
-
     def add_publishers(self, topics):
-        """ Adds publishers to this FrameworkModule to enable asynchronous transmission of messages over topics.
-
-        This method must be overridden to add publishers to this FrameworkModule.
+        """ Creates publishers for the requested topics. (See FrameworkTopicPublisher.)
 
         :param: a list of FrameworkTopics
         :return: None
@@ -120,9 +89,7 @@ class FrameworkModule(FrameworkProcess):
             = {topic.topic_name: topic.create_publisher() for topic in topics}
 
     def add_subscribers(self, topics):
-        """ Adds subscribers to this FrameworkModule to enable asynchronous retrieval of messages over topics.
-
-        This method must be overridden to add subscribers to this FrameworkModule.
+        """ Creates subscribers for the requested topics. (See FrameworkTopicSubscriber.)
 
         :param: a list of FrameworkTopics
         :return: None
@@ -130,46 +97,60 @@ class FrameworkModule(FrameworkProcess):
         self.subscribers \
             = {topic.topic_name: topic.create_subscriber() for topic in topics}
 
-    def add_services(self):
-        """ Adds services to this FrameworkModule to enable synchronous (RPC style) communication.
+    def add_background_tasks(self, tasks):
+        """ Adds background tasks to this FrameworkModule to enable. (See FrameworkBackgroundTask.)
 
-        This method must be overridden to add subscribers to this FrameworkModule.
-
+        :param: a list of FrameworkBackgroundTasks
         :return: None
         """
-        pass
-
-    def add_background_tasks(self):
-        """ Adds background tasks to this FrameworkModule to enable the concurrent execution of FrameworkTasks.
-
-        This method must be overridden to add background tasks to this FrameworkModule.
-
-        :return: None
-        """
-        pass
+        self.background_tasks = {task.name: task for task in tasks}
 
     def launch_background_tasks(self):
-        for t in self.background_tasks:
-            self.logger.info("Starting background task \"{}\"".format(t.name))
-            t.start()
-
-    @abstractmethod
-    def call(self):
-        """ The entry-point for FrameworkModule execution.
-
-        This method is intended to be invoked at regular intervals, where the interval length is
-        determined by the \"rate_in_hz\" agent configuration parameter.
-
-        This method must be overridden.
-
-        Steps in module processing, such as the consumption of messages from ros topics and the publication
-        of messages to ros topics, should occur within this method.
-
-        Care should be taken not to execute long running operations in a blocking mode within
-        the call method as that will result in the module becoming unresponsive.  If long-running
-        operations are required they should be scheduled in a separate background task or using
-        non-blocking mode.
+        """ Starts each of the FrameworkBackgroundTasks registered with the module.
 
         :return: None
         """
-        pass
+        for task in self.background_tasks:
+            task.start()
+
+    @classmethod
+    def get_module_name(cls):
+        raise NotImplemented("Module must implement get_module_name classmethod")
+
+    def initialize(self):
+        """Initializes this FrameworkModule.
+
+        This method can be overridden to customize module initialization; however, any derived class
+        that overrides this method should call the super class's initialize method.
+
+        :return: None
+        """
+        super(FrameworkModule, self).initialize()
+
+    def finalize(self):
+        """Finalizes this FrameworkModule.
+
+        This method can be overridden to customize module finalization; however, any derived class
+        that overrides this method should call the super class's finalize method.
+
+        :return: None
+        """
+        super(FrameworkModule, self).finalize()
+
+    def start(self):
+        """Starts the execution of this FrameworkModule.
+
+        :return: None
+        """
+        super(FrameworkProcess, self).run()
+
+    def update_status(self):
+        """Update the status of this FrameworkModule.
+
+        :return: None
+        """
+        super(FrameworkModule, self).update_status()
+
+        for task in self.background_tasks:
+            if task.status is self.ERROR:
+                self.status = self.ERROR

@@ -214,12 +214,7 @@ class CognitiveContentStructureIteratorTest(unittest.TestCase):
         pass
 
     def test_init(self):
-        it = CognitiveContentStructureIterator(
-            [CognitiveContent(1),
-             CognitiveContent(2),
-             CognitiveContent(3),
-             CognitiveContent(4),
-             CognitiveContent(5)])
+        it = CognitiveContentStructureIterator([CognitiveContent(value) for value in range(1, 5)])
 
         expected_value = 1
         for actual in it:
@@ -242,6 +237,19 @@ class CognitiveContentStructureTest(unittest.TestCase):
         ccs = CognitiveContentStructure()
         assert (len(ccs)) == 0
 
+        # Check that passing an iterable with N elements results in
+        # len(CognitiveContentStructure) = N
+        ccs = CognitiveContentStructure([CognitiveContent(v) for v in range(10)])
+        self.assertEqual(len(ccs), 10)
+
+        # Return TypeError if a non-iterable is passed
+        with self.assertRaises(TypeError):
+            CognitiveContentStructure(CognitiveContent("nope"))
+
+        # Return TypeError if iterable contains non-CognitiveContent
+        with self.assertRaises(TypeError):
+            CognitiveContentStructure(range(10))
+
     def test_insert(self):
 
         # Check that adding an element increases the len() by 1
@@ -252,6 +260,54 @@ class CognitiveContentStructureTest(unittest.TestCase):
 
         ccs.insert(CognitiveContent(2))
         assert (len(ccs) == 2)
+
+    def test_add(self):
+        ccs1 = CognitiveContentStructure([CognitiveContent(v) for v in range(0, 5)])
+        ccs2 = CognitiveContentStructure([CognitiveContent(v) for v in range(5, 10)])
+
+        ccs_result = ccs1 + ccs2
+
+        value_list = []
+        for cc in ccs_result:
+            value_list.append(cc.value)
+
+        self.assertEqual(len(value_list), 10)
+        self.assertEqual(set(value_list), set(range(10)))
+
+    def test_iadd(self):
+        ccs1 = CognitiveContentStructure([CognitiveContent(v) for v in range(0, 5)])
+        ccs2 = CognitiveContentStructure([CognitiveContent(v) for v in range(5, 10)])
+
+        ccs1 += ccs2
+
+        value_list = []
+        for cc in ccs1:
+            value_list.append(cc.value)
+
+        self.assertEqual(len(value_list), 10)
+        self.assertEqual(set(value_list), set(range(10)))
+
+        ccs1 = CognitiveContentStructure([CognitiveContent(v) for v in range(0, 5)])
+        ccs1 += [CognitiveContent(v) for v in range(5, 10)]
+
+        value_list = []
+        for cc in ccs1:
+            value_list.append(cc.value)
+
+        self.assertEqual(len(value_list), 10)
+        self.assertEqual(set(value_list), set(range(10)))
+
+    def test_radd(self):
+        ccs2 = CognitiveContentStructure([CognitiveContent(v) for v in range(5, 10)])
+
+        ccs_result = [CognitiveContent(v) for v in range(0, 5)] + ccs2
+
+        value_list = []
+        for cc in ccs_result:
+            value_list.append(cc.value)
+
+        self.assertEqual(len(value_list), 10)
+        self.assertEqual(set(value_list), set(range(10)))
 
     def test_remove(self):
 

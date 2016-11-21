@@ -12,17 +12,16 @@ class LinearDecayStrategy(object):
         if self.slope <= 0:
             raise ValueError("Invalid value ({}) for slope. (Must be > 0.)".format(self.slope))
 
-    def apply(self, cc, rate_in_hz):
+    def get_next_value(self, current_activation, rate_in_hz):
         if rate_in_hz <= 0:
             raise ValueError("Invalid value ({}) for rate_in_hz. (Must be > 0.)".format(rate_in_hz))
 
-        new_activation = cc.activation - self.slope / rate_in_hz
+        next_activation = current_activation - self.slope / rate_in_hz
 
-        if new_activation < MIN_ACTIVATION:
-            new_activation = MIN_ACTIVATION
+        if next_activation < MIN_ACTIVATION:
+            next_activation = MIN_ACTIVATION
 
-        cc.activation = new_activation
-        return cc
+        return next_activation
 
 
 class LinearExciteStrategy(object):
@@ -32,17 +31,16 @@ class LinearExciteStrategy(object):
         if self.slope <= 0:
             raise ValueError("Invalid value ({}) for slope. (Must be > 0.)".format(self.slope))
 
-    def apply(self, cc, rate_in_hz):
+    def get_next_value(self, current_activation, rate_in_hz):
         if rate_in_hz <= 0:
             raise ValueError("Invalid value ({}) for rate_in_hz. (Must be > 0.)".format(rate_in_hz))
 
-        new_activation = cc.activation + self.slope / rate_in_hz
+        next_activation = current_activation + self.slope / rate_in_hz
 
-        if new_activation > MAX_ACTIVATION:
-            new_activation = MAX_ACTIVATION
+        if next_activation > MAX_ACTIVATION:
+            next_activation = MAX_ACTIVATION
 
-        cc.activation = new_activation
-        return cc
+        return next_activation
 
 
 class SigmoidHelper(object):
@@ -63,18 +61,17 @@ class SigmoidDecayStrategy(object):
         if rate_multiplier <= 0.0:
             raise ValueError("Invalid value ({}) for rate_multiplier. (Must be > 0.)".format(self.rate_multiplier))
 
-    def apply(self, cc, rate_in_hz):
+    def get_next_value(self, current_activation, rate_in_hz):
         if rate_in_hz <= 0:
             raise ValueError("Invalid value ({}) for rate_in_hz. (Must be > 0.)".format(rate_in_hz))
 
-        t = SigmoidHelper.get_time_from_activation(cc.activation) - self.rate_multiplier / rate_in_hz
+        t = SigmoidHelper.get_time_from_activation(current_activation) - self.rate_multiplier / rate_in_hz
 
-        new_activation = 1.0 / (1.0 + exp(-t))
-        if new_activation < MIN_ACTIVATION:
-            new_activation = MIN_ACTIVATION
+        next_activation = 1.0 / (1.0 + exp(-t))
+        if next_activation < MIN_ACTIVATION:
+            next_activation = MIN_ACTIVATION
 
-        cc.activation = new_activation
-        return cc
+        return next_activation
 
 
 class SigmoidExciteStrategy(object):
@@ -84,15 +81,14 @@ class SigmoidExciteStrategy(object):
         if rate_multiplier <= 0.0:
             raise ValueError("Invalid value ({}) for rate_multiplier. (Must be > 0.)".format(self.rate_multiplier))
 
-    def apply(self, cc, rate_in_hz):
+    def get_next_value(self, current_activation, rate_in_hz):
         if rate_in_hz <= 0:
             raise ValueError("Invalid value ({}) for rate_in_hz. (Must be > 0.)".format(rate_in_hz))
 
-        t = SigmoidHelper.get_time_from_activation(cc.activation) + self.rate_multiplier / rate_in_hz
+        t = SigmoidHelper.get_time_from_activation(current_activation) + self.rate_multiplier / rate_in_hz
 
-        new_activation = 1.0 / (1 + exp(-t))
-        if new_activation > MAX_ACTIVATION:
-            new_activation = MAX_ACTIVATION
+        next_activation = 1.0 / (1 + exp(-t))
+        if next_activation > MAX_ACTIVATION:
+            next_activation = MAX_ACTIVATION
 
-        cc.activation = new_activation
-        return cc
+        return next_activation

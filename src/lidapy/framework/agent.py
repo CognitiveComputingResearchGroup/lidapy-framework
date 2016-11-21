@@ -201,7 +201,7 @@ class AgentStarter(FrameworkObject):
         if module_class is not None:
             self.logger.info("Starting module {}".format(module_name))
             module_obj = module_class(**kwargs)
-            module_obj.run()
+            module_obj.start()
 
         else:
             self.logger.fatal("Unknown module: {}".format(module_name))

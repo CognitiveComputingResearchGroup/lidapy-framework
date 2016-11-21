@@ -1,32 +1,157 @@
+from operator import attrgetter
+
 from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import FrameworkTopic
-
-# By default, the name of the module is the name of the ros node; however, this
-# behavior can be overridden by passing a name to the initializer.
-MODULE_NAME = "action_selection"
-
-# Topics used by this module
-SELECTED_BEHAVIORS_TOPIC = FrameworkTopic("selected_behaviors")
-CANDIDATE_BEHAVIORS_TOPIC = FrameworkTopic("candidate_behaviors")
-GLOBAL_BROADCAST_TOPIC = FrameworkTopic("global_broadcast")
+from lidapy.framework.process import FrameworkBackgroundTask
+from lidapy.framework.shared import FrameworkObject
+from lidapy.util.comm import LocalMessageQueue
 
 
 class ActionSelection(FrameworkModule):
+    # Topic name constants
+    SELECTED_BEHAVIORS_TOPIC_NAME = "selected_behaviors"
+    CANDIDATE_BEHAVIORS_TOPIC_NAME = "candidate_behaviors"
+    GLOBAL_BROADCAST_TOPIC_NAME = "global_broadcast"
+
     def __init__(self):
         super(ActionSelection, self).__init__()
 
-        self.add_publishers([SELECTED_BEHAVIORS_TOPIC])
-        self.add_subscribers([CANDIDATE_BEHAVIORS_TOPIC,
-                              GLOBAL_BROADCAST_TOPIC])
+        # Topics used by this module
+        self.SELECTED_BEHAVIORS = FrameworkTopic(self.SELECTED_BEHAVIORS_TOPIC_NAME)
+        self.CANDIDATE_BEHAVIORS = FrameworkTopic(self.CANDIDATE_BEHAVIORS_TOPIC_NAME)
+        self.GLOBAL_BROADCAST = FrameworkTopic(self.GLOBAL_BROADCAST_TOPIC_NAME)
+
+        self.default_max_queue_size \
+            = self.config.get_type_or_global_param(self.get_module_name(), "max_queue_size", 10)
+
+        # The candidate_behaviors queue is used for the temporary storage of a set of instantiated
+        # candidate behaviors (schemes).  These will be processed by a background task to determine
+        # which (if any) will be selected for execution.
+        self.candidate_behaviors_max_queue_size \
+            = self.config.get_param(self.get_module_name, "candidate_behaviors_max_queue_size",
+                                    self.default_max_queue_size)
+
+        self.candidate_behaviors_queue \
+            = LocalMessageQueue(max_queue_size=self.candidate_behaviors_max_queue_size)
+
+        # The selected_behaviors queue is used for the temporary storage of a set of selected
+        # behaviors.  These will be published to sensory motor memory for execution.
+        self.selected_behaviors_max_queue_size \
+            = self.config.get_param(self.get_module_name, "selected_behaviors_max_queue_size",
+                                    self.default_max_queue_size)
+
+        self.selected_behaviors_queue \
+            = LocalMessageQueue(max_queue_size=self.selected_behaviors_max_queue_size)
+
+        self.behavior_net = BehaviorNetwork()
 
     @classmethod
     def get_module_name(cls):
-        return MODULE_NAME
+        return "action_selection"
 
-    def call(self):
-        candidate_behaviors = CANDIDATE_BEHAVIORS_TOPIC.subscriber.get_next_msg()
+    # This method is invoked (only once) at module execution start
+    def initialize(self):
+        super(ActionSelection, self).initialize()
 
+        self.add_publishers([self.SELECTED_BEHAVIORS])
+        self.add_subscribers([self.CANDIDATE_BEHAVIORS, self.GLOBAL_BROADCAST])
+
+        receiver_task \
+            = FrameworkBackgroundTask(name="candidate_behaviors_receiver",
+                                      callback=self.receive_candidates)
+
+        selector_task \
+            = FrameworkBackgroundTask(name="behavior_selector",
+                                      callback=self.select_behavior_from_candidates)
+
+        publisher_task \
+            = FrameworkBackgroundTask(name="behavior_publisher",
+                                      callback=self.publish_selected_behavior)
+
+        learner_task \
+            = FrameworkBackgroundTask(name="learner",
+                                      callback=self.learn)
+
+        self.add_background_tasks([receiver_task, selector_task, publisher_task, learner_task])
+
+    # This method is invoked when module execution completes
+    def finalize(self):
+        super(ActionSelection, self).finalize()
+
+    # This method is invoked at regular intervals during module execution
+    def update_status(self):
+        super(ActionSelection, self).update_status()
+
+    # This method is invoked by the agent starter to initiate module execution
+    def start(self):
+        super(ActionSelection, self).start()
+
+        self.launch_background_tasks()
+
+    def receive_candidates(self):
+        next_candidates = self.subscribers[self.CANDIDATE_BEHAVIORS_TOPIC_NAME].get_next_msg()
+        if next_candidates is not None:
+            self.candidate_behaviors_queue.push(next_candidates)
+
+    def select_behavior_from_candidates(self):
+        self.logger.debug("Selecting behavior from candidates")
+
+        # Check for available candidate behaviors
+        try:
+            candidate_behaviors = self.candidate_behaviors_queue.pop()
+        except IndexError:
+            candidate_behaviors = None
+
+        # Attempt to select a candidate behavior using a behavior network
         if candidate_behaviors is not None:
-            selected_behaviors = candidate_behaviors
+            selected_behavior = self.behavior_net.select_behavior(candidate_behaviors)
 
-            SELECTED_BEHAVIORS_TOPIC.publisher.publish(selected_behaviors)
+            if selected_behavior is not None:
+                self.selected_behaviors_queue.push(selected_behavior)
+
+    def publish_selected_behavior(self):
+
+        # Check for available selected behaviors
+        try:
+            next_behavior = self.selected_behaviors_queue.pop()
+        except IndexError:
+            next_behavior = None
+
+        # Publish selected behavior to selected behaviors queue for action
+        # execution (if applicable)
+        if next_behavior is not None:
+            self.logger.debug("Publishing selected behaviors for execution")
+            self.publishers[self.SELECTED_BEHAVIORS_TOPIC_NAME].publish(next_behavior)
+        else:
+            self.logger.debug("No behaviors selected for execution")
+
+    def learn(self):
+        global_broadcast = self.subscribers[self.GLOBAL_BROADCAST_TOPIC_NAME].get_next_msg()
+        if global_broadcast is not None:
+            # TODO: Need to implement learning here
+            pass
+
+
+class BehaviorNetwork(FrameworkObject):
+    DEFAULT_CANDIDATE_THRESHOLD = 0.9
+
+    def __init__(self):
+        super(BehaviorNetwork, self).__init__()
+
+        self.candidate_threshold = self.DEFAULT_CANDIDATE_THRESHOLD
+
+    def select_behavior(self, behaviors):
+        best_candidate = max(behaviors, key=attrgetter('activation'))
+
+        # Selected behavior found
+        if best_candidate.activation >= self.candidate_threshold:
+            # Reset candidate threshold
+            self.candidate_threshold = self.DEFAULT_CANDIDATE_THRESHOLD
+            return best_candidate
+
+        # No selected behavior found
+        else:
+            # TODO: Decay candidate threshold using a decay strategy
+            pass
+
+        return None

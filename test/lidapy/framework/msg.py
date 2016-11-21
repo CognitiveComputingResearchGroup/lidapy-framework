@@ -32,10 +32,6 @@ class FrameworkTopicTest(unittest.TestCase):
         topic = FrameworkTopic()
 
         self.assertIsNotNone(topic.topic_name, "Failed to auto-generate topic_name: topic_name is None")
-        self.assertEqual(len(topic.topic_name), topic.default_topic_length,
-                         "Auto-generated topic name has incorrect length")
-        self.assertTrue(topic.topic_name.startswith(topic.default_topic_prefix),
-                        "Auto-generated topic name has incorrect prefix")
 
     def test_create_pub_sub(self):
         topic = FrameworkTopic()

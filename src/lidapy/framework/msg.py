@@ -1,17 +1,15 @@
-import random
-import string
-
 from lidapy.framework.shared import FrameworkObject
+from lidapy.util.functions import generate_random_name
 
 
 class FrameworkTopic(FrameworkObject):
-    default_topic_prefix = "Topic_"
-    default_topic_length = 16
-
     def __init__(self, topic_name=None, msg_type=None):
         super(FrameworkTopic, self).__init__()
 
-        self.topic_name = topic_name if topic_name is not None else FrameworkTopic.generate_random_topic_name()
+        if topic_name is None:
+            topic_name = generate_random_name(prefix="Topic_", length=16)
+
+        self.topic_name = topic_name
         self.msg_type = msg_type
 
         self.publisher = None
@@ -59,11 +57,3 @@ class FrameworkTopic(FrameworkObject):
             raise Exception("Subscriber already added for topic {}".format(self.topic_name))
 
         return self.subscriber
-
-    @staticmethod
-    def generate_random_topic_name(prefix=default_topic_prefix, length=default_topic_length):
-        nonce_len = length - len(prefix)
-        if nonce_len <= 0:
-            raise Exception("Invalid topic name length ({})".format(length))
-
-        return prefix + "".join([random.choice(string.hexdigits) for i in xrange(nonce_len)])
