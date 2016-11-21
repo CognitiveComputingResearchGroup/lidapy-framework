@@ -4,6 +4,7 @@ from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import FrameworkTopic
 from lidapy.framework.process import FrameworkBackgroundTask
 from lidapy.framework.shared import FrameworkObject
+from lidapy.framework.strategy import SigmoidDecayStrategy
 from lidapy.util.comm import LocalMessageQueue
 
 
@@ -28,7 +29,7 @@ class ActionSelection(FrameworkModule):
         # candidate behaviors (schemes).  These will be processed by a background task to determine
         # which (if any) will be selected for execution.
         self.candidate_behaviors_max_queue_size \
-            = self.config.get_param(self.get_module_name, "candidate_behaviors_max_queue_size",
+            = self.config.get_param(self.get_module_name(), "candidate_behaviors_max_queue_size",
                                     self.default_max_queue_size)
 
         self.candidate_behaviors_queue \
@@ -37,7 +38,7 @@ class ActionSelection(FrameworkModule):
         # The selected_behaviors queue is used for the temporary storage of a set of selected
         # behaviors.  These will be published to sensory motor memory for execution.
         self.selected_behaviors_max_queue_size \
-            = self.config.get_param(self.get_module_name, "selected_behaviors_max_queue_size",
+            = self.config.get_param(self.get_module_name(), "selected_behaviors_max_queue_size",
                                     self.default_max_queue_size)
 
         self.selected_behaviors_queue \
@@ -94,19 +95,19 @@ class ActionSelection(FrameworkModule):
             self.candidate_behaviors_queue.push(next_candidates)
 
     def select_behavior_from_candidates(self):
-        self.logger.debug("Selecting behavior from candidates")
-
         # Check for available candidate behaviors
         try:
             candidate_behaviors = self.candidate_behaviors_queue.pop()
         except IndexError:
+            self.logger.debug("No candidate behaviors received")
             candidate_behaviors = None
 
         # Attempt to select a candidate behavior using a behavior network
         if candidate_behaviors is not None:
-            selected_behavior = self.behavior_net.select_behavior(candidate_behaviors)
+            selected_behavior = self.behavior_net.select_behavior(candidate_behaviors, self.rate_in_hz)
 
             if selected_behavior is not None:
+                self.logger.debug("Behavior selected: {}".format(selected_behavior))
                 self.selected_behaviors_queue.push(selected_behavior)
 
     def publish_selected_behavior(self):
@@ -140,18 +141,30 @@ class BehaviorNetwork(FrameworkObject):
 
         self.candidate_threshold = self.DEFAULT_CANDIDATE_THRESHOLD
 
-    def select_behavior(self, behaviors):
+        # TODO: The choice of strategy should be determined by the configuration
+        # TODO: file.
+        self.decay_strategy = SigmoidDecayStrategy()
+
+    def select_behavior(self, behaviors, rate_in_hz):
         best_candidate = max(behaviors, key=attrgetter('activation'))
 
-        # Selected behavior found
+        # [Behavior Selected]
         if best_candidate.activation >= self.candidate_threshold:
+            self.logger.debug("Behavior selected: {}".format(best_candidate))
+
             # Reset candidate threshold
             self.candidate_threshold = self.DEFAULT_CANDIDATE_THRESHOLD
+
+            self.logger.debug("Resetting candidate threshold to {}".format(self.candidate_threshold))
+
             return best_candidate
 
-        # No selected behavior found
+        # [No Selected Behavior]
         else:
-            # TODO: Decay candidate threshold using a decay strategy
-            pass
+            self.candidate_threshold \
+                = self.decay_strategy.get_next_value(self.candidate_threshold, rate_in_hz)
 
-        return None
+            self.logger.debug(
+                "No behavior selected.  Reducing candidate_threshold to {}".format(self.candidate_threshold))
+
+            return None
