@@ -24,16 +24,16 @@ class FrameworkDependencyTest(unittest.TestCase):
 
     def test_satisfied(self):
         logger_depend = FrameworkDependency("logger")
-        assert (logger_depend.is_satisfied())
+        self.assertTrue(logger_depend.is_satisfied())
 
         non_existent_dependency = FrameworkDependency("nobody home")
-        assert (not non_existent_dependency.is_satisfied())
+        self.assertTrue(not non_existent_dependency.is_satisfied())
 
     def test_resolve(self):
         logger_depend = FrameworkDependency("logger")
         logger = logger_depend.resolve()
 
-        assert (type(logger) is ConsoleLogger)
+        self.assertTrue(type(logger) is ConsoleLogger)
 
         non_existent_dependency = FrameworkDependency("nobody home")
         try:
@@ -64,18 +64,18 @@ class FrameworkDependencyServiceTest(unittest.TestCase):
         fds1 = FrameworkDependencyService()
         fds2 = FrameworkDependencyService()
 
-        assert (fds1 is fds2)
+        self.assertTrue(fds1 is fds2)
 
     def test_add_dependency(self):
         fds = FrameworkDependencyService()
 
         # Verify that new dependency was added and length updated
         fds["dependency1"] = "dependency1"
-        assert (len(fds) == 1)
+        self.assertEqual(len(fds), 1)
 
         # Verify that 2nd dependency was added, length updated,
         fds["dependency2"] = "dependency2"
-        assert (len(fds) == 2)
+        self.assertEqual(len(fds), 2)
 
         # Verify that disallowing "overrides" by default and raising
         # an exception if multiple dependency sets occur
@@ -98,7 +98,7 @@ class FrameworkDependencyServiceTest(unittest.TestCase):
 
         # Verify content from get matches expected value
         fds["dependency1"] = "dependency1_value"
-        assert (fds["dependency1"] == "dependency1_value")
+        self.assertEqual(fds["dependency1"], "dependency1_value")
 
         # Verify non-existent dependency returns exception
         try:
@@ -112,10 +112,10 @@ class FrameworkDependencyServiceTest(unittest.TestCase):
 
         # Verify has reports True when dependency was added
         fds["dependency1"] = "dependency1"
-        assert (fds.has("dependency1"))
+        self.assertTrue(fds.has("dependency1"))
 
         # Verify has reports False when dependency not added
-        assert (not fds.has("nobody home"))
+        self.assertTrue(not fds.has("nobody home"))
 
 
 class ActivatableTest(unittest.TestCase):
@@ -130,78 +130,78 @@ class ActivatableTest(unittest.TestCase):
     def test_init(self):
         # Verify initial activation is 0.0
         a = Activatable()
-        assert (a.activation == 0.0)
+        self.assertEqual(a.activation, 0.0)
 
         # Verify initial incentive salience is 0.0
         a = Activatable()
-        assert (a.incentive_salience == 0.0)
+        self.assertEqual(a.incentive_salience, 0.0)
 
         # Verify initial base_level_activation is 0.0
         a = Activatable()
-        assert (a.base_level_activation == 0.0)
+        self.assertEqual(a.base_level_activation, 0.0)
 
         # Verify that initial activation can be set during initialization
         a = Activatable(0.25, 0.5, 0.05)
-        assert (a.activation == 0.25)
+        self.assertEqual(a.activation, 0.25)
 
         # Verify that initial incentive salience can be set during initialization
         a = Activatable(0.25, 0.5, 0.05)
-        assert (a.incentive_salience == 0.5)
+        self.assertEqual(a.incentive_salience, 0.5)
 
         # Verify that initial base_level_activation can be set during initialization
         a = Activatable(0.25, 0.5, 0.05)
-        assert (a.base_level_activation == 0.05)
+        self.assertEqual(a.base_level_activation, 0.05)
 
         # Verify small change of activation and incentive salience within
         # expected range bounds works
         a = Activatable()
         a.activation += 0.25
-        assert (a.activation == 0.25)
+        self.assertEqual(a.activation, 0.25)
 
         a.activation -= 0.1
-        assert (a.activation == 0.15)
+        self.assertEqual(a.activation, 0.15)
 
         a = Activatable()
         a.incentive_salience += 0.25
-        assert (a.incentive_salience == 0.25)
+        self.assertEqual(a.incentive_salience, 0.25)
 
         a.incentive_salience -= 0.1
-        assert (a.incentive_salience == 0.15)
+        self.assertEqual(a.incentive_salience, 0.15)
 
         a = Activatable()
         a.base_level_activation += 0.25
-        assert (a.base_level_activation == 0.25)
+        self.assertEqual(a.base_level_activation, 0.25)
 
         a.base_level_activation -= 0.1
-        assert (a.base_level_activation == 0.15)
+        self.assertEqual(a.base_level_activation, 0.15)
 
         # Verify that reduction of activation and incentive salience and base_level_activation
         # to below lower bound is scaled to lower bound
         a = Activatable()
         a.activation -= 0.25
-        assert (a.activation == 0.0)
+        self.assertEqual(a.activation, 0.0)
 
         a = Activatable()
         a.incentive_salience -= 0.25
-        assert (a.incentive_salience == 0.0)
+        self.assertEqual(a.incentive_salience, 0.0)
 
         a = Activatable()
         a.base_level_activation -= 0.25
-        assert (a.base_level_activation == 0.0)
+        self.assertEqual(a.base_level_activation, 0.0)
 
         # Verify that increase of activation and incentive salience and base_level_activation
         # to above upper bound is scaled to upper bound
         a = Activatable()
         a.activation += 2.0
-        assert (a.activation == 1.0)
+        self.assertEqual(a.activation, 1.0)
 
         a = Activatable()
         a.incentive_salience += 2.0
-        assert (a.incentive_salience == 1.0)
+        self.assertEqual(a.incentive_salience, 1.0)
 
         a = Activatable()
         a.base_level_activation += 2.0
-        assert (a.base_level_activation == 1.0)
+        self.assertEqual(a.base_level_activation, 1.0)
 
 
 class CognitiveContentStructureIteratorTest(unittest.TestCase):
@@ -218,7 +218,7 @@ class CognitiveContentStructureIteratorTest(unittest.TestCase):
 
         expected_value = 1
         for actual in it:
-            assert (expected_value == actual.value)
+            self.assertEqual(expected_value, actual.value)
             expected_value += 1
 
 
@@ -235,7 +235,7 @@ class CognitiveContentStructureTest(unittest.TestCase):
 
         # Check that empty CognitiveContentStructure has len() = 0
         ccs = CognitiveContentStructure()
-        assert (len(ccs)) == 0
+        self.assertEqual(len(ccs), 0)
 
         # Check that passing an iterable with N elements results in
         # len(CognitiveContentStructure) = N
@@ -256,10 +256,10 @@ class CognitiveContentStructureTest(unittest.TestCase):
         ccs = CognitiveContentStructure()
 
         ccs.insert(CognitiveContent(1))
-        assert (len(ccs) == 1)
+        self.assertEqual(len(ccs), 1)
 
         ccs.insert(CognitiveContent(2))
-        assert (len(ccs) == 2)
+        self.assertEqual(len(ccs), 2)
 
     def test_add(self):
         ccs1 = CognitiveContentStructure([CognitiveContent(v) for v in range(0, 5)])
@@ -313,16 +313,16 @@ class CognitiveContentStructureTest(unittest.TestCase):
 
         # Check that removing an element decreases the len() by 1
         ccs = CognitiveContentStructure()
-        assert (len(ccs) == 0)
+        self.assertEqual(len(ccs), 0)
         cc = CognitiveContent(1)
         ccs.insert(cc)
-        assert (len(ccs) == 1)
+        self.assertEqual(len(ccs), 1)
         ccs.remove(cc)
-        assert (len(ccs) == 0)
+        self.assertEqual(len(ccs), 0)
 
         # Check that removing an non-existent element is ignored
         ccs.remove(cc)
-        assert (len(ccs) == 0)
+        self.assertEqual(len(ccs), 0)
 
     def test_iter(self):
         ccs = CognitiveContentStructure()
@@ -334,14 +334,14 @@ class CognitiveContentStructureTest(unittest.TestCase):
         for cc in cc_list:
             ccs.insert(cc)
 
-        assert (len(cc_list) == len(ccs))
+        self.assertEqual(len(cc_list), len(ccs))
 
         # Check expected number of loop iterations
         n = 0
         for cc in ccs:
             n += 1
 
-        assert (n == len(cc_list))
+        self.assertEqual(n, len(cc_list))
 
         # Check content matches expectation
         for cc in ccs:
@@ -355,7 +355,7 @@ class CognitiveContentStructureTest(unittest.TestCase):
 
         # If all CognitiveContent objects returned then the original
         # list should have no elements.
-        assert (len(cc_list) == 0)
+        self.assertEqual(len(cc_list), 0)
 
         ccs = CognitiveContentStructure()
         for cc in ccs:
@@ -372,16 +372,16 @@ class CognitiveContentStructureTest(unittest.TestCase):
         ccs.insert(cc2)
         ccs.insert(cc3)
 
-        assert (len(ccs) == 3)
+        self.assertEqual(len(ccs), 3)
 
         def multiply_value_by_2(cc):
             cc.value *= 2
 
         ccs.apply(multiply_value_by_2)
 
-        assert (cc1.value == 2)
-        assert (cc2.value == 4)
-        assert (cc3.value == 6)
+        self.assertEqual(cc1.value, 2)
+        self.assertEqual(cc2.value, 4)
+        self.assertEqual(cc3.value, 6)
 
     def test_remove_all_matches(self):
         ccs = CognitiveContentStructure()
@@ -389,8 +389,8 @@ class CognitiveContentStructureTest(unittest.TestCase):
         for i in range(0, 100):
             ccs.insert(CognitiveContent(i))
 
-        assert (len(ccs) == 100)
+        self.assertEqual(len(ccs), 100)
 
         ccs.remove_all_matches(lambda x: x.value >= 50)
 
-        assert (len(ccs) == 50)
+        self.assertEqual(len(ccs), 50)
