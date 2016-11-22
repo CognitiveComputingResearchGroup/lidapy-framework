@@ -1,7 +1,6 @@
 from lidapy.framework.module import FrameworkModule
 from lidapy.framework.msg import FrameworkTopic
-from lidapy.framework.shared import Activatable
-
+from lidapy.framework.shared import Activatable, CognitiveContent
 
 # Topics used by this module
 from lidapy.framework.shared import FrameworkObject
@@ -30,23 +29,36 @@ class ProceduralMemory(FrameworkModule):
             CANDIDATE_BEHAVIORS.publisher.publish(candidate_behaviors)
 
 
-class Scheme(Activatable):
-    def __init__(self):
-        super(Scheme, self).__init__()
-
-
 class Behavior(Activatable):
-    def __init__(self, scheme):
+    def __init__(self, unique_id, scheme=None):
         super(Behavior, self).__init__()
 
+        self.unique_id = unique_id
         self.scheme = scheme
 
 
-class Action(object):
-    def __init__(self):
+class Scheme(Activatable):
+    def __init__(self, unique_id, action=None, conditions=None):
+        super(Scheme, self).__init__()
+
+        self.unique_id = unique_id
+        self.action = action
+        self.conditions = conditions
+
+
+class Action(Activatable):
+    def __init__(self, unique_id):
         super(Action, self).__init__()
+
+        self.unique_id = unique_id
 
 
 class Condition(Activatable):
-    def __init__(self):
+    def __init__(self, unique_id, predicate):
         super(Condition, self).__init__()
+
+        self.unique_id = unique_id
+        self.predicate = predicate
+
+    def check(self, *args, **kwargs):
+        return self.predicate(*args, **kwargs)

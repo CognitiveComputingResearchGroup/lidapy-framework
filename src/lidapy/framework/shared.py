@@ -132,7 +132,18 @@ class CognitiveContent(Activatable):
     def __init__(self, value):
         super(CognitiveContent, self).__init__()
 
-        self.value = value
+        # Prevent nested cognitive content
+        if isinstance(value, CognitiveContent):
+            self.copy(value)
+        else:
+            self.value = value
+
+    def copy(self, other):
+        self.value = other.value
+        self.activation = other.activation
+        self.incentive_salience = other.incentive_salience
+        self.base_level_activation = other.base_level_activation
+        self.removal_threshold = other.removal_threshold
 
     def __eq__(self, other):
         if other is None:

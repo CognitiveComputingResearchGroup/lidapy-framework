@@ -134,16 +134,38 @@ class ActionSelection(FrameworkModule):
 
 
 class BehaviorNetwork(FrameworkObject):
-    DEFAULT_CANDIDATE_THRESHOLD = 0.9
-
     def __init__(self):
         super(BehaviorNetwork, self).__init__()
 
-        self.candidate_threshold = self.DEFAULT_CANDIDATE_THRESHOLD
+        self.behaviors = dict()
+        self.candidate_threshold = self.initial_candidate_threshold
 
-        # TODO: The choice of strategy should be determined by the configuration
-        # TODO: file.
-        self.decay_strategy = SigmoidDecayStrategy()
+        self.candidate_threshold_decay_strategy = SigmoidDecayStrategy()
+        self.behavior_decay_strategy = SigmoidDecayStrategy()
+
+    @property
+    def initial_candidate_threshold(self):
+        return self.config.get_param("action_selection", "initial_candidate_threshold", default_value=0.9)
+
+    @property
+    def broadcast_excitation_factor(self):
+        return self.config.get_param("action_selection", "broadcast_excitation_factor", default_value=0.05)
+
+    @property
+    def successor_excitation_factor(self):
+        return self.config.get_param("action_selection", "successor_excitation_factor", default_value=0.04)
+
+    @property
+    def predecessor_excitation_factor(self):
+        return self.config.get_param("action_selection", "predecessor_excitation_factor", default_value=0.1)
+
+    @property
+    def conflictor_excitation_factor(self):
+        return self.config.get_param("action_selection", "conflictor_excitation_factor", default_value=0.04)
+
+    @property
+    def context_satisfaction_threshold(self):
+        return self.config.get_param("action_selection", "context_satisfaction_threshold", default_value=0.0)
 
     def select_behavior(self, behaviors, rate_in_hz):
         best_candidate = max(behaviors, key=attrgetter('activation'))
@@ -153,7 +175,7 @@ class BehaviorNetwork(FrameworkObject):
             self.logger.debug("Behavior selected: {}".format(best_candidate))
 
             # Reset candidate threshold
-            self.candidate_threshold = self.DEFAULT_CANDIDATE_THRESHOLD
+            self.candidate_threshold = self.initial_candidate_threshold
 
             self.logger.debug("Resetting candidate threshold to {}".format(self.candidate_threshold))
 
@@ -162,7 +184,7 @@ class BehaviorNetwork(FrameworkObject):
         # [No Selected Behavior]
         else:
             self.candidate_threshold \
-                = self.decay_strategy.get_next_value(self.candidate_threshold, rate_in_hz)
+                = self.candidate_threshold_decay_strategy.get_next_value(self.candidate_threshold, rate_in_hz)
 
             self.logger.debug(
                 "No behavior selected.  Reducing candidate_threshold to {}".format(self.candidate_threshold))
