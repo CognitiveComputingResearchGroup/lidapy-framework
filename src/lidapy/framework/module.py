@@ -1,27 +1,13 @@
-from abc import ABCMeta, abstractmethod
-
-from lidapy.framework.process import FrameworkProcess, FrameworkBackgroundTask
+from lidapy.framework.process import FrameworkProcess
 from lidapy.framework.service import FrameworkService
-from lidapy.framework.msg import FrameworkTopic
-from lidapy.util.comm import FrameworkTopicPublisher, FrameworkTopicSubscriber
 
 
 class FrameworkModule(FrameworkProcess):
-    __metaclass__ = ABCMeta
-
     """ The FrameworkModule class is used to sub-divide an agent into high-level processing components called modules.
-
-    During initialization, the FrameworkModule is registered as a ros node and publishers/subscribers/services
-    are registered with the ros master (as necessary).  The call method is invoked at regular intervals (as determined
-    by the \"rate_in_hz\" parameter).  Care should be taken to ensure that the call method does not have any
-    long-running (blocking) operations as this may cause the module to become unresponsive.
-
-    Each FrameworkModule must run as a separate process.
-
     """
 
     def __init__(self, **kwargs):
-        super(FrameworkModule, self).__init__(self.get_module_name(), **kwargs)
+        super(FrameworkModule, self).__init__(self.get_module_name())
 
         # A dictionary of FrameworkTopics
         #
@@ -54,10 +40,10 @@ class FrameworkModule(FrameworkProcess):
         #
         # format:
         # [
-        #     FrameworkTask1,
-        #     FrameworkTask2,
+        #     TaskName1 : FrameworkBackgroundTask1,
+        #     TaskName2 : FrameworkBackgroundTask2,
         # ]
-        self.background_tasks = []
+        self.background_tasks = {}
 
         # A dictionary of FrameworkServices
         #
@@ -110,7 +96,7 @@ class FrameworkModule(FrameworkProcess):
 
         :return: None
         """
-        for task in self.background_tasks:
+        for task in self.background_tasks.itervalues():
             task.start()
 
     @classmethod
@@ -142,7 +128,7 @@ class FrameworkModule(FrameworkProcess):
 
         :return: None
         """
-        super(FrameworkProcess, self).run()
+        super(FrameworkProcess, self).start()
 
     def update_status(self):
         """Update the status of this FrameworkModule.
@@ -151,6 +137,6 @@ class FrameworkModule(FrameworkProcess):
         """
         super(FrameworkModule, self).update_status()
 
-        for task in self.background_tasks:
+        for task in self.background_tasks.itervalues():
             if task.status is self.ERROR:
                 self.status = self.ERROR

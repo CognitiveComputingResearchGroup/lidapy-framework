@@ -3,7 +3,7 @@ import unittest
 from lidapy.framework.agent import AgentConfig
 from lidapy.framework.shared import FrameworkDependencyService
 from lidapy.module.action_selection import ActionSelection, BehaviorNetwork
-from lidapy.module.procedural_memory import Behavior, Scheme
+from lidapy.module.procedural_memory import Behavior
 from lidapy.util.comm import LocalCommunicationProxy
 from lidapy.util.logger import ConsoleLogger
 from lidapy.util.meta import Singleton
@@ -64,18 +64,13 @@ class ActionSelectionTest(unittest.TestCase):
             self.assertTrue(p in module.publishers)
 
         # Verify background tasks
-        expected_background_tasks = ["behavior_selector",
-                                     "behavior_publisher",
-                                     "candidate_behaviors_receiver",
+        expected_background_tasks = ["receiver",
+                                     "selector",
+                                     "publisher",
+                                     "decayer",
                                      "learner"]
         for b in expected_background_tasks:
             self.assertTrue(b in module.background_tasks)
-
-    def test_finalize(self):
-        pass
-
-    def test_update_status(self):
-        pass
 
     def test_receive_candidates(self):
         module = ActionSelection()
@@ -172,8 +167,6 @@ class ActionSelectionTest(unittest.TestCase):
                 # Manually add candidate behaviors to candidate behaviors message queue
                 module.candidate_behaviors_queue.push(candidate_behaviors)
 
-
-
     def test_publish_selected_behavior(self):
         module = ActionSelection()
         module.initialize()
@@ -201,6 +194,24 @@ class ActionSelectionTest(unittest.TestCase):
 
     def test_learn(self):
         pass
+
+        # def test_start(self):
+        #     module = ActionSelection()
+        #
+        #     starter_dict = dict()
+        #
+        #     module.receiver_task = FrameworkBackgroundTask(name="receiver", callback=start_check)
+        #     module.selector_task = FrameworkBackgroundTask(name="selector", callback=start_check)
+        #     module.publisher_task = FrameworkBackgroundTask(name="publisher", callback=start_check)
+        #     module.decayer_task = FrameworkBackgroundTask(name="decayer", callback=start_check)
+        #     module.learner_task = FrameworkBackgroundTask(name="learner", callback=start_check)
+        #
+        #     module.start()
+        #
+        #     while len(starter_dict) < 5:
+        #         sleep(.1)
+        #
+        #     self.assertEquals(len(starter_dict), 5)
 
 
 class BehaviorNetworkTest(unittest.TestCase):

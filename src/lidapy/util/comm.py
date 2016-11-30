@@ -12,6 +12,7 @@ from lidapy.framework.shared import FrameworkObject
 # ROS specific imports
 import rospy
 from lidapy.util.functions import generate_random_name
+from lidapy.util.logger import DEFAULT_LOG_LEVEL
 from std_msgs.msg import String
 
 
@@ -121,7 +122,7 @@ class LocalCommunicationProxy(FrameworkCommunicationProxy):
         # }
         self.msg_queues = {}
 
-    def initialize_node(self, name, log_level):
+    def initialize_node(self, name, log_level=DEFAULT_LOG_LEVEL):
         # No-op
         pass
 
@@ -194,8 +195,11 @@ class FrameworkTopicSubscriber(FrameworkObject):
 
 
 class RosTopicPublisher(FrameworkTopicPublisher):
-    def __init__(self, topic_name, msg_type=String, queue_size=None, preprocessor=None):
+    def __init__(self, topic_name, msg_type=None, queue_size=10, preprocessor=None):
         super(RosTopicPublisher, self).__init__(topic_name, msg_type, queue_size, preprocessor)
+
+        self.msg_type = msg_type if msg_type is not None else String
+        self.queue_size = queue_size if queue_size is not None else 10
 
         if preprocessor is None and msg_type is String:
             def default_preprocessor(msg):
@@ -218,8 +222,11 @@ class RosTopicPublisher(FrameworkTopicPublisher):
 
 
 class RosTopicSubscriber(FrameworkTopicSubscriber):
-    def __init__(self, topic_name, msg_type=String, queue_size=None, postprocessor=None):
+    def __init__(self, topic_name, msg_type=None, queue_size=None, postprocessor=None):
         super(RosTopicSubscriber, self).__init__(topic_name, msg_type, queue_size, postprocessor)
+
+        self.msg_type = msg_type if msg_type is not None else String
+        self.queue_size = queue_size if queue_size is not None else 10
 
         if postprocessor is None and msg_type is String:
             def default_postprocessor(msg):

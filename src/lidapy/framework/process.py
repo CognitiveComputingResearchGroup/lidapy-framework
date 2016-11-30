@@ -1,12 +1,6 @@
-import os
-import random
-import string
-
 from abc import ABCMeta, abstractmethod
 from multiprocessing import Process
 from threading import Thread, currentThread
-from traceback import format_exc
-from operator import attrgetter
 
 from lidapy.framework.shared import FrameworkObject
 from lidapy.util.functions import generate_random_name
@@ -85,7 +79,7 @@ class FrameworkProcess(Process, FrameworkRunnable):
 
 
 class FrameworkThread(Thread, FrameworkRunnable):
-    def __init__(self, callback, name=None, callback_args=None, exec_count=None):
+    def __init__(self, callback, name=None, callback_args=None, exec_count=-1):
 
         if name is None:
             name = generate_random_name(prefix="Thread_", length=16)
@@ -94,7 +88,7 @@ class FrameworkThread(Thread, FrameworkRunnable):
         FrameworkRunnable.__init__(self, name=name)
 
         self.callback = callback
-        self.callback_args = callback_args
+        self.callback_args = callback_args if callback_args is not None else []
         self.exec_count = exec_count
         self.exception = None
 
@@ -103,15 +97,18 @@ class FrameworkThread(Thread, FrameworkRunnable):
                 raise Exception("Execution count must be a positive integer if specified.")
 
     def run(self):
-        self.logger.info("FrameworkProcess [name = {}] beginning execution".format(self.name))
+        self.logger.info("FrameworkThread [name = {}] beginning execution".format(self.name))
         self.initialize()
 
         try:
             while not self.is_complete():
-                self.callback(self.callback_args)
+                self.callback(*self.callback_args)
                 self.update_status()
                 self.wait()
         except Exception as self.exception:
+            self.logger.error(
+                "FrameworkThread [name = {}] received an exception in run() method: {}".format(self.name,
+                                                                                               self.exception))
             self.status = self.ERROR
 
         self.finalize()
@@ -131,7 +128,7 @@ class FrameworkThread(Thread, FrameworkRunnable):
         if self.is_shutting_down():
             self.status = self.COMPLETE
 
-        elif self.exec_count is not None:
+        elif self.exec_count is not -1:
             self.exec_count -= 1
 
             if self.exec_count <= 0:
