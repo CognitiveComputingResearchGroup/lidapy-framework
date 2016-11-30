@@ -30,20 +30,14 @@ class ProceduralMemory(FrameworkModule):
 
 
 class Behavior(Activatable):
-    def __init__(self, unique_id, scheme=None):
+    def __init__(self, unique_id, action=None, context_conditions=set(), adding_list=set(), deleting_list=set()):
         super(Behavior, self).__init__()
 
         self.unique_id = unique_id
-        self.scheme = scheme
-
-
-class Scheme(Activatable):
-    def __init__(self, unique_id, action=None, conditions=None):
-        super(Scheme, self).__init__()
-
-        self.unique_id = unique_id
         self.action = action
-        self.conditions = conditions
+        self.context_conditions = set(context_conditions)
+        self.adding_list = set(adding_list)
+        self.deleting_list = set(deleting_list)
 
 
 class Action(Activatable):

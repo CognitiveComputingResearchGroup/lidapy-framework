@@ -18,15 +18,15 @@ class ActionSelection(FrameworkModule):
         super(ActionSelection, self).__init__()
 
         # Topics used by this module
-        self.SELECTED_BEHAVIORS = FrameworkTopic(self.SELECTED_BEHAVIORS_TOPIC_NAME)
         self.CANDIDATE_BEHAVIORS = FrameworkTopic(self.CANDIDATE_BEHAVIORS_TOPIC_NAME)
+        self.SELECTED_BEHAVIORS = FrameworkTopic(self.SELECTED_BEHAVIORS_TOPIC_NAME)
         self.GLOBAL_BROADCAST = FrameworkTopic(self.GLOBAL_BROADCAST_TOPIC_NAME)
 
         self.default_max_queue_size \
             = self.config.get_type_or_global_param(self.get_module_name(), "max_queue_size", 10)
 
         # The candidate_behaviors queue is used for the temporary storage of a set of instantiated
-        # candidate behaviors (schemes).  These will be processed by a background task to determine
+        # candidate behaviors.  These will be processed by a background task to determine
         # which (if any) will be selected for execution.
         self.candidate_behaviors_max_queue_size \
             = self.config.get_param(self.get_module_name(), "candidate_behaviors_max_queue_size",
@@ -46,6 +46,26 @@ class ActionSelection(FrameworkModule):
 
         self.behavior_net = BehaviorNetwork()
 
+        self.receiver_task \
+            = FrameworkBackgroundTask(name="receiver",
+                                      callback=self.receive_candidates)
+
+        self.selector_task \
+            = FrameworkBackgroundTask(name="selector",
+                                      callback=self.select_behavior_from_candidates)
+
+        self.publisher_task \
+            = FrameworkBackgroundTask(name="publisher",
+                                      callback=self.publish_selected_behavior)
+
+        self.decayer_task \
+            = FrameworkBackgroundTask(name="decayer",
+                                      callback=self.decay_behaviors)
+
+        self.learner_task \
+            = FrameworkBackgroundTask(name="learner",
+                                      callback=self.learn)
+
     @classmethod
     def get_module_name(cls):
         return "action_selection"
@@ -56,24 +76,13 @@ class ActionSelection(FrameworkModule):
 
         self.add_publishers([self.SELECTED_BEHAVIORS])
         self.add_subscribers([self.CANDIDATE_BEHAVIORS, self.GLOBAL_BROADCAST])
+        self.add_background_tasks([self.receiver_task,
+                                   self.selector_task,
+                                   self.publisher_task,
+                                   self.decayer_task,
+                                   self.learner_task])
 
-        receiver_task \
-            = FrameworkBackgroundTask(name="candidate_behaviors_receiver",
-                                      callback=self.receive_candidates)
-
-        selector_task \
-            = FrameworkBackgroundTask(name="behavior_selector",
-                                      callback=self.select_behavior_from_candidates)
-
-        publisher_task \
-            = FrameworkBackgroundTask(name="behavior_publisher",
-                                      callback=self.publish_selected_behavior)
-
-        learner_task \
-            = FrameworkBackgroundTask(name="learner",
-                                      callback=self.learn)
-
-        self.add_background_tasks([receiver_task, selector_task, publisher_task, learner_task])
+        self.launch_background_tasks()
 
     # This method is invoked when module execution completes
     def finalize(self):
@@ -87,13 +96,13 @@ class ActionSelection(FrameworkModule):
     def start(self):
         super(ActionSelection, self).start()
 
-        self.launch_background_tasks()
-
+    # The callback for the receiver task
     def receive_candidates(self):
         next_candidates = self.subscribers[self.CANDIDATE_BEHAVIORS_TOPIC_NAME].get_next_msg()
         if next_candidates is not None:
             self.candidate_behaviors_queue.push(next_candidates)
 
+    # The callback for the selector task
     def select_behavior_from_candidates(self):
         # Check for available candidate behaviors
         try:
@@ -110,6 +119,7 @@ class ActionSelection(FrameworkModule):
                 self.logger.debug("Behavior selected: {}".format(selected_behavior))
                 self.selected_behaviors_queue.push(selected_behavior)
 
+    # The callback for the publisher task
     def publish_selected_behavior(self):
 
         # Check for available selected behaviors
@@ -126,6 +136,9 @@ class ActionSelection(FrameworkModule):
         else:
             self.logger.debug("No behaviors selected for execution")
 
+    def decay_behaviors(self):
+        self.behavior_net.decay(self.rate_in_hz)
+
     def learn(self):
         global_broadcast = self.subscribers[self.GLOBAL_BROADCAST_TOPIC_NAME].get_next_msg()
         if global_broadcast is not None:
@@ -137,7 +150,30 @@ class BehaviorNetwork(FrameworkObject):
     def __init__(self):
         super(BehaviorNetwork, self).__init__()
 
+        # A dictionary with the following structure:
+        #    { Behavior Id 1: Behavior 1,
+        #      Behavior Id 2: Behavior 2,
+        #      ...}
         self.behaviors = dict()
+
+        # A dictionary with the following structure:
+        #    { Condition 1: {Behavior A, Behavior B, ...},
+        #      Condition 2: {Behavior X, Behavior Y, ...},
+        #      ...}
+        self.behaviors_by_context = dict()
+
+        # A dictionary with the following structure:
+        #    { Condition 1: {Behavior A, Behavior B, ...},
+        #      Condition 2: {Behavior X, Behavior Y, ...},
+        #      ...}
+        self.behaviors_by_adding_item = dict()
+
+        # A dictionary with the following structure:
+        #    { Condition 1: {Behavior A, Behavior B, ...},
+        #      Condition 2: {Behavior X, Behavior Y, ...},
+        #      ...}
+        self.behaviors_by_deleting_item = dict()
+
         self.candidate_threshold = self.initial_candidate_threshold
 
         self.candidate_threshold_decay_strategy = SigmoidDecayStrategy()
@@ -174,6 +210,9 @@ class BehaviorNetwork(FrameworkObject):
         if best_candidate.activation >= self.candidate_threshold:
             self.logger.debug("Behavior selected: {}".format(best_candidate))
 
+            # Remove activation from selected behavior
+            best_candidate.activation = 0.0
+
             # Reset candidate threshold
             self.candidate_threshold = self.initial_candidate_threshold
 
@@ -190,3 +229,23 @@ class BehaviorNetwork(FrameworkObject):
                 "No behavior selected.  Reducing candidate_threshold to {}".format(self.candidate_threshold))
 
             return None
+
+    def decay(self, rate_in_hz):
+        for behavior in self.behaviors:
+            behavior.activation \
+                = self.behavior_decay_strategy.get_next_value(behavior.activation,
+                                                              rate_in_hz)
+            if behavior.activation < behavior.removal_threshold:
+                self.remove_behavior(behavior)
+
+    def add_behavior(self, behavior):
+        if behavior is not None:
+            self.behaviors[behavior.unique_id] = behavior
+
+    def remove_behavior(self, behavior):
+        if behavior is not None:
+            try:
+                self.behaviors.pop(behavior.unique_id)
+            except KeyError:
+                raise KeyError("Attempted to remove non-existent behavior [unique_id = {}] from BehaviorNetwork".format(
+                    behavior.unique_id))
