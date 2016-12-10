@@ -60,12 +60,6 @@ class BasicSensoryMotorMemory(SensoryMotorMemory):
     def add_publishers(self):
         super(BasicSensoryMotorMemory, self).add_publisher(WHEELCMD_TOPIC)
 
-    def get_next_msg(self, topic):
-        return super(SensoryMotorMemory, self).get_next_msg(topic)
-
-    def publish(self, topic, msg):
-        super(SensoryMotorMemory, self).publish(topic, msg)
-
     def call(self):
         self.stateMachine.execute()
 
