@@ -12,4 +12,4 @@ pwd
 echo "PYTHONPATH: " $PYTHONPATH
 
 # Uses unittest autodiscovery to find and run all unittests under the test directory
-python -m unittest discover --pattern '*.py'
+python -m unittest discover --pattern '*.py' -v
