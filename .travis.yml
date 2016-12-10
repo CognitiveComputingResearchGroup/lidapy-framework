@@ -9,5 +9,4 @@ compiler:
 sudo: required
 dist: trusty
 install: ./scripts/install_test_dependencies.sh
-before_script: source ./scripts/setup_test.bash
 script: ./scripts/run_tests.sh
