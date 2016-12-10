@@ -25,9 +25,6 @@ class TalkerModule(FrameworkModule):
     def get_module_name(cls):
         return TALKER_MODULE_NAME
 
-    def add_publishers(self):
-        super(TalkerModule, self).add_publisher(TALKER_LISTENER_TOPIC)
-
     # The call method is executed automatically every (1/rate_in_hz) seconds.  The
     # rate_in_hz parameter is defined in the agent.conf configuration file.
     def call(self):
@@ -49,9 +46,6 @@ class ListenerModule(FrameworkModule):
     @classmethod
     def get_module_name(cls):
         return LISTENER_MODULE_NAME
-
-    def add_subscribers(self):
-        super(ListenerModule, self).add_subscriber(TALKER_LISTENER_TOPIC)
 
     # The call method is executed automatically every (1/rate_in_hz) seconds.  The
     # rate_in_hz parameter is defined in the agent.conf configuration file.
