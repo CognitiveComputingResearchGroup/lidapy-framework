@@ -10,3 +10,4 @@ sudo apt-get install ros-jade-gazebo-ros-pkgs
 pip install nose
 pip install pyyaml
 pip install rospkg
+sudo apt-get install -y python-rosinstall
