@@ -11,5 +11,8 @@ pwd
 
 echo "PYTHONPATH: " $PYTHONPATH
 
+echo "Sys Paths from Python"
+python ../../scripts/test_syspath.py
+
 # Uses unittest autodiscovery to find and run all unittests under the test directory
 python -m unittest discover --pattern '*.py' -v
