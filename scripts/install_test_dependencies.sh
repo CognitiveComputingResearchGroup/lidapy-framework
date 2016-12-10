@@ -7,6 +7,6 @@ sudo rosdep init
 rosdep -y update
 #sudo apt-get install gazebo5
 sudo apt-get install ros-jade-gazebo-ros-pkgs
-#pip install nose
-#pip install pyyaml
+pip install nose
+pip install pyyaml
 #pip install rospkg
