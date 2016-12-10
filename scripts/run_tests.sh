@@ -1,8 +1,8 @@
 #! /bin/bash
 
-LIDAPY_FRAMEWORK=$(find $HOME -type d -name lidapy-framework 2>/dev/null)
+source ~/.lidapy/setup.bash
 
-source $LIDAPY_FRAMEWORK/scripts/setup_test.bash
+LIDAPY_FRAMEWORK=$(find $HOME -type d -name lidapy-framework 2>/dev/null)
 
 # Assumes script is being run from the scripts directory
 cd $LIDAPY_FRAMEWORK/test/lidapy

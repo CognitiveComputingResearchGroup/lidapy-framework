@@ -133,3 +133,5 @@ class CognitiveContentStructureTest(unittest.TestCase):
         # Check that removing an element decreases the len() by 1
         c.remove(CognitiveContent(1))
         assert (len(c) == 0)
+
+        # self.fail("FAILURE:  Nah, just kidding.  Remove this line in test script.")
