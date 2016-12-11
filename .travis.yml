@@ -5,5 +5,7 @@ python:
 sudo: required
 dist: trusty
 install: ./scripts/install_test_dependencies.sh
-before_script: ./scripts/setup.sh ~/tmp_workspace
+before_script: 
+    - source /opt/ros/jade/setup.bash
+    - ./scripts/setup.sh ~/tmp_workspace
 script: ./scripts/run_tests.sh
