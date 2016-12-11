@@ -1,11 +1,7 @@
 # After changing this file, verify the syntax on http://lint.travis-ci.org/
-language:
-    - cpp
-    - python
+language: python
 python:
     - "2.7"
-compiler:
-    - gcc
 sudo: required
 dist: trusty
 install: ./scripts/install_test_dependencies.sh
