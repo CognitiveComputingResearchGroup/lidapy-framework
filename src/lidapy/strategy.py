@@ -1,4 +1,4 @@
-from math import log, exp
+import math
 
 MIN_ACTIVATION = 0.0
 MAX_ACTIVATION = 1.0
@@ -51,7 +51,7 @@ class SigmoidHelper(object):
         elif current_activation <= 0.0:
             current_activation = EPSILON_MIN
 
-        return -log(1.0 / current_activation - 1)
+        return -math.log(1.0 / current_activation - 1)
 
 
 class SigmoidDecayStrategy(object):
@@ -67,7 +67,7 @@ class SigmoidDecayStrategy(object):
 
         t = SigmoidHelper.get_time_from_activation(current_activation) - self.rate_multiplier / rate_in_hz
 
-        next_activation = 1.0 / (1.0 + exp(-t))
+        next_activation = 1.0 / (1.0 + math.exp(-t))
         if next_activation < MIN_ACTIVATION:
             next_activation = MIN_ACTIVATION
 
@@ -87,7 +87,7 @@ class SigmoidExciteStrategy(object):
 
         t = SigmoidHelper.get_time_from_activation(current_activation) + self.rate_multiplier / rate_in_hz
 
-        next_activation = 1.0 / (1 + exp(-t))
+        next_activation = 1.0 / (1 + math.exp(-t))
         if next_activation > MAX_ACTIVATION:
             next_activation = MAX_ACTIVATION
 

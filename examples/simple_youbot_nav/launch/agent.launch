@@ -1,5 +1,4 @@
 <launch>
     <node name="gazebo" pkg="gazebo_ros" type="gzserver" required="true" args="$(find simple_youbot_nav)/gazebo/worlds/simple_maze.world"/>
-    <node name="sensory_memory" pkg="simple_youbot_nav" type="custom_agent_starter.py" required="true" args="-m sensory_memory -f $(find simple_youbot_nav)/configs/agent.conf"/>
-    <node name="sensory_motor_memory" pkg="simple_youbot_nav" type="custom_agent_starter.py" required="true" args="-m sensory_motor_memory -f $(find simple_youbot_nav)/configs/agent.conf"/>
+    <node name="agent" pkg="simple_youbot_nav" type="agent.py" required="true"/>
 </launch>

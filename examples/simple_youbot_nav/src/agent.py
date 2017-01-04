@@ -1,74 +1,102 @@
+#!/usr/bin/env python
+
 from numpy import average
 from time import sleep
 
-from lidapy.framework.msg import FrameworkTopic
-from lidapy.framework.shared import CognitiveContent
-from lidapy.module.sensory_memory import SensoryMemory, DORSAL_STREAM_TOPIC, VENTRAL_STREAM_TOPIC
-from lidapy.module.sensory_motor_memory import SensoryMotorMemory
+from collections import deque
+
+import lidapy
+
+from lidapy import Config
+from lidapy import Task
+from lidapy import Topic
+from lidapy import Sensor
+
+from lidapy.modules import PerceptualAssociativeMemory
+from lidapy.modules import SensoryMemory
+from lidapy.modules import SensoryMotorMemory
+from lidapy.modules import DORSAL_STREAM_TOPIC
+from lidapy.modules import VENTRAL_STREAM_TOPIC
+
+from smach import State
+from smach import StateMachine
+
 from sensor_msgs.msg import LaserScan
 from simple_youbot_nav.msg import WheelCommand
-from smach import State, StateMachine
-
 
 # Topic definitions
-RAYSCAN_TOPIC = FrameworkTopic("/gazebo/sensors/rayscan", msg_type=LaserScan)
-WHEELCMD_TOPIC = FrameworkTopic("/gazebo/commands", msg_type=WheelCommand)
+WHEEL_CMD_TOPIC = Topic("/gazebo/commands", msg_type=WheelCommand)
 
 
 class BasicSensoryMemory(SensoryMemory):
-    def __init__(self, **kwargs):
-        super(BasicSensoryMemory, self).__init__(**kwargs)
+    def __init__(self):
+        super(BasicSensoryMemory, self).__init__()
 
-    def add_subscribers(self):
-        super(BasicSensoryMemory, self).add_subscribers()
+    def initialize(self):
+        # Add topics
+        rayscan_topic = Topic("/gazebo/sensor/rayscan", msg_type=LaserScan)
+        rayscan_sensor = Sensor("rayscan", topic=rayscan_topic)
 
-        self.add_subscriber(RAYSCAN_TOPIC)
+        # Add sensory scene
+        rayscan_scene = SensoryScene(sensor=rayscan_sensor)
 
-    def call(self):
-        rayscan_data = self.get_next_msg(RAYSCAN_TOPIC)
+        # Add background tasks
+        self.add_task(Task("process_rayscan", callback=self.process_rayscan))
 
-        if rayscan_data is not None:
-            self.publish(DORSAL_STREAM_TOPIC, CognitiveContent(rayscan_data))
-            self.publish(VENTRAL_STREAM_TOPIC, CognitiveContent(rayscan_data))
+    def process_rayscan(self):
+        data = self.sensors['rayscan'].data
+        if data is not None:
+            DORSAL_STREAM_TOPIC.publish(data)
+            VENTRAL_STREAM_TOPIC.publish(data)
+
+
+class BasicPerceptualAssociativeMemory(PerceptualAssociativeMemory):
+    def __init__(self):
+        super(BasicPerceptualAssociativeMemory, self).__init__()
+
+        self.nodes()
 
 
 class BasicSensoryMotorMemory(SensoryMotorMemory):
-    def __init__(self, **kwargs):
-        super(BasicSensoryMotorMemory, self).__init__(**kwargs)
+    def __init__(self):
+        super(BasicSensoryMotorMemory, self).__init__()
 
-        self.stateMachine = self.create_state_machine()
+        self.state_machine = self.create_state_machine()
+        self.next_action = None
 
-    def add_publishers(self):
-        super(BasicSensoryMotorMemory, self).add_publishers()
+    def initialize(self):
+        self.task_manager.add(Task("state_machine", callback=self.state_machine.execute))
 
-        self.add_publisher(WHEELCMD_TOPIC)
+    def receive_dorsal_stream(self):
+        dorsal_stream = DORSAL_STREAM_TOPIC.subscriber.get_next_msg()
 
-    def call(self):
-        self.stateMachine.execute()
+    def execute_action(self):
+        if self.next_action is not None:
+            WHEEL_CMD_TOPIC.publish(self.next_action)
 
     def create_state_machine(self):
         new_state_machine = StateMachine(outcomes=['success', 'failure'])
         with new_state_machine:
-            StateMachine.add("SCAN", CheckEnv(self, logger=self.logger),
+            StateMachine.add("SCAN", CheckEnv(self),
                              transitions={"clear_front": "FORWARD",
                                           "clear_left": "TURN_LEFT",
                                           "clear_right": "TURN_RIGHT",
                                           "blocked": "REVERSE",
                                           "unknown": "STOP"})
             StateMachine.add("FORWARD",
-                             LinearMove(self, direction=LinearMove.FORWARD, duration=0.1, logger=self.logger),
+                             LinearMove(self, direction=LinearMove.FORWARD, duration=0.1),
                              transitions={"success": "success"})
             StateMachine.add("REVERSE",
-                             Turn(self, angle=0.8, direction=LinearMove.REVERSE, duration=4, logger=self.logger),
+                             Turn(self, angle=0.8, direction=LinearMove.REVERSE, duration=4),
                              transitions={"success": "success"})
             StateMachine.add("TURN_LEFT",
-                             Turn(self, angle=0.8, direction=Turn.FORWARD, duration=0.1, logger=self.logger),
+                             Turn(self, angle=0.8, direction=Turn.FORWARD, duration=0.1),
                              transitions={"success": "success"})
             StateMachine.add("TURN_RIGHT",
-                             Turn(self, angle=-0.8, direction=Turn.FORWARD, duration=0.1, logger=self.logger),
+                             Turn(self, angle=-0.8, direction=Turn.FORWARD, duration=0.1),
                              transitions={"success": "success"})
             StateMachine.add("STOP",
-                             LinearMove(self, direction=LinearMove.STOP, duration=0.1, logger=self.logger),
+                             LinearMove(self, direction=LinearMove.STOP, duration=0.1),
                              transitions={"success": "success"})
 
         return new_state_machine
@@ -76,7 +104,7 @@ class BasicSensoryMotorMemory(SensoryMotorMemory):
 
 # States for FSM
 class CheckEnv(State):
-    def __init__(self, smm, logger):
+    def __init__(self, smm):
         State.__init__(self,
                        outcomes=["clear_front",
                                  "clear_left",
@@ -84,11 +112,8 @@ class CheckEnv(State):
                                  "blocked",
                                  "unknown"])
         self.smm = smm
-        self.logger = logger
 
     def execute(self, userdata):
-        self.logger.debug("Executing CheckEnv")
-
         dorsal_stream_msg = self.smm.get_next_msg(DORSAL_STREAM_TOPIC)
         if dorsal_stream_msg is None:
             return "unknown"
@@ -142,13 +167,12 @@ class LinearMove(State):
     STOP = 0
     REVERSE = -1
 
-    def __init__(self, smm, direction, duration, logger):
+    def __init__(self, smm, direction, duration):
         State.__init__(self, outcomes=['success', 'failure'])
 
         self.smm = smm
         self.direction = direction
         self.duration = duration
-        self.logger = logger
 
     def get_next_cmd(self):
         cmd = WheelCommand()
@@ -157,9 +181,7 @@ class LinearMove(State):
         return cmd
 
     def execute(self, userdata):
-        self.logger.debug("Executing Forward")
-
-        self.smm.publish(WHEELCMD_TOPIC, self.get_next_cmd())
+        self.smm.publish(WHEEL_CMD_TOPIC, self.get_next_cmd())
         sleep(self.duration)
 
         return 'success'
@@ -169,14 +191,13 @@ class Turn(State):
     FORWARD = 1
     REVERSE = -1
 
-    def __init__(self, smm, angle, direction, duration, logger):
+    def __init__(self, smm, angle, direction, duration):
         State.__init__(self, outcomes=['success', 'failure'])
 
         self.smm = smm
         self.angle = angle
         self.direction = direction
         self.duration = duration
-        self.logger = logger
 
     def get_next_cmd(self):
         cmd = WheelCommand()
@@ -185,9 +206,14 @@ class Turn(State):
         return cmd
 
     def execute(self, userdata):
-        self.logger.debug("Executing Turn")
-
-        self.smm.publish(WHEELCMD_TOPIC, self.get_next_cmd())
+        self.smm.publish(WHEEL_CMD_TOPIC, self.get_next_cmd())
         sleep(self.duration)
 
         return 'success'
+
+
+if __name__ == "__main__":
+    lidapy.init(Config("../configs/agent.conf"))
+
+    BasicSensoryMemory().start()
+    BasicSensoryMotorMemory().start()

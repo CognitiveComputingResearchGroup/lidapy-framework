@@ -1,5 +1,6 @@
 import random
 import string
+import cPickle
 
 
 # TODO: This needs to be enhanced into a name service that guarantees a
@@ -36,3 +37,51 @@ def create_class_instance(fully_qualified_class_name, *args, **kwargs):
         raise Exception("Failed to construct instance of class {}".format(fully_qualified_class_name))
 
     return instance
+
+
+class Singleton(type):
+    # A dictionary that serves as a registry of singletons
+    _registry = {}
+
+    def __call__(cls, *args, **kwargs):
+        # If class previously instantiated and added to the registry then
+        # return that same object; otherwise, create a new instance and
+        # add it to the registry
+        if cls not in cls._registry:
+            cls._registry[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+
+        return cls._registry[cls]
+
+    @classmethod
+    def _remove(cls, target_cls):
+        if cls._registry.has_key(target_cls):
+            cls._registry.pop(target_cls)
+
+    @classmethod
+    def _clear(cls):
+        cls._registry.clear()
+
+
+class MsgUtils(object):
+    @staticmethod
+    def serialize(obj):
+        return cPickle.dumps(obj)
+
+    @staticmethod
+    def deserialize(serialized_obj):
+        return cPickle.loads(serialized_obj)
+
+
+class RosMsgUtils(object):
+    @staticmethod
+    def wrap(obj, cls, prop):
+        wrapper_cls = cls()
+
+        setattr(wrapper_cls, prop, obj)
+
+        return wrapper_cls
+
+    @staticmethod
+    def unwrap(obj, prop):
+        if hasattr(obj, prop):
+            return getattr(obj, prop)

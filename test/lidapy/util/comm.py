@@ -1,8 +1,8 @@
 import unittest
 
-from lidapy.framework.shared import CognitiveContent
-from lidapy.util.comm import MsgUtils, RosMsgUtils
-
+from lidapy import CognitiveContent
+from lidapy import MsgUtils
+from lidapy import RosMsgUtils
 from std_msgs.msg import String
 
 

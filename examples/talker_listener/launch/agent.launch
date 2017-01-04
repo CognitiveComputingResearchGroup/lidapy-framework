@@ -1,4 +1,3 @@
 <launch>
-    <node name="talker" pkg="talker_listener" type="custom_agent_starter.py" required="true" args="-m talker -f $(find talker_listener)/configs/agent.conf"/>
-    <node name="listener" pkg="talker_listener" type="custom_agent_starter.py" required="true" args="-m listener -f $(find talker_listener)/configs/agent.conf"/>
+    <node name="agent" pkg="talker_listener" type="custom_agent_starter.py" required="true" args="-m talker -f $(find talker_listener)/configs/agent.conf"/>
 </launch>
