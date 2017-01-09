@@ -18,27 +18,31 @@ from lidapy.util import create_class_instance
 from lidapy.util import generate_random_name
 from lidapy_rosdeps.srv import GenericService
 
-_config = None  # type: Config
-_ipc_proxy = None  # type: CommunicationProxy
-_logger = None  # type: Logger
+# Internal LidaPy Globals
+_var = collections.namedtuple('lidapy_var', ['config', 'logger', 'ipc'])
+
+LOG_LEVEL_DEBUG = 0
+LOG_LEVEL_INFO = 1
+LOG_LEVEL_WARN = 2
+LOG_LEVEL_ERROR = 3
+LOG_LEVEL_FATAL = 4
 
 
-def init(config=None, module_name=None):
-    # type: (Config, str) -> None
-    global _config
-    global _ipc_proxy
-    global _logger
+def init(config=None, log_level=LOG_LEVEL_INFO, process_name=None):
+    global _var
 
-    _config = Config() if config is None else config
-    _logger = util.create_class_instance(_config.get_param("logger", default="lidapy.RosLogger"))
-    _ipc_proxy = util.create_class_instance(_config.get_param("ipc_proxy", default="lidapy.RosCommunicationProxy"))
+    _var.config = Config() if config is None else config
+    _var.logger = util.create_class_instance(_var.config.get_param('logger', default='lidapy.RosLogger'))
+    _var.ipc = util.create_class_instance(_var.config.get_param('ipc', default='lidapy.RosCommunicationProxy'))
 
-    if module_name:
-        _ipc_proxy.initialize_node(module_name)
+    if process_name:
+        _var.ipc.initialize_node(process_name)
+
+    return _var
 
 
 class Config(object):
-    GLOBAL_SECTION = "global"
+    GLOBAL_SECTION = 'global'
 
     def __init__(self, file_path=None, use_param_service=False):
         super(Config, self).__init__()
@@ -63,7 +67,7 @@ class Config(object):
         parser = ConfigParser.SafeConfigParser()
 
         if not parser.read(config_file):
-            raise IOError("Failed to read configuration file: {}".format(config_file))
+            raise IOError('Failed to read configuration file: {}'.format(config_file))
 
         for section in parser.sections():
             self._config[section] = {}
@@ -73,14 +77,14 @@ class Config(object):
                 if self._param_service:
                     self._param_service.set_param(name, value, section=section)
 
-    def set_param(self, name, value, section="global"):
+    def set_param(self, name, value, section='global'):
         try:
             self._config[section][name] = value
         except KeyError:
             self._config[section] = {}
             self._config[section][name] = value
 
-    def get_param(self, name, section="global", default=None, func=None):
+    def get_param(self, name, section='global', default=None, func=None):
         if self._param_service:
             value = self._param_service.get_param(section, name, default)
         else:
@@ -112,8 +116,8 @@ class Config(object):
         return default
 
 
-def get_param(name, section="global", default=None, func=None):
-    return _config.get_param(name, section, default, func)
+def get_param(name, section='global', default=None, func=None):
+    return _var.config.get_param(name, section, default, func)
 
 
 class TaskManager(object):
@@ -154,11 +158,11 @@ class TaskManager(object):
 task_managers = collections.defaultdict(TaskManager)  # type: dict
 
 # Standard Status Codes
-COMPLETE = "complete"
-ERROR = "error"
-PENDING = "pending"
-RUNNING = "running"
-SHUTTING_DOWN = "shutting_down"
+COMPLETE = 'complete'
+ERROR = 'error'
+PENDING = 'pending'
+RUNNING = 'running'
+SHUTTING_DOWN = 'shutting_down'
 
 
 class LIDARunnable(object):
@@ -169,14 +173,14 @@ class LIDARunnable(object):
         self.status = PENDING
 
     def is_shutting_down(self):
-        return _ipc_proxy.is_shutting_down()
+        return _var.ipc.is_shutting_down()
 
     def wait(self):
-        _ipc_proxy.wait(self.rate_in_hz)
+        _var.ipc.wait(self.rate_in_hz)
 
     @property
     def rate_in_hz(self):
-        return int(_config.get_type_or_global_param(self.name, "rate_in_hz", 100))
+        return int(_var.config.get_type_or_global_param(self.name, 'rate_in_hz', 100))
 
 
 class LIDAProcess(multiprocessing.Process, LIDARunnable):
@@ -184,11 +188,11 @@ class LIDAProcess(multiprocessing.Process, LIDARunnable):
         multiprocessing.Process.__init__(self, name=name)
         LIDARunnable.__init__(self, name=name)
 
-        self.tasks = [] if tasks is None else tasks  # type: list
+        self.tasks = [] if tasks is None else tasks  # type: # list
         self.task_manager = task_managers[name]  # type: TaskManager
 
     def run(self):
-        loginfo("LIDAProcess [name = {}] beginning execution".format(self.name))
+        loginfo('LIDAProcess [name = {}] beginning execution'.format(self.name))
 
         try:
             self._initialize()
@@ -204,10 +208,10 @@ class LIDAProcess(multiprocessing.Process, LIDARunnable):
         finally:
             self._finalize()
 
-        loginfo("LIDAProcess [name = {}; status = {}] completing execution".format(self.name, self.status))
+        loginfo('LIDAProcess [name = {}; status = {}] completing execution'.format(self.name, self.status))
 
     def _initialize(self):
-        _ipc_proxy.initialize_node(self.name, log_level=_logger.log_level)
+        _var.ipc.initialize_node(self.name, log_level=_var.logger.log_level)
 
         self.initialize()
 
@@ -267,7 +271,7 @@ class LIDAThread(Thread, LIDARunnable):
     def __init__(self, callback, name=None, callback_args=None, exec_count=-1):
 
         if name is None:
-            name = util.generate_random_name(prefix="Thread_", length=16)
+            name = util.generate_random_name(prefix='Thread_', length=16)
 
         Thread.__init__(self, name=name)
         LIDARunnable.__init__(self, name=name)
@@ -279,10 +283,10 @@ class LIDAThread(Thread, LIDARunnable):
 
         if self.exec_count is not None:
             if type(self.exec_count) is not int:
-                raise Exception("Execution count must be a positive integer if specified.")
+                raise Exception('Execution count must be a positive integer if specified.')
 
     def run(self):
-        loginfo("LIDAThread [name = {}] beginning execution".format(self.name))
+        loginfo('LIDAThread [name = {}] beginning execution'.format(self.name))
 
         try:
             self._initialize()
@@ -299,7 +303,7 @@ class LIDAThread(Thread, LIDARunnable):
             self._finalize()
 
         loginfo(
-            "LIDAThread [name = {}; status = {}] completing execution".format(self.name, self.status))
+            'LIDAThread [name = {}; status = {}] completing execution'.format(self.name, self.status))
 
     def _initialize(self):
         self.status = RUNNING
@@ -378,7 +382,7 @@ class DecayTask(Task):
             self.setter = self.default_setter
 
     def callback(self, *args, **kwargs):
-        logdebug("Executing BackgroundDecayTask [name = {}]".format(self.name))
+        logdebug('Executing BackgroundDecayTask [name = {}]'.format(self.name))
 
         for x in self.target:
             current_value = self.getter(x)
@@ -485,15 +489,37 @@ class CognitiveContent(Activatable):
         super(CognitiveContent, self).__init__()
         self.value = value
 
-    def __getattr__(self, name):
-        func = getattr(self.__dict__['obj'], name)
-        if callable(func):
-            def my_wrapper(*args, **kwargs):
-                return func(*args, **kwargs)
+    def __getattr__(self, attr):
 
-            return my_wrapper
+        attr_v = self.value.__getattribute__(attr)
+
+        if callable(attr_v):
+            def wrapper(*args, **kwargs):
+                result = attr_v(*args, **kwargs)
+                if result == self.value:
+                    return self
+                return result
+
+            return wrapper
         else:
-            return func
+            return attr_v
+
+    # TODO: Need a way to automatically wrap the special methods
+    def __len__(self):
+        return len(self.value)
+
+    def __setitem__(self, key, value):
+        if '__setitem__' in dir(self.value):
+            self.value[key] = value
+        else:
+            raise TypeError("Indexing not supported")
+
+    def __getitem__(self, key):
+        if '__getitem__' in dir(self.value):
+            return self.value[key]
+        else:
+            raise TypeError("Indexing not supported")
+
 
 
 class Codelet(Task):
@@ -561,13 +587,13 @@ class Topic(object):
         # type: (...) -> TopicPublisher
 
         if self._publisher is None:
-            loginfo("Initializing publisher for topic {}".format(self.name))
+            loginfo('Initializing publisher for topic {}'.format(self.name))
 
             self._publisher \
-                = _ipc_proxy.get_publisher(topic_name=self.name,
-                                           msg_type=self.msg_type,
-                                           max_queue_size=self.queue_size,
-                                           preprocessor=self.preprocessor)
+                = _var.ipc.get_publisher(topic_name=self.name,
+                                         msg_type=self.msg_type,
+                                         max_queue_size=self.queue_size,
+                                         preprocessor=self.preprocessor)
 
         return self._publisher
 
@@ -576,13 +602,13 @@ class Topic(object):
         # type: (...) -> TopicSubscriber
 
         if self._subscriber is None:
-            loginfo("Initializing subscriber for topic {}".format(self.name))
+            loginfo('Initializing subscriber for topic {}'.format(self.name))
 
             self._subscriber = \
-                _ipc_proxy.get_subscriber(topic_name=self.name,
-                                          msg_type=self.msg_type,
-                                          max_queue_size=self.queue_size,
-                                          postprocessor=self.postprocessor)
+                _var.ipc.get_subscriber(topic_name=self.name,
+                                        msg_type=self.msg_type,
+                                        max_queue_size=self.queue_size,
+                                        postprocessor=self.postprocessor)
 
         return self._subscriber
 
@@ -648,17 +674,17 @@ class Service(object):
 
     def register(self):
         if self._service is None:
-            loginfo("Registering new service [{}]".format(self.name))
-            self._service = _ipc_proxy.get_service(self.name,
-                                                   self.service_class,
-                                                   self.callback)
+            loginfo('Registering new service [{}]'.format(self.name))
+            self._service = _var.ipc.get_service(self.name,
+                                                 self.service_class,
+                                                 self.callback)
 
         return self._service
 
     @property
     def client(self):
         if self._client is None:
-            self._client = _ipc_proxy.get_service_proxy(self.name, self.service_class)
+            self._client = _var.ipc.get_service_proxy(self.name, self.service_class)
 
         return self._client
 
@@ -671,7 +697,7 @@ class ServiceClient(object):
         self.service_class = service_class
 
     def get_service_proxy(self):
-        return _ipc_proxy.get_service_proxy(self.service_name, self.service_class)
+        return _var.ipc.get_service_proxy(self.service_name, self.service_class)
 
 
 class Logger(object):
@@ -707,7 +733,7 @@ class Logger(object):
     @log_level.setter
     def log_level(self, value):
         if type(value) is not int:
-            raise ("Invalid log level: {}".format(value))
+            raise ('Invalid log level: {}'.format(value))
 
         self._log_level = value
 
@@ -726,6 +752,7 @@ class CommunicationProxy(object):
 
     @abc.abstractmethod
     def get_publisher(self, topic_name, msg_type, max_queue_size, preprocessor):
+        # type: (...) -> TopicPublisher
         pass
 
     @abc.abstractmethod
@@ -756,16 +783,44 @@ class CommunicationProxy(object):
         return datetime.datetime.now()
 
 
-LOG_LEVEL_DEBUG = 0
-LOG_LEVEL_INFO = 1
-LOG_LEVEL_WARN = 2
-LOG_LEVEL_ERROR = 3
-LOG_LEVEL_FATAL = 4
+class LocalCommunicationProxy(CommunicationProxy):
+    def __init__(self):
+        super(LocalCommunicationProxy, self).__init__('LocalCommunicationProxy')
+
+        # A dictionary of queues
+        # {
+        #  topic_name_1 : msg_queue_1,
+        #  topic_name_2 : msg_queue_2,
+        # }
+        self.msg_queues = {}
+
+    def initialize_node(self, name, log_level=None):
+        # No-op
+        pass
+
+    def get_publisher(self, topic_name, msg_type=None, max_queue_size=None, preprocessor=None):
+        # type: (...) -> LocalTopicPublisher
+        if topic_name not in self.msg_queues:
+            self.msg_queues[topic_name] = LocalMessageQueue(topic_name, msg_type)
+
+        return LocalTopicPublisher(self.msg_queues[topic_name], queue_size=max_queue_size, preprocessor=preprocessor)
+
+    def get_subscriber(self, topic_name, msg_type=None, max_queue_size=None, postprocessor=None):
+        if topic_name not in self.msg_queues:
+            self.msg_queues[topic_name] = LocalMessageQueue(topic_name, msg_type)
+
+        return LocalTopicSubscriber(self.msg_queues[topic_name], queue_size=max_queue_size, postprocessor=postprocessor)
+
+    def get_service(self, service_name, service_class, callback):
+        raise NotImplementedError
+
+    def get_service_proxy(self, service_name, service_class):
+        raise NotImplementedError
 
 
 class RosCommunicationProxy(CommunicationProxy):
     def __init__(self):
-        super(RosCommunicationProxy, self).__init__("RosCommunicationProxy")
+        super(RosCommunicationProxy, self).__init__('RosCommunicationProxy')
 
         self.log_level_map = {LOG_LEVEL_DEBUG: rospy.DEBUG,
                               LOG_LEVEL_INFO: rospy.INFO,
@@ -776,7 +831,7 @@ class RosCommunicationProxy(CommunicationProxy):
     def initialize_node(self, name, log_level=LOG_LEVEL_INFO):
         rospy.init_node(name, log_level=self.log_level_map[log_level])
 
-    def get_publisher(self, topic_name, msg_type, max_queue_size=None, preprocessor=None):
+    def get_publisher(self, topic_name, msg_type=std_msgs.String, max_queue_size=None, preprocessor=None):
         return RosTopicPublisher(topic_name=topic_name,
                                  msg_type=msg_type,
                                  queue_size=max_queue_size,
@@ -824,41 +879,7 @@ class ParameterService(object):
 
     @staticmethod
     def get_qualified_name(section, name):
-        return "/".join(["lida", section, name])
-
-
-class LocalCommunicationProxy(CommunicationProxy):
-    def __init__(self):
-        super(LocalCommunicationProxy, self).__init__("LocalCommunicationProxy")
-
-        # A dictionary of queues
-        # {
-        #  topic_name_1 : msg_queue_1,
-        #  topic_name_2 : msg_queue_2,
-        # }
-        self.msg_queues = {}
-
-    def initialize_node(self, name, log_level=None):
-        # No-op
-        pass
-
-    def get_publisher(self, topic_name, msg_type=None, max_queue_size=None, preprocessor=None):
-        if topic_name not in self.msg_queues:
-            self.msg_queues[topic_name] = LocalMessageQueue(topic_name, msg_type)
-
-        return LocalTopicPublisher(self.msg_queues[topic_name], queue_size=max_queue_size, preprocessor=preprocessor)
-
-    def get_subscriber(self, topic_name, msg_type=None, max_queue_size=None, postprocessor=None):
-        if topic_name not in self.msg_queues:
-            self.msg_queues[topic_name] = LocalMessageQueue(topic_name, msg_type)
-
-        return LocalTopicSubscriber(self.msg_queues[topic_name], queue_size=max_queue_size, postprocessor=postprocessor)
-
-    def get_service(self, service_name, service_class, callback):
-        raise NotImplementedError
-
-    def get_service_proxy(self, service_name, service_class):
-        raise NotImplementedError
+        return '/'.join(['lida', section, name])
 
 
 class RosTopicPublisher(TopicPublisher):
@@ -873,7 +894,7 @@ class RosTopicPublisher(TopicPublisher):
         # if preprocessor is None:
         #     if self.msg_type is std_msgs.String:
         # def default_preprocessor(msg):
-        #     return RosMsgUtils.wrap(MsgUtils.serialize(msg), msg_type, "data")
+        #     return RosMsgUtils.wrap(MsgUtils.serialize(msg), msg_type, 'data')
         #
         # self.preprocessor = default_preprocessor
 
@@ -899,7 +920,7 @@ class RosTopicSubscriber(TopicSubscriber):
         if postprocessor is None:
             if self.msg_type is std_msgs.String:
                 def default_postprocessor(msg):
-                    return RosMsgUtils.unwrap(msg, "data")
+                    return RosMsgUtils.unwrap(msg, 'data')
 
                 self.postprocessor = default_postprocessor
 
@@ -928,7 +949,7 @@ class LocalTopicPublisher(TopicPublisher):
     def publish(self, msg):
         if msg is None:
             raise Exception(
-                "Attempted to publish msg on topic = {} with value = None".format(
+                'Attempted to publish msg on topic = {} with value = None'.format(
                     self.msg_queue.topic_name))
 
         if callable(self.preprocessor):
@@ -961,7 +982,7 @@ class LocalMessageQueue(object):
         super(LocalMessageQueue, self).__init__()
 
         if name is None:
-            name = generate_random_name(prefix="LocalQueue_", length=16)
+            name = generate_random_name(prefix='LocalQueue_', length=16)
 
         self.name = name
         self.msg_type = msg_type
@@ -994,30 +1015,30 @@ class LocalMessageQueue(object):
 
 
 class ConsoleLogger(Logger):
-    MSG_FORMAT = "{timestamp} [{log_level}] {message}"
+    MSG_FORMAT = '{timestamp} [{log_level}] {message}'
 
     def __init__(self, log_level=LOG_LEVEL_INFO):
         super(ConsoleLogger, self).__init__(log_level)
 
     def debug(self, msg):
         if LOG_LEVEL_DEBUG >= self.log_level:
-            print(self._get_formatted_msg(msg, "DEBUG"), file=sys.stdout)
+            print(self._get_formatted_msg(msg, 'DEBUG'), file=sys.stdout)
 
     def info(self, msg):
         if LOG_LEVEL_INFO >= self.log_level:
-            print(self._get_formatted_msg(msg, "INFO"), file=sys.stdout)
+            print(self._get_formatted_msg(msg, 'INFO'), file=sys.stdout)
 
     def warn(self, msg):
         if LOG_LEVEL_WARN >= self.log_level:
-            print(self._get_formatted_msg(msg, "WARN"), file=sys.stderr)
+            print(self._get_formatted_msg(msg, 'WARN'), file=sys.stderr)
 
     def error(self, msg):
         if LOG_LEVEL_ERROR >= self.log_level:
-            print(self._get_formatted_msg(msg, "ERROR"), file=sys.stderr)
+            print(self._get_formatted_msg(msg, 'ERROR'), file=sys.stderr)
 
     def fatal(self, msg):
         if LOG_LEVEL_FATAL >= self.log_level:
-            print(self._get_formatted_msg(msg, "FATAL"), file=sys.stderr)
+            print(self._get_formatted_msg(msg, 'FATAL'), file=sys.stderr)
 
     def _get_formatted_msg(self, msg, level):
         return ConsoleLogger.MSG_FORMAT.format(timestamp=datetime.datetime.now(),
@@ -1046,20 +1067,20 @@ class RosLogger(Logger):
 
 
 def logdebug(msg):
-    _logger.debug(msg)
+    _var.logger.debug(msg)
 
 
 def loginfo(msg):
-    _logger.info(msg)
+    _var.logger.info(msg)
 
 
 def logwarn(msg):
-    _logger.warn(msg)
+    _var.logger.warn(msg)
 
 
 def logerror(msg):
-    _logger.error(msg)
+    _var.logger.error(msg)
 
 
 def logfatal(msg):
-    _logger.fatal(msg)
+    _var.logger.fatal(msg)

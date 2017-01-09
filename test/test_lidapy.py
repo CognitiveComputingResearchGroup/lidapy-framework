@@ -195,6 +195,48 @@ class ActivatableTest(unittest.TestCase):
         self.assertEqual(a.base_level_activation, 1.0)
 
 
+class LocalCommunicationProxyTest(unittest.TestCase):
+    # Access to internal LidaPy globals for testing low-level operations
+    _var = None
+
+    @classmethod
+    def setUpClass(cls):
+        config = Config()
+        config.set_param('logger', 'lidapy.ConsoleLogger')
+        config.set_param('ipc', 'lidapy.LocalCommunicationProxy')
+        config.set_param('rate_in_hz', '10')
+
+        cls._var = lidapy.init(config=config, process_name='test')
+
+    def test_publisher(self):
+        def callback():
+            pass
+
+        pub = self._var.ipc.get_publisher(topic_name='topic', preprocessor=callback)
+
+        self.assertIsInstance(pub.__class__, lidapy.LocalTopicPublisher.__class__)
+        self.assertEqual(pub.topic_name, 'topic')
+        self.assertEqual(pub.preprocessor, callback)
+
+    def test_subscriber(self):
+        def callback():
+            pass
+
+        sub = self._var.ipc.get_subscriber(topic_name='topic', postprocessor=callback)
+
+        self.assertIsInstance(sub.__class__, lidapy.LocalTopicSubscriber.__class__)
+        self.assertEqual(sub.topic_name, 'topic')
+        self.assertEqual(sub.postprocessor, callback)
+
+    def test_service(self):
+        # Not implemented
+        pass
+
+    def test_service_proxy(self):
+        # Not implemented
+        pass
+
+
 class LocalMessageQueueTest(unittest.TestCase):
     def test_init(self):
         q = lidapy.LocalMessageQueue(name="queue_name", msg_type=Activatable, max_queue_size=15)
@@ -230,87 +272,15 @@ class LocalMessageQueueTest(unittest.TestCase):
         self.assertEqual(len(msgs), 0)
 
 
-class RosTopicTest(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        lidapy.init(module_name='test')
-
-    def test_init(self):
-
-        def custom_pre():
-            return "custom_pre"
-
-        def custom_post():
-            return "custom_post"
-
-        # Test initializer sets attributes correctly
-        topic = Topic(name="topic", msg_type=Activatable, queue_size=50, preprocessor=custom_pre,
-                      postprocessor=custom_post)
-
-        self.assertEqual(topic.name, "topic")
-        self.assertEqual(topic.msg_type, Activatable)
-        self.assertEqual(topic.queue_size, 50)
-        self.assertEqual(topic.preprocessor, custom_pre)
-        self.assertEqual(topic.postprocessor, custom_post)
-
-    def test_create_pub_sub(self):
-        topic = Topic(name="topic")
-
-        self.assertEqual(type(topic.publisher), lidapy.RosTopicPublisher)
-        self.assertEqual(type(topic.subscriber), lidapy.RosTopicSubscriber)
-
-        self.assertEqual(topic.publisher.msg_type, topic.subscriber.msg_type)
-
-    def test(self):
-        topic = Topic(name="RosTopicTest_Topic")
-
-        sent_msg = '1'
-        topic.publish(sent_msg)
-
-        recv_msg = None
-        while not recv_msg:
-            time.sleep(.1)
-            recv_msg = topic.next_msg
-
-        self.assertEqual(sent_msg, recv_msg)
-
-    def test_preprocessor(self):
-        topic = Topic("topic", preprocessor=lambda x: str(x) + "_processed")
-
-        sent_msg = '1'
-        topic.publish(sent_msg)
-
-        recv_msg = None
-        while not recv_msg:
-            time.sleep(.1)
-            recv_msg = topic.next_msg
-
-        if "_processed" not in recv_msg:
-            self.fail("Failed to find expected string")
-
-    def test_postprocessor(self):
-        topic = Topic("topic", postprocessor=lambda x: x.data.replace("_processed", ""))
-
-        sent_msg = '1'
-        topic.publish(sent_msg + "_processed")
-
-        recv_msg = None
-        while not recv_msg:
-            time.sleep(.1)
-            recv_msg = topic.next_msg
-
-        self.assertEqual(sent_msg, recv_msg)
-
-
 class LocalTopicTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
 
         config = Config()
         config.set_param('logger', 'lidapy.ConsoleLogger')
-        config.set_param('ipc_proxy', 'lidapy.LocalCommunicationProxy')
+        config.set_param('ipc', 'lidapy.LocalCommunicationProxy')
 
-        lidapy.init(config=config, module_name='test')
+        lidapy.init(config=config, process_name='test')
 
     def test_init(self):
 
@@ -333,13 +303,13 @@ class LocalTopicTest(unittest.TestCase):
     def test_create_pub_sub(self):
         topic = Topic(name="topic")
 
-        self.assertEqual(type(topic.publisher), lidapy.RosTopicPublisher)
-        self.assertEqual(type(topic.subscriber), lidapy.RosTopicSubscriber)
+        self.assertEqual(type(topic.publisher), lidapy.LocalTopicPublisher)
+        self.assertEqual(type(topic.subscriber), lidapy.LocalTopicSubscriber)
 
         self.assertEqual(topic.publisher.msg_type, topic.subscriber.msg_type)
 
     def test(self):
-        topic = Topic(name="RosTopicTest_Topic")
+        topic = Topic(name="LocalTopicTest_Topic")
 
         sent_msg = '1'
         topic.publish(sent_msg)
@@ -366,7 +336,7 @@ class LocalTopicTest(unittest.TestCase):
             self.fail("Failed to find expected string")
 
     def test_postprocessor(self):
-        topic = Topic("topic", postprocessor=lambda x: x.data.replace("_processed", ""))
+        topic = Topic("topic", postprocessor=lambda x: x.replace("_processed", ""))
 
         sent_msg = '1'
         topic.publish(sent_msg + "_processed")
@@ -384,9 +354,9 @@ class LIDAThreadTest(unittest.TestCase):
     def setUpClass(cls):
         config = Config()
         config.set_param('logger', 'lidapy.ConsoleLogger')
-        config.set_param('ipc_proxy', 'lidapy.LocalCommunicationProxy')
+        config.set_param('ipc', 'lidapy.LocalCommunicationProxy')
 
-        lidapy.init(config=config, module_name='test')
+        lidapy.init(config=config, process_name='test')
 
     def test_thread(self):
 
@@ -423,9 +393,9 @@ class TaskTest(unittest.TestCase):
     def setUpClass(cls):
         config = Config()
         config.set_param('logger', 'lidapy.ConsoleLogger')
-        config.set_param('ipc_proxy', 'lidapy.LocalCommunicationProxy')
+        config.set_param('ipc', 'lidapy.LocalCommunicationProxy')
 
-        lidapy.init(config=config, module_name='test')
+        lidapy.init(config=config, process_name='test')
 
     def test_background_task(self):
         class CallBack(object):
@@ -450,10 +420,10 @@ class DecayTaskTest(unittest.TestCase):
     def setUpClass(cls):
         config = Config()
         config.set_param('logger', 'lidapy.ConsoleLogger')
-        config.set_param('ipc_proxy', 'lidapy.LocalCommunicationProxy')
+        config.set_param('ipc', 'lidapy.LocalCommunicationProxy')
         config.set_param('rate_in_hz', '10')
 
-        lidapy.init(config=config, module_name='test')
+        lidapy.init(config=config, process_name='test')
 
     def test_init(self):
         name = "linearDecayTask"
@@ -723,3 +693,30 @@ class SigmoidExciteStrategyTest(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             strategy.get_next_value(current_activation, rate_in_hz=-1.0)
+
+
+class CognitiveContentTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        config = Config()
+        config.set_param('logger', 'lidapy.ConsoleLogger')
+        config.set_param('ipc', 'lidapy.LocalCommunicationProxy')
+
+        lidapy.init(config=config)
+
+    def test(self):
+        c = CognitiveContent('value')
+        c.activation = .75
+        c.base_level_activation = .1
+        c.incentive_salience = .2
+        c.removal_threshold = .0001
+
+        self.assertEqual(c.activation, .75)
+        self.assertEqual(c.base_level_activation, .1)
+        self.assertEqual(c.incentive_salience, .2)
+        self.assertEqual(c.removal_threshold, .0001)
+
+        # Test methods and attributes of wrapped class (str)
+        self.assertEqual(c.capitalize(), 'Value')
+        self.assertEqual(len(c), 5)
+        self.assertEqual(c[0], 'v')

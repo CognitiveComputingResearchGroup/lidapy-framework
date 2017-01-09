@@ -9,6 +9,10 @@ from std_msgs.msg import String
 class MsgUtilsTest(unittest.TestCase):
     def test_serializer(self):
         obj = CognitiveContent("value")
+        obj.activation = 1.0
+        obj.base_level_activation = 0.5
+        obj.incentive_salience = 0.25
+        obj.removal_threshold = 0.1
 
         s_obj = MsgUtils.serialize(obj)
         self.assertTrue(isinstance(s_obj, basestring))

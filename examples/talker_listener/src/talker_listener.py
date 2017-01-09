@@ -22,7 +22,7 @@ def listen():
 
 
 # Initialize the lidapy framework
-init(config=Config('../configs/agent.conf'), module_name='talker_listener')
+init(config=Config('../configs/agent.conf'), process_name='talker_listener')
 
 LIDAThread(name='talker', callback=talk).start()
 LIDAThread(name='listener', callback=listen).start()

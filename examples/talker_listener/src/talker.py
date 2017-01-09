@@ -10,7 +10,7 @@ from lidapy import init, loginfo
 topic = Topic('tl_topic')
 
 # Initialize the lidapy framework
-init(config=Config('../configs/agent.conf'), module_name='talker')
+init(config=Config('../configs/agent.conf'), process_name='talker')
 
 while True:
     msg = str(random.randint(1, 10))

@@ -16,7 +16,7 @@ class ActionSelectionTest(unittest.TestCase):
         config.set_param('ipc_proxy', 'lidapy.LocalCommunicationProxy')
         config.set_param('rate_in_hz', 10)
 
-        lidapy.init(config=config, module_name='test')
+        lidapy.init(config=config, process_name='test')
 
     @classmethod
     def tearDownClass(cls):
