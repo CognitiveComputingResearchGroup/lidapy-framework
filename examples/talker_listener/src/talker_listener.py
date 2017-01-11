@@ -1,5 +1,7 @@
 #! /usr/bin/env Python
 
+import sys
+
 import random
 
 from lidapy import Config
@@ -22,7 +24,7 @@ def listen():
 
 
 # Initialize the lidapy framework
-init(config=Config('../configs/agent.conf'), process_name='talker_listener')
+init(config=Config(sys.argv[1]), process_name='talker_listener')
 
 LIDAThread(name='talker', callback=talk).start()
 LIDAThread(name='listener', callback=listen).start()

@@ -498,7 +498,7 @@ class CognitiveContent(Activatable):
         if callable(attr_v):
             def wrapper(*args, **kwargs):
                 result = attr_v(*args, **kwargs)
-                if result == self._value:
+                if result is self._value:
                     return self
                 return result
 
@@ -521,7 +521,6 @@ class CognitiveContent(Activatable):
             return self._value[key]
         else:
             raise TypeError("Indexing not supported")
-
 
 
 class Codelet(Task):
@@ -615,7 +614,8 @@ class Topic(object):
         return self._subscriber
 
     def publish(self, msg):
-        self.publisher.publish(msg)
+        if msg:
+            self.publisher.publish(msg)
 
     @property
     def next_msg(self):
@@ -888,17 +888,15 @@ class RosTopicPublisher(TopicPublisher):
     def __init__(self, topic_name, msg_type=None, queue_size=None, preprocessor=None):
         super(RosTopicPublisher, self).__init__(topic_name, msg_type, queue_size, preprocessor)
 
-        self.msg_type = std_msgs.String
+        self.msg_type = std_msgs.String if msg_type is None else msg_type
         self.queue_size = 10
-        # self.queue_size = queue_size if queue_size is not None else 10
-        # self.preprocessor = preprocessor
-        #
-        # if preprocessor is None:
-        #     if self.msg_type is std_msgs.String:
-        # def default_preprocessor(msg):
-        #     return RosMsgUtils.wrap(MsgUtils.serialize(msg), msg_type, 'data')
-        #
-        # self.preprocessor = default_preprocessor
+
+        if preprocessor is None:
+            if self.msg_type is std_msgs.String:
+                def default_preprocessor(msg):
+                    return MsgUtils.serialize(msg)
+
+                self.preprocessor = default_preprocessor
 
         self._publisher = rospy.Publisher(name=self.topic_name,
                                           data_class=self.msg_type,
@@ -922,8 +920,7 @@ class RosTopicSubscriber(TopicSubscriber):
         if postprocessor is None:
             if self.msg_type is std_msgs.String:
                 def default_postprocessor(msg):
-                    return RosMsgUtils.unwrap(msg, 'data')
-
+                    return MsgUtils.deserialize(RosMsgUtils.unwrap(msg, 'data'))
                 self.postprocessor = default_postprocessor
 
         self._subscriber = rospy.Subscriber(name=self.topic_name,

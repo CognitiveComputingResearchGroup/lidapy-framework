@@ -6,21 +6,22 @@ import lidapy.strategy
 from lidapy import LIDAModule
 from lidapy import LocalMessageQueue
 from lidapy import Task
+from lidapy import Topic
 from lidapy import logdebug, get_param
 from lidapy.util import MsgUtils
 
 # Common Topics
-DORSAL_STREAM_TOPIC = lidapy.Topic("dorsal_stream")
-VENTRAL_STREAM_TOPIC = lidapy.Topic("ventral_stream")
-GLOBAL_BROADCAST_TOPIC = lidapy.Topic("global_broadcast")
-PERCEPTS_TOPIC = lidapy.Topic("percepts")
-EPISODES_TOPIC = lidapy.Topic("episodes")
-SPATIAL_MAPS_TOPIC = lidapy.Topic("spatial_maps")
-CANDIDATE_BEHAVIORS_TOPIC = lidapy.Topic("candidate_behaviors")
-SELECTED_BEHAVIORS_TOPIC = lidapy.Topic("selected_behaviors")
-DETECTED_FEATURES_TOPIC = lidapy.Topic("detected_features")
-WORKSPACE_CUES_TOPIC = lidapy.Topic("workspace_cues")
-WORKSPACE_COALITIONS_TOPIC = lidapy.Topic("workspace_coalitions")
+DORSAL_STREAM_TOPIC = Topic("dorsal_stream")
+VENTRAL_STREAM_TOPIC = Topic("ventral_stream")
+GLOBAL_BROADCAST_TOPIC = Topic("global_broadcast")
+PERCEPTS_TOPIC = Topic("percepts")
+EPISODES_TOPIC = Topic("episodes")
+SPATIAL_MAPS_TOPIC = Topic("spatial_maps")
+CANDIDATE_BEHAVIORS_TOPIC = Topic("candidate_behaviors")
+SELECTED_BEHAVIORS_TOPIC = Topic("selected_behaviors")
+DETECTED_FEATURES_TOPIC = Topic("detected_features")
+WORKSPACE_CUES_TOPIC = Topic("workspace_cues")
+WORKSPACE_COALITIONS_TOPIC = Topic("workspace_coalitions")
 
 
 class Environment(LIDAModule):
@@ -257,11 +258,19 @@ class CcqGetLastNBroadcastsResponse(object):
 
 
 class EpisodicMemory(LIDAModule):
-    def __init__(self):
-        super(EpisodicMemory, self).__init__("episodic_memory")
+    def __init__(self, tasks=None):
+        super(EpisodicMemory, self).__init__("episodic_memory", tasks)
 
-        self.tasks = [Task(name="cue_receiver", callback=self.receive_cue),
-                      Task(name="learner", callback=self.learn)]
+        self.builtin_tasks = [
+            Task(name="cue_receiver", callback=self.receive_cue),
+            Task(name="learner", callback=self.learn)
+        ]
+
+    def initialize(self):
+        super(EpisodicMemory, self).initialize()
+
+        # Added late to allow modification to built-ins before startup
+        self.tasks += self.builtin_tasks
 
     # TODO: Implement this
     def receive_cue(self):
@@ -275,15 +284,18 @@ class EpisodicMemory(LIDAModule):
 
 
 class GlobalWorkspace(LIDAModule):
-    def __init__(self):
-        super(GlobalWorkspace, self).__init__("global_workspace")
+    def __init__(self, tasks=None):
+        super(GlobalWorkspace, self).__init__("global_workspace", tasks)
 
-        self.GLOBAL_BROADCAST = lidapy.Topic("global_broadcast")
-        self.WORKSPACE_COALITIONS = lidapy.Topic("workspace_coalitions")
+        self.builtin_tasks = [
+            Task(name="coalition_receiver", callback=self.receive_coalitions)
+        ]
 
-        self.coalition_receiver_task \
-            = Task(name="coalition_receiver",
-                   callback=self.receive_coalitions)
+    def initialize(self):
+        super(GlobalWorkspace, self).initialize()
+
+        # Added late to allow modification to built-ins before startup
+        self.tasks += self.builtin_tasks
 
     # TODO: Implement this
     def receive_coalitions(self):
@@ -291,79 +303,63 @@ class GlobalWorkspace(LIDAModule):
 
 
 class PerceptualAssociativeMemory(LIDAModule):
-    def __init__(self):
-        super(PerceptualAssociativeMemory, self).__init__("perceptual_associative_memory")
+    def __init__(self, tasks=None):
+        super(PerceptualAssociativeMemory, self).__init__("perceptual_associative_memory", tasks)
 
-        self.learner_task \
-            = Task(name="learner",
-                   callback=self.learn)
+        self.builtin_tasks = [
+            Task(name="learner", callback=self.learn)
+        ]
 
     def initialize(self):
-        self.add_publishers([self.PERCEPTS])
-        self.add_subscribers([self.DETECTED_FEATURES,
-                              self.GLOBAL_BROADCAST,
-                              self.VENTRAL_STREAM,
-                              self.WORKSPACE_CUES])
-        self.add_tasks([self.learner_task])
+        super(PerceptualAssociativeMemory, self).initialize()
 
-        self.launch_tasks()
+        # Added late to allow modification to built-ins before startup
+        self.tasks += self.builtin_tasks
 
     def learn(self):
-        global_broadcast = self.GLOBAL_BROADCAST.next_msg
+        global_broadcast = GLOBAL_BROADCAST_TOPIC.next_msg
         if global_broadcast is not None:
             # TODO: Need to implement learning here
             pass
 
 
 class ProceduralMemory(LIDAModule):
-    def __init__(self):
-        super(ProceduralMemory, self).__init__("procedural_memory")
+    def __init__(self, tasks=None):
+        super(ProceduralMemory, self).__init__("procedural_memory", tasks)
 
-        # Topics used by this modules
-        self.CANDIDATE_BEHAVIORS = lidapy.Topic("candidate_behaviors")
-        self.GLOBAL_BROADCAST = lidapy.Topic("global_broadcast")
+        self.builtin_tasks = [
+            Task(name="learner", callback=self.learn)
+        ]
 
-        self.learner_task \
-            = Task(name="learner",
-                   callback=self.learn)
-
-    # This method is invoked (only once) at modules execution start
     def initialize(self):
         super(ProceduralMemory, self).initialize()
 
-        self.add_publishers([self.CANDIDATE_BEHAVIORS])
-        self.add_subscribers([self.GLOBAL_BROADCAST])
-        self.add_tasks([self.learner_task])
-
-        self.launch_tasks()
+        # Added late to allow modification to built-ins before startup
+        self.tasks += self.builtin_tasks
 
     def learn(self):
-        global_broadcast = self.GLOBAL_BROADCAST.next_msg
+        global_broadcast = GLOBAL_BROADCAST_TOPIC.next_msg
         if global_broadcast is not None:
             # TODO: Need to implement learning here
             pass
 
 
 class SensoryMemory(LIDAModule):
-    def __init__(self):
-        super(SensoryMemory, self).__init__("sensory_memory")
+    def __init__(self, tasks=None):
+        super(SensoryMemory, self).__init__("sensory_memory", tasks)
 
-        self.sensor_scene = SensoryScene()
+        self.builtin_tasks = [
+            Task(name="learner", callback=self.learn)
+        ]
 
-    # This method is invoked (only once) at modules execution start
     def initialize(self):
         super(SensoryMemory, self).initialize()
 
-        self.add_publishers([self.DETECTED_FEATURES,
-                             self.DORSAL_STREAM,
-                             self.VENTRAL_STREAM])
-        self.add_subscribers([self.GLOBAL_BROADCAST])
-        self.add_tasks([self.learner_task])
-
-        self.launch_tasks()
+        # Added late to allow modification to built-ins before startup
+        self.tasks += self.builtin_tasks
 
     def learn(self):
-        global_broadcast = self.GLOBAL_BROADCAST.next_msg
+        global_broadcast = GLOBAL_BROADCAST_TOPIC.next_msg
         if global_broadcast is not None:
             # TODO: Need to implement learning here
             pass
@@ -403,63 +399,54 @@ class SensorySceneLayer(object):
         pass
 
 
+class SensorySceneCodelet(Task):
+    def __init__(self,
+                 input_layers,  # type: list
+                 output_layers  # type: list
+                 ):
+        self.input_layers = input_layers
+        self.output_layers = output_layers
+
+
+
+
 class SensoryMotorMemory(LIDAModule):
     def __init__(self):
         super(SensoryMotorMemory, self).__init__("sensory_motor_memory")
 
-        # Topics used by this modules
-        self.DORSAL_STREAM = lidapy.Topic("dorsal_stream")
-        self.GLOBAL_BROADCAST = lidapy.Topic("global_broadcast")
-        self.SELECTED_BEHAVIORS = lidapy.Topic("selected_behaviors")
+        self.builtin_tasks = [
+            Task(name="learner", callback=self.learn)
+        ]
 
-        self.learner_task \
-            = Task(name="learner",
-                   callback=self.learn)
-
-    # This method is invoked (only once) at modules execution start
     def initialize(self):
         super(SensoryMotorMemory, self).initialize()
 
-        self.add_subscribers([self.DORSAL_STREAM,
-                              self.GLOBAL_BROADCAST,
-                              self.SELECTED_BEHAVIORS])
-        self.add_tasks([self.learner_task])
-
-        self.launch_tasks()
+        # Added late to allow modification to built-ins before startup
+        self.tasks += self.builtin_tasks
 
     def learn(self):
-        global_broadcast = self.GLOBAL_BROADCAST.next_msg
+        global_broadcast = GLOBAL_BROADCAST_TOPIC.next_msg
         if global_broadcast is not None:
             # TODO: Need to implement learning here
             pass
 
 
 class SpatialMemory(LIDAModule):
-    def __init__(self):
-        super(SpatialMemory, self).__init__("spatial_memory")
+    def __init__(self, tasks=None):
+        super(SpatialMemory, self).__init__("spatial_memory", tasks)
 
-        # Topics used by this modules
-        self.SPATIAL_MAPS = lidapy.Topic("spatial_maps")
-        self.GLOBAL_BROADCAST = lidapy.Topic("global_broadcast")
-        self.WORKSPACE_CUES = lidapy.Topic("workspace_cues")
+        self.builtin_tasks = [
+            Task(name="learner", callback=self.learn)
+        ]
 
-        self.learner_task \
-            = Task(name="learner",
-                   callback=self.learn)
-
-    # This method is invoked (only once) at modules execution start
     def initialize(self):
         super(SpatialMemory, self).initialize()
 
-        self.add_publishers([self.SPATIAL_MAPS])
-        self.add_subscribers([self.GLOBAL_BROADCAST,
-                              self.WORKSPACE_CUES])
-        self.add_tasks([self.learner_task])
-
-        self.launch_tasks()
+        # Added late to allow modification to built-ins before startup
+        self.tasks += self.builtin_tasks
 
     def learn(self):
-        global_broadcast = self.GLOBAL_BROADCAST.next_msg
+        global_broadcast = GLOBAL_BROADCAST_TOPIC.next_msg
         if global_broadcast is not None:
             # TODO: Need to implement learning here
             pass
@@ -469,65 +456,39 @@ class TransientEpisodicMemory(LIDAModule):
     def __init__(self):
         super(TransientEpisodicMemory, self).__init__("transient_episodic_memory")
 
-        # Topics used by this modules
-        self.EPISODES = lidapy.Topic("episodes")
-        self.GLOBAL_BROADCAST = lidapy.Topic("global_broadcast")
-        self.WORKSPACE_CUES = lidapy.Topic("workspace_cues")
+        self.builtin_tasks = [
+            Task(name="learner", callback=self.learn)
+        ]
 
-        self.learner_task \
-            = Task(name="learner",
-                   callback=self.learn)
-
-    # This method is invoked (only once) at modules execution start
     def initialize(self):
         super(TransientEpisodicMemory, self).initialize()
 
-        self.add_publishers([self.EPISODES])
-        self.add_subscribers([self.GLOBAL_BROADCAST,
-                              self.WORKSPACE_CUES])
-        self.add_tasks([self.learner_task])
-
-        self.launch_tasks()
+        # Added late to allow modification to built-ins before startup
+        self.tasks += self.builtin_tasks
 
     def learn(self):
-        global_broadcast = self.GLOBAL_BROADCAST.next_msg
+        global_broadcast = GLOBAL_BROADCAST_TOPIC.next_msg
         if global_broadcast is not None:
             # TODO: Need to implement learning here
             pass
 
 
 class Workspace(LIDAModule):
-    def __init__(self):
-        super(Workspace, self).__init__("workspace")
+    def __init__(self, tasks=None):
+        super(Workspace, self).__init__("workspace", tasks)
 
-        # Topics used by this modules
-        self.WORKSPACE_COALITIONS = lidapy.Topic("workspace_coalitions")
-        self.WORKSPACE_CUES = lidapy.Topic("workspace_cues")
-        self.EPISODES = lidapy.Topic("episodes")
-        self.GLOBAL_BROADCAST = lidapy.Topic("global_broadcast")
-        self.PERCEPTS = lidapy.Topic("percepts")
-        self.SPATIAL_MAPS = lidapy.Topic("spatial_maps")
+        self.builtin_tasks = [
+            Task(name="learner", callback=self.learn)
+        ]
 
-        self.learner_task \
-            = Task(name="learner",
-                   callback=self.learn)
-
-    # This method is invoked (only once) at modules execution start
     def initialize(self):
         super(Workspace, self).initialize()
 
-        self.add_publishers([self.WORKSPACE_COALITIONS,
-                             self.WORKSPACE_CUES])
-        self.add_subscribers([self.EPISODES,
-                              self.GLOBAL_BROADCAST,
-                              self.PERCEPTS,
-                              self.SPATIAL_MAPS])
-        self.add_tasks([self.learner_task])
-
-        self.launch_tasks()
+        # Added late to allow modification to built-ins before startup
+        self.tasks += self.builtin_tasks
 
     def learn(self):
-        global_broadcast = self.GLOBAL_BROADCAST.next_msg
+        global_broadcast = GLOBAL_BROADCAST_TOPIC.next_msg
         if global_broadcast is not None:
             # TODO: Need to implement learning here
             pass
