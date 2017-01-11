@@ -6,7 +6,7 @@ LIDAPY_FRAMEWORK=$(find $HOME -type d -name lidapy-framework 2>/dev/null)
 cd $LIDAPY_FRAMEWORK/test
 
 # Start ROS master
-roscore
+roscore&
 
 # Uses unittest autodiscovery to find and run all unittests under the test directory
 python -m unittest discover --pattern '*.py' -v
