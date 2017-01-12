@@ -1,6 +1,6 @@
+import cPickle
 import random
 import string
-import cPickle
 
 
 # TODO: This needs to be enhanced into a name service that guarantees a
@@ -69,7 +69,7 @@ class MsgUtils(object):
 
     @staticmethod
     def deserialize(serialized_obj):
-        return cPickle.loads(serialized_obj)
+        return cPickle.loads(serialized_obj) if serialized_obj else None
 
 
 class RosMsgUtils(object):
@@ -83,5 +83,7 @@ class RosMsgUtils(object):
 
     @staticmethod
     def unwrap(obj, prop):
-        if hasattr(obj, prop):
+        if obj is not None and hasattr(obj, prop):
             return getattr(obj, prop)
+        else:
+            return obj

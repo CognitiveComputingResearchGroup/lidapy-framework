@@ -1,9 +1,9 @@
-import lidapy
 import numpy
-
+from random import uniform, choice
 from sys import argv
 from time import sleep
-from random import uniform, choice
+
+import lidapy
 from lidapy import Config
 from lidapy import LIDAProcess
 from lidapy import Task
@@ -95,6 +95,6 @@ def execute_action():
 # Initialize the lidapy framework
 lidapy.init(Config(argv[1]))
 
-LIDAProcess('pam', [Task('path_detector', detect_path)]).start()
-LIDAProcess('action_selection', [Task('action_selection', determine_action)]).start()
-LIDAProcess('action_execution', [Task('action_execution', execute_action)]).start()
+LIDAProcess('pam', tasks=[Task('path_detector', detect_path)]).start()
+LIDAProcess('action_selection', tasks=[Task('action_selection', determine_action)]).start()
+LIDAProcess('action_execution', tasks=[Task('action_execution', execute_action)]).start()

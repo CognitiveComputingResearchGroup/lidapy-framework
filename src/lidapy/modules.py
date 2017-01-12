@@ -217,44 +217,44 @@ class BehaviorNetwork(object):
                     behavior.unique_id))
 
 
-class ConsciousContentsQueue(LIDAModule):
-    def __init__(self):
-        super(ConsciousContentsQueue, self).__init__("conscious_contents_queue")
-
-        self.queue = LocalMessageQueue(max_queue_size=get_param(self.name, "max_queue_size", 10))
-        self.tasks = [Task(name="broadcast_retriever", callback=self.retrieve_broadcast)]
-
-        self.last_broadcasts_service = \
-            lidapy.Service("get_last_n_broadcasts", self.process_last_n_broadcasts_request)
-
-    def retrieve_broadcast(self):
-        broadcast = GLOBAL_BROADCAST_TOPIC.next_msg
-
-        if broadcast is not None:
-            self.queue.push(broadcast)
-
-    def process_last_n_broadcasts_request(self, raw_request):
-        request = MsgUtils.deserialize(raw_request)
-        queue_size = len(self.queue)
-        if request.n > queue_size:
-            request.n = queue_size
-
-        response = CcqGetLastNBroadcastsResponse(request.n)
-
-        # TODO: Need to revisit this after changing the datatype of self.queue
-        response.last_n_broadcasts = list(islice(self.queue, queue_size - request.last_n, queue_size))
-
-        return response
-
-
-class CcqGetLastNBroadcastsRequest(object):
-    def __init__(self, n):
-        self.n = n
-
-
-class CcqGetLastNBroadcastsResponse(object):
-    def __init__(self, last_n_broadcasts):
-        self.last_n_broadcasts = last_n_broadcasts
+# class ConsciousContentsQueue(LIDAModule):
+#     def __init__(self):
+#         super(ConsciousContentsQueue, self).__init__("conscious_contents_queue")
+#
+#         self.queue = LocalMessageQueue(max_queue_size=get_param(self.name, "max_queue_size", 10))
+#         self.tasks = [Task(name="broadcast_retriever", callback=self.retrieve_broadcast)]
+#
+#         self.last_broadcasts_service = \
+#             lidapy.Service("get_last_n_broadcasts", self.process_last_n_broadcasts_request)
+#
+#     def retrieve_broadcast(self):
+#         broadcast = GLOBAL_BROADCAST_TOPIC.next_msg
+#
+#         if broadcast is not None:
+#             self.queue.push(broadcast)
+#
+#     def process_last_n_broadcasts_request(self, raw_request):
+#         request = MsgUtils.deserialize(raw_request)
+#         queue_size = len(self.queue)
+#         if request.n > queue_size:
+#             request.n = queue_size
+#
+#         response = CcqGetLastNBroadcastsResponse(request.n)
+#
+#         # TODO: Need to revisit this after changing the datatype of self.queue
+#         response.last_n_broadcasts = list(islice(self.queue, queue_size - request.last_n, queue_size))
+#
+#         return response
+#
+#
+# class CcqGetLastNBroadcastsRequest(object):
+#     def __init__(self, n):
+#         self.n = n
+#
+#
+# class CcqGetLastNBroadcastsResponse(object):
+#     def __init__(self, last_n_broadcasts):
+#         self.last_n_broadcasts = last_n_broadcasts
 
 
 class EpisodicMemory(LIDAModule):

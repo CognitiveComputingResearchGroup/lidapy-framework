@@ -16,7 +16,8 @@ from lidapy.util import MsgUtils
 from lidapy.util import RosMsgUtils
 from lidapy.util import create_class_instance
 from lidapy.util import generate_random_name
-from lidapy_rosdeps.srv import GenericService
+
+# from lidapy_rosdeps.srv import GenericService
 
 # Internal LidaPy Globals
 _var = collections.namedtuple('lidapy_var', ['config', 'logger', 'ipc'])
@@ -663,43 +664,43 @@ class TopicSubscriber(object):
         return len(self._receive_queue)
 
 
-class Service(object):
-    def __init__(self, name, callback=None):
-        super(Service, self).__init__()
-
-        self.name = name
-        self.service_class = GenericService
-        self.callback = callback
-
-        self._service = None
-        self._client = None
-
-    def register(self):
-        if self._service is None:
-            loginfo('Registering new service [{}]'.format(self.name))
-            self._service = _var.ipc.get_service(self.name,
-                                                 self.service_class,
-                                                 self.callback)
-
-        return self._service
-
-    @property
-    def client(self):
-        if self._client is None:
-            self._client = _var.ipc.get_service_proxy(self.name, self.service_class)
-
-        return self._client
-
-
-class ServiceClient(object):
-    def __init__(self, service_name, service_class):
-        super(ServiceClient, self).__init__()
-
-        self.service_name = service_name
-        self.service_class = service_class
-
-    def get_service_proxy(self):
-        return _var.ipc.get_service_proxy(self.service_name, self.service_class)
+# class Service(object):
+#     def __init__(self, name, callback=None):
+#         super(Service, self).__init__()
+#
+#         self.name = name
+#         self.service_class = GenericService
+#         self.callback = callback
+#
+#         self._service = None
+#         self._client = None
+#
+#     def register(self):
+#         if self._service is None:
+#             loginfo('Registering new service [{}]'.format(self.name))
+#             self._service = _var.ipc.get_service(self.name,
+#                                                  self.service_class,
+#                                                  self.callback)
+#
+#         return self._service
+#
+#     @property
+#     def client(self):
+#         if self._client is None:
+#             self._client = _var.ipc.get_service_proxy(self.name, self.service_class)
+#
+#         return self._client
+#
+#
+# class ServiceClient(object):
+#     def __init__(self, service_name, service_class):
+#         super(ServiceClient, self).__init__()
+#
+#         self.service_name = service_name
+#         self.service_class = service_class
+#
+#     def get_service_proxy(self):
+#         return _var.ipc.get_service_proxy(self.service_name, self.service_class)
 
 
 class Logger(object):
@@ -921,6 +922,7 @@ class RosTopicSubscriber(TopicSubscriber):
             if self.msg_type is std_msgs.String:
                 def default_postprocessor(msg):
                     return MsgUtils.deserialize(RosMsgUtils.unwrap(msg, 'data'))
+
                 self.postprocessor = default_postprocessor
 
         self._subscriber = rospy.Subscriber(name=self.topic_name,
