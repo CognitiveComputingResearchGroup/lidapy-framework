@@ -1,7 +1,9 @@
 #! /usr/bin/env python
 
+import collections
+import copy
 import numpy
-from random import uniform, choice
+from random import choice
 from sys import argv
 from time import sleep
 
@@ -26,6 +28,7 @@ RIGHT = '3'
 FRONT = '4'
 SPIN_LEFT = '5'
 SPIN_RIGHT = '6'
+OBSTACLE = '7'
 
 
 def detect_path():
@@ -67,6 +70,48 @@ def detect_path():
             DETECTED_FEATURES.publish(choice([SPIN_LEFT, SPIN_RIGHT]))
 
 
+range_history = collections.deque(maxlen=10)
+
+
+def detect_obstacle():
+    ranges = SENSOR.next_msg or []
+    if not ranges:
+        return
+
+    # Save ranges in history
+    range_history.append(ranges)
+
+    obstacle = False
+
+    if len(range_history) == range_history.maxlen:
+        temp_history = copy.deepcopy(range_history)
+
+        first = temp_history.pop()
+        second = temp_history.pop()
+
+        while first and second:
+
+            count_similar = 0
+            for r1, r2 in zip(first, second):
+                if abs(r1 - r2) < 0.05:
+                    count_similar += 1
+
+            similarity = float(count_similar) / float(len(first))
+            if similarity > 0.9:
+                obstacle = True
+                first = second
+                second = None if len(temp_history) == 0 else temp_history.pop()
+            else:
+                obstacle = False
+                break
+
+    if obstacle:
+        DETECTED_FEATURES.publish(OBSTACLE)
+
+
+# TODO: Add "escaped" detector
+
+
 class Action(object):
     def __init__(self, angle, force, duration):
         self.angle = angle
@@ -90,6 +135,7 @@ def determine_action():
                    LEFT: Action(0.5, force, 0.1),
                    RIGHT: Action(-0.5, force, 0.1),
                    BLOCKED: Action(0.8, -force, 4),
+                   OBSTACLE: Action(0.2, -force, 2),
                    SPIN_LEFT: Action(0.8, -force, 5),
                    SPIN_RIGHT: Action(-0.8, -force, 5)}
 
@@ -106,6 +152,11 @@ def execute_action():
 # Initialize the lidapy framework
 lidapy.init(Config(file_path=argv[1], use_param_service=True))
 
-LIDAProcess('pam', tasks=[Task('path_detector', detect_path)]).start()
-LIDAProcess('action_selection', tasks=[Task('action_selection', determine_action)]).start()
-LIDAProcess('action_execution', tasks=[Task('action_execution', execute_action)]).start()
+path_detector = Task('path_detector', detect_path)
+obstacle_detector = Task('obstacle_detector', detect_obstacle)
+action_selector = Task('action_selector', determine_action)
+action_executor = Task('action_execution', execute_action)
+
+LIDAProcess('pam', tasks=[path_detector, obstacle_detector]).start()
+LIDAProcess('action_selection', tasks=[action_selector]).start()
+LIDAProcess('action_execution', tasks=[action_executor]).start()
