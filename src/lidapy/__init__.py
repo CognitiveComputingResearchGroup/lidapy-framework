@@ -16,7 +16,8 @@ from lidapy.util import MsgUtils
 from lidapy.util import RosMsgUtils
 from lidapy.util import create_class_instance
 from lidapy.util import generate_random_name
-from lidapy_rosdeps.srv import GenericService
+
+# from lidapy_rosdeps.srv import GenericService
 
 # Internal LidaPy Globals
 _var = collections.namedtuple('lidapy_var', ['config', 'logger', 'ipc'])
@@ -498,7 +499,7 @@ class CognitiveContent(Activatable):
         if callable(attr_v):
             def wrapper(*args, **kwargs):
                 result = attr_v(*args, **kwargs)
-                if result == self._value:
+                if result is self._value:
                     return self
                 return result
 
@@ -521,7 +522,6 @@ class CognitiveContent(Activatable):
             return self._value[key]
         else:
             raise TypeError("Indexing not supported")
-
 
 
 class Codelet(Task):
@@ -615,7 +615,8 @@ class Topic(object):
         return self._subscriber
 
     def publish(self, msg):
-        self.publisher.publish(msg)
+        if msg:
+            self.publisher.publish(msg)
 
     @property
     def next_msg(self):
@@ -663,43 +664,43 @@ class TopicSubscriber(object):
         return len(self._receive_queue)
 
 
-class Service(object):
-    def __init__(self, name, callback=None):
-        super(Service, self).__init__()
-
-        self.name = name
-        self.service_class = GenericService
-        self.callback = callback
-
-        self._service = None
-        self._client = None
-
-    def register(self):
-        if self._service is None:
-            loginfo('Registering new service [{}]'.format(self.name))
-            self._service = _var.ipc.get_service(self.name,
-                                                 self.service_class,
-                                                 self.callback)
-
-        return self._service
-
-    @property
-    def client(self):
-        if self._client is None:
-            self._client = _var.ipc.get_service_proxy(self.name, self.service_class)
-
-        return self._client
-
-
-class ServiceClient(object):
-    def __init__(self, service_name, service_class):
-        super(ServiceClient, self).__init__()
-
-        self.service_name = service_name
-        self.service_class = service_class
-
-    def get_service_proxy(self):
-        return _var.ipc.get_service_proxy(self.service_name, self.service_class)
+# class Service(object):
+#     def __init__(self, name, callback=None):
+#         super(Service, self).__init__()
+#
+#         self.name = name
+#         self.service_class = GenericService
+#         self.callback = callback
+#
+#         self._service = None
+#         self._client = None
+#
+#     def register(self):
+#         if self._service is None:
+#             loginfo('Registering new service [{}]'.format(self.name))
+#             self._service = _var.ipc.get_service(self.name,
+#                                                  self.service_class,
+#                                                  self.callback)
+#
+#         return self._service
+#
+#     @property
+#     def client(self):
+#         if self._client is None:
+#             self._client = _var.ipc.get_service_proxy(self.name, self.service_class)
+#
+#         return self._client
+#
+#
+# class ServiceClient(object):
+#     def __init__(self, service_name, service_class):
+#         super(ServiceClient, self).__init__()
+#
+#         self.service_name = service_name
+#         self.service_class = service_class
+#
+#     def get_service_proxy(self):
+#         return _var.ipc.get_service_proxy(self.service_name, self.service_class)
 
 
 class Logger(object):
@@ -888,17 +889,15 @@ class RosTopicPublisher(TopicPublisher):
     def __init__(self, topic_name, msg_type=None, queue_size=None, preprocessor=None):
         super(RosTopicPublisher, self).__init__(topic_name, msg_type, queue_size, preprocessor)
 
-        self.msg_type = std_msgs.String
+        self.msg_type = std_msgs.String if msg_type is None else msg_type
         self.queue_size = 10
-        # self.queue_size = queue_size if queue_size is not None else 10
-        # self.preprocessor = preprocessor
-        #
-        # if preprocessor is None:
-        #     if self.msg_type is std_msgs.String:
-        # def default_preprocessor(msg):
-        #     return RosMsgUtils.wrap(MsgUtils.serialize(msg), msg_type, 'data')
-        #
-        # self.preprocessor = default_preprocessor
+
+        if preprocessor is None:
+            if self.msg_type is std_msgs.String:
+                def default_preprocessor(msg):
+                    return MsgUtils.serialize(msg)
+
+                self.preprocessor = default_preprocessor
 
         self._publisher = rospy.Publisher(name=self.topic_name,
                                           data_class=self.msg_type,
@@ -922,7 +921,7 @@ class RosTopicSubscriber(TopicSubscriber):
         if postprocessor is None:
             if self.msg_type is std_msgs.String:
                 def default_postprocessor(msg):
-                    return RosMsgUtils.unwrap(msg, 'data')
+                    return MsgUtils.deserialize(RosMsgUtils.unwrap(msg, 'data'))
 
                 self.postprocessor = default_postprocessor
 

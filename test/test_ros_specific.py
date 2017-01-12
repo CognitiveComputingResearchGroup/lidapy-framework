@@ -8,16 +8,21 @@ import time
 import unittest
 
 import lidapy
+from lidapy import CognitiveContent
 from lidapy import Config
 from lidapy import MsgUtils
-from lidapy import Topic
-from lidapy import CognitiveContent
 from lidapy import RosMsgUtils
+from lidapy import Topic
 from std_msgs.msg import String
 
 
 class RosTopicTest(unittest.TestCase):
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
+        config = Config()
+        config.set_param('logger', 'lidapy.ConsoleLogger')
+        config.set_param('ipc_proxy', 'lidapy.RosCommunicationProxy')
+
         lidapy.init(process_name='test')
 
     def test_create_pub_sub(self):
@@ -42,7 +47,7 @@ class RosTopicTest(unittest.TestCase):
         self.assertEqual(sent_msg, recv_msg)
 
     def test_preprocessor(self):
-        topic = Topic('topic', preprocessor=lambda x: str(x) + '_processed')
+        topic = Topic('topic_2', preprocessor=lambda x: str(x) + '_processed', postprocessor=lambda x: x.data)
 
         sent_msg = '1'
         topic.publish(sent_msg)
@@ -56,7 +61,7 @@ class RosTopicTest(unittest.TestCase):
             self.fail('Failed to find expected string')
 
     def test_postprocessor(self):
-        topic = Topic('topic', postprocessor=lambda x: x.data.replace('_processed', ''))
+        topic = Topic('topic_3', preprocessor=lambda x: x, postprocessor=lambda x: x.data.replace('_processed', ''))
 
         sent_msg = '1'
         topic.publish(sent_msg + '_processed')
@@ -111,7 +116,6 @@ class RosCommunicationProxyTest(unittest.TestCase):
 
 class RosMsgUtilsTest(unittest.TestCase):
     def test_msg_wrapper(self):
-
         cc = CognitiveContent('value')
         cc.activation = .75
         cc.base_level_activation = .5
@@ -123,17 +127,15 @@ class RosMsgUtilsTest(unittest.TestCase):
         w_obj = RosMsgUtils.wrap(obj, String, 'data')
 
         self.assertTrue(isinstance(w_obj, String))
-        self.assertTrue(hasattr(w_obj, 'data'))
         self.assertEqual(w_obj.data, obj)
 
         uw_obj = RosMsgUtils.unwrap(w_obj, 'data')
         cc_new = MsgUtils.deserialize(uw_obj)
-        
+
+        self.assertIsInstance(cc_new, CognitiveContent)
         self.assertEqual(cc_new.activation, cc.activation)
         self.assertEqual(cc_new.base_level_activation, cc.base_level_activation)
         self.assertEqual(cc_new.incentive_salience, cc.incentive_salience)
         self.assertEqual(cc_new.removal_threshold, cc.removal_threshold)
         self.assertEqual(cc_new._value, cc._value)
 
-
-        #self.assertTrue(isinstance(MsgUtils.deserialize(uw_obj), CognitiveContent))
