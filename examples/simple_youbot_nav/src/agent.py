@@ -1,3 +1,5 @@
+#! /usr/bin/env python
+
 import numpy
 from random import uniform, choice
 from sys import argv
@@ -14,7 +16,7 @@ from simple_youbot_nav.msg import WheelCommand
 # Topic definitions
 ACTUATOR = Topic('/gazebo/commands', msg_type=WheelCommand)
 DETECTED_FEATURES = Topic('detected_features')
-SELECTED_ACTIONS = Topic('selected_actions')
+SELECTED_ACTIONS = Topic('selected_actions', queue_size=2)
 SENSOR = Topic('/gazebo/sensors/rayscan', msg_type=LaserScan, postprocessor=lambda m: m.ranges)
 
 # Feature enumerations
@@ -22,6 +24,8 @@ BLOCKED = '1'
 LEFT = '2'
 RIGHT = '3'
 FRONT = '4'
+SPIN_LEFT = '5'
+SPIN_RIGHT = '6'
 
 
 def detect_path():
@@ -40,22 +44,27 @@ def detect_path():
     maxes = {FRONT: max(front_ranges), LEFT: max(left_ranges), RIGHT: max(right_ranges)}
     avgs = {FRONT: numpy.average(front_ranges), LEFT: numpy.average(left_ranges), RIGHT: numpy.average(right_ranges)}
 
-    minmin_dir, minmin_range = min(mins.iteritems(), key=(lambda item: item[1]))
+    maxmin_dir, maxmin_range = max(mins.iteritems(), key=(lambda item: item[1]))
     maxmax_dir, maxmax_range = max(maxes.iteritems(), key=(lambda item: item[1]))
     maxavg_dir, maxavg_range = max(avgs.iteritems(), key=(lambda item: item[1]))
 
-    if mins[FRONT] < 0.25:
+    if avgs[FRONT] < 0.25 and mins[FRONT] < 0.01:
         DETECTED_FEATURES.publish(BLOCKED)
-    elif avgs[FRONT] > 5.0:
-        DETECTED_FEATURES.publish(FRONT)
-    elif minmin_range < 0.5 and LEFT is minmin_dir:
-        DETECTED_FEATURES.publish(RIGHT)
-    elif minmin_range < 0.5 and RIGHT is minmin_dir:
-        DETECTED_FEATURES.publish(LEFT)
-    elif maxmax_dir == maxavg_dir:
-        DETECTED_FEATURES.publish(maxmax_dir)
+    elif maxavg_dir == maxmax_dir == maxmin_dir:
+        DETECTED_FEATURES.publish(maxavg_dir)
     else:
-        DETECTED_FEATURES.publish(choice([FRONT, LEFT, RIGHT]))
+        candidate_dirs = [LEFT, RIGHT, FRONT]
+        while candidate_dirs:
+            candidate = choice(candidate_dirs)
+            if maxes[candidate] > 1.0 and mins[candidate] > 0.25 and avgs[candidate] > 1.0:
+                DETECTED_FEATURES.publish(candidate)
+                break
+            else:
+                candidate_dirs.remove(candidate)
+
+        # Unable to detect suitable direction
+        if len(candidate_dirs) == 0:
+            DETECTED_FEATURES.publish(choice([SPIN_LEFT, SPIN_RIGHT]))
 
 
 class Action(object):
@@ -77,10 +86,12 @@ def determine_action():
     if feature is not None:
         force = float(lidapy.get_param('wheel_force', section='action_execution'))
 
-        actions = {FRONT: Action(0.0, force, uniform(0.3, 0.8)),
-                   LEFT: Action(0.4, force, uniform(0.1, 0.3)),
-                   RIGHT: Action(-0.4, force, uniform(0.1, 0.3)),
-                   BLOCKED: Action(0.8, -force, uniform(0.5, 5))}
+        actions = {FRONT: Action(0.0, force, 0.1),
+                   LEFT: Action(0.5, force, 0.1),
+                   RIGHT: Action(-0.5, force, 0.1),
+                   BLOCKED: Action(0.8, -force, 4),
+                   SPIN_LEFT: Action(0.8, -force, 5),
+                   SPIN_RIGHT: Action(-0.8, -force, 5)}
 
         SELECTED_ACTIONS.publish(actions[feature])
 
@@ -93,7 +104,7 @@ def execute_action():
 
 
 # Initialize the lidapy framework
-lidapy.init(Config(argv[1]))
+lidapy.init(Config(file_path=argv[1], use_param_service=True))
 
 LIDAProcess('pam', tasks=[Task('path_detector', detect_path)]).start()
 LIDAProcess('action_selection', tasks=[Task('action_selection', determine_action)]).start()
