@@ -152,5 +152,3 @@ class ParameterServiceTest(unittest.TestCase):
         ps.set_param(name='new_param', value='expected_value', section='globals')
         actual_value = ps.get_param(name='new_param', section='globals')
         self.assertEqual('expected_value', actual_value)
-
-        ps.set_param(name='')
