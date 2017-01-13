@@ -26,9 +26,7 @@ BLOCKED = '1'
 LEFT = '2'
 RIGHT = '3'
 FRONT = '4'
-SPIN_LEFT = '5'
-SPIN_RIGHT = '6'
-OBSTACLE = '7'
+OBSTACLE = '5'
 
 
 def detect_path():
@@ -51,9 +49,7 @@ def detect_path():
     maxmax_dir, maxmax_range = max(maxes.iteritems(), key=(lambda item: item[1]))
     maxavg_dir, maxavg_range = max(avgs.iteritems(), key=(lambda item: item[1]))
 
-    if avgs[FRONT] < 0.25 and mins[FRONT] < 0.01:
-        DETECTED_FEATURES.publish(BLOCKED)
-    elif maxavg_dir == maxmax_dir == maxmin_dir:
+    if maxavg_dir == maxmax_dir == maxmin_dir:
         DETECTED_FEATURES.publish(maxavg_dir)
     else:
         candidate_dirs = [LEFT, RIGHT, FRONT]
@@ -65,10 +61,6 @@ def detect_path():
             else:
                 candidate_dirs.remove(candidate)
 
-        # Unable to detect suitable direction
-        if len(candidate_dirs) == 0:
-            DETECTED_FEATURES.publish(choice([SPIN_LEFT, SPIN_RIGHT]))
-
 
 range_history = collections.deque(maxlen=10)
 
@@ -78,8 +70,11 @@ def detect_obstacle():
     if not ranges:
         return
 
-    # Save ranges in history
-    range_history.append(ranges)
+    if min(ranges) > 0.5:
+        range_history.clear()
+    else:
+        # Save ranges in history
+        range_history.append(ranges)
 
     obstacle = False
 
@@ -109,9 +104,6 @@ def detect_obstacle():
         DETECTED_FEATURES.publish(OBSTACLE)
 
 
-# TODO: Add "escaped" detector
-
-
 class Action(object):
     def __init__(self, angle, force, duration):
         self.angle = angle
@@ -134,10 +126,7 @@ def determine_action():
         actions = {FRONT: Action(0.0, force, 0.1),
                    LEFT: Action(0.5, force, 0.1),
                    RIGHT: Action(-0.5, force, 0.1),
-                   BLOCKED: Action(0.8, -force, 4),
-                   OBSTACLE: Action(0.2, -force, 2),
-                   SPIN_LEFT: Action(0.8, -force, 5),
-                   SPIN_RIGHT: Action(-0.8, -force, 5)}
+                   OBSTACLE: Action(0.8, -force, 3)}
 
         SELECTED_ACTIONS.publish(actions[feature])
 
@@ -157,6 +146,7 @@ obstacle_detector = Task('obstacle_detector', detect_obstacle)
 action_selector = Task('action_selector', determine_action)
 action_executor = Task('action_execution', execute_action)
 
-LIDAProcess('pam', tasks=[path_detector, obstacle_detector]).start()
+LIDAProcess('path_detection', tasks=[path_detector]).start()
+LIDAProcess('obstacle_detection', tasks=[obstacle_detector]).start()
 LIDAProcess('action_selection', tasks=[action_selector]).start()
 LIDAProcess('action_execution', tasks=[action_executor]).start()

@@ -1,4 +1,3 @@
 <launch>
     <node name="gazebo" pkg="gazebo_ros" type="gzserver" required="true" args="$(find simple_youbot_nav)/gazebo/worlds/simple_maze.world"/>
-    <node name="agent" pkg="simple_youbot_nav" type="agent.py" required="true" args="$(find simple_youbot_nav)/configs/agent.conf"/>
 </launch>

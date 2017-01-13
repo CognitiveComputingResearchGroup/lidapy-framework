@@ -11,6 +11,7 @@ import lidapy
 from lidapy import CognitiveContent
 from lidapy import Config
 from lidapy import MsgUtils
+from lidapy import ParameterService
 from lidapy import RosMsgUtils
 from lidapy import Topic
 from std_msgs.msg import String
@@ -139,3 +140,17 @@ class RosMsgUtilsTest(unittest.TestCase):
         self.assertEqual(cc_new.removal_threshold, cc.removal_threshold)
         self.assertEqual(cc_new._value, cc._value)
 
+
+class ParameterServiceTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        lidapy.init(process_name='test')
+
+    def test(self):
+        ps = ParameterService()
+
+        ps.set_param(name='new_param', value='expected_value', section='globals')
+        actual_value = ps.get_param(name='new_param', section='globals')
+        self.assertEqual('expected_value', actual_value)
+
+        ps.set_param(name='')
