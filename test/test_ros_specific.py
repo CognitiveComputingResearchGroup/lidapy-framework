@@ -140,15 +140,14 @@ class RosMsgUtilsTest(unittest.TestCase):
         self.assertEqual(cc_new.removal_threshold, cc.removal_threshold)
         self.assertEqual(cc_new._value, cc._value)
 
-
-class ParameterServiceTest(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        lidapy.init(process_name='test')
-
-    def test(self):
-        ps = ParameterService()
-
-        ps.set_param(name='new_param', value='expected_value', section='globals')
-        actual_value = ps.get_param(name='new_param', section='globals')
-        self.assertEqual('expected_value', actual_value)
+# class ParameterServiceTest(unittest.TestCase):
+#     @classmethod
+#     def setUpClass(cls):
+#         lidapy.init(process_name='test')
+#
+#     def test(self):
+#         ps = ParameterService()
+#
+#         ps.set_param(name='new_param', value='expected_value', section='globals')
+#         actual_value = ps.get_param(name='new_param', section='globals')
+#         self.assertEqual('expected_value', actual_value)
