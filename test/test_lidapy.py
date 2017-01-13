@@ -120,6 +120,29 @@ class ConfigTest(unittest.TestCase):
 
         self.assertEquals(expected, actual)
 
+        # def test_config_with_param_service(self):
+        #     # Use the TemporaryFile context manager for easy clean-up
+        #     with tempfile.NamedTemporaryFile() as tmp:
+        #         # Load temporary configuration file from a string
+        #         config_file = \
+        #             '''
+        #             [global]
+        #             p1 = gv1
+        #
+        #             [section_1]
+        #             p1 = s1v1
+        #             p2 = s1v2
+        #
+        #             [section_2]
+        #             p1 = s2v1
+        #             p2 = s2v2
+        #             '''
+        #         cleansed_test_config = textwrap.dedent(config_file).lstrip()
+        #         tmp.write(cleansed_test_config)
+        #         tmp.flush()
+        #
+        #         config = Config(file_path=tmp.name, use_param_service=True)
+        #         self._check_values(config)
 
 class ActivatableTest(unittest.TestCase):
     def test_init(self):

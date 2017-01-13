@@ -85,9 +85,12 @@ class Config(object):
             self._config[section] = {}
             self._config[section][name] = value
 
+        if self._param_service:
+            self._param_service.set_param(name, value, section)
+
     def get_param(self, name, section='global', default=None, func=None):
         if self._param_service:
-            value = self._param_service.get_param(section, name, default)
+            value = self._param_service.get_param(name, section, default)
         else:
             try:
                 value = self._config[section][name]
