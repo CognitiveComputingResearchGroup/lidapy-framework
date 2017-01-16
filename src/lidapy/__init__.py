@@ -3,12 +3,14 @@ from __future__ import print_function
 import ConfigParser
 import abc
 import collections
+import copy
 import datetime
 import multiprocessing
 import sys
+import threading
 import time
 import traceback
-from threading import Thread, currentThread
+from os import getpid
 
 import rospy
 import std_msgs.msg as std_msgs
@@ -37,7 +39,7 @@ def init(config=None, log_level=LOG_LEVEL_INFO, process_name=None):
     _var.ipc = util.create_class_instance(_var.config.get_param('ipc', default='lidapy.RosCommunicationProxy'))
 
     if process_name:
-        _var.ipc.initialize_node(process_name)
+        _var.ipc.initialize_node(process_name, log_level=log_level)
 
     return _var
 
@@ -196,7 +198,7 @@ class LIDAProcess(multiprocessing.Process, LIDARunnable):
         self.task_manager = task_managers[name]  # type: TaskManager
 
     def run(self):
-        loginfo('LIDAProcess [name = {}] beginning execution'.format(self.name))
+        loginfo('LIDAProcess [pid = {}; name = {}] beginning execution'.format(getpid(), self.name))
 
         try:
             self._initialize()
@@ -212,7 +214,8 @@ class LIDAProcess(multiprocessing.Process, LIDARunnable):
         finally:
             self._finalize()
 
-        loginfo('LIDAProcess [name = {}; status = {}] completing execution'.format(self.name, self.status))
+        loginfo('LIDAProcess [pid = {}; name = {}; status = {}] completing execution'.format(getpid(), self.name,
+                                                                                             self.status))
 
     def _initialize(self):
         _var.ipc.initialize_node(self.name, log_level=_var.logger.log_level)
@@ -271,13 +274,13 @@ class LIDAModule(LIDAProcess):
         super(LIDAModule, self).__init__(name, tasks)
 
 
-class LIDAThread(Thread, LIDARunnable):
+class LIDAThread(threading.Thread, LIDARunnable):
     def __init__(self, callback, name=None, callback_args=None, exec_count=-1):
 
         if name is None:
             name = util.generate_random_name(prefix='Thread_', length=16)
 
-        Thread.__init__(self, name=name)
+        threading.Thread.__init__(self, name=name)
         LIDARunnable.__init__(self, name=name)
 
         self.callback = callback
@@ -366,7 +369,7 @@ class Task(LIDARunnable):
         self._thread.start()
 
     def wait_until_complete(self):
-        if currentThread() is not self._thread:
+        if threading.currentThread() is not self._thread:
             self._thread.join()
 
 
@@ -542,7 +545,7 @@ class Sensor(object):
 
     @property
     def data(self):
-        return self.topic.subscriber.next_msg
+        return self.topic._init_subscriber.receive
 
 
 class Behavior(Activatable):
@@ -575,7 +578,7 @@ class Condition(Activatable):
 
 
 class Topic(object):
-    def __init__(self, name, msg_type=None, queue_size=10, preprocessor=None, postprocessor=None):
+    def __init__(self, name, msg_type=None, queue_size=2, preprocessor=None, postprocessor=None):
         super(Topic, self).__init__()
 
         self.name = name
@@ -587,10 +590,9 @@ class Topic(object):
         self._publisher = None  # type: TopicPublisher
         self._subscriber = None  # type: TopicSubscriber
 
-    @property
-    def publisher(self):
-        # type: (...) -> TopicPublisher
+        self._listener = None
 
+    def _init_publisher(self):
         if self._publisher is None:
             loginfo('Initializing publisher for topic {}'.format(self.name))
 
@@ -600,12 +602,7 @@ class Topic(object):
                                          max_queue_size=self.queue_size,
                                          preprocessor=self.preprocessor)
 
-        return self._publisher
-
-    @property
-    def subscriber(self):
-        # type: (...) -> TopicSubscriber
-
+    def _init_subscriber(self, listener=None):
         if self._subscriber is None:
             loginfo('Initializing subscriber for topic {}'.format(self.name))
 
@@ -615,15 +612,51 @@ class Topic(object):
                                         max_queue_size=self.queue_size,
                                         postprocessor=self.postprocessor)
 
-        return self._subscriber
+            if listener:
+                self._subscriber.add_listener(listener)
 
-    def publish(self, msg):
-        if msg:
-            self.publisher.publish(msg)
+            return listener
 
-    @property
-    def next_msg(self):
-        return self.subscriber.next_msg
+    def send(self, msg):
+        logdebug('[{}] Sending message: {}'.format(getpid(), msg))
+        if not self._publisher:
+            self._init_publisher()
+
+        self._publisher.publish(msg)
+
+    def receive(self, timeout=None):
+        if not self._subscriber:
+            self._listener = self._init_subscriber(MsgListener())
+
+        return self._listener.receive(timeout)
+
+    def add_listener(self):
+        if not self._subscriber:
+            self._init_subscriber()
+
+        new_listener = MsgListener(self.queue_size)
+        self._subscriber.add_listener(new_listener)
+        return new_listener
+
+
+class MsgListener(object):
+    def __init__(self, queue_size=1):
+        self.event = threading.Event()
+        self.msg_queue = collections.deque(maxlen=queue_size)
+
+    def receive(self, timeout=None):
+        self.event.wait(timeout)
+        try:
+            msg = self.msg_queue.popleft()
+        except IndexError:
+            msg = None
+            self.event.clear()
+
+        return msg
+
+    def notify(self, msg):
+        self.msg_queue.append(copy.deepcopy(msg))
+        self.event.set()
 
 
 class TopicPublisher(object):
@@ -653,18 +686,24 @@ class TopicSubscriber(object):
         self.queue_size = queue_size
         self.postprocessor = postprocessor
 
-        # Temporary location to store messages received from topic
-        self._receive_queue = collections.deque(maxlen=queue_size)
+        self._listeners = collections.deque()
 
-    @property
-    def next_msg(self):
-        if len(self._receive_queue) == 0:
-            return None
+    def add_listener(self, listener):
+        # TODO: Do I need to lock this or have a queue for register requests
+        # TODO: and let a single thread in the master handle this?
+        # Add thread to list of observers for this master
+        try:
+            self._listeners.append(listener)
+        except KeyError:
+            self._listeners = []
+            self._listeners.append(listener)
 
-        return self._receive_queue.popleft()
+    def remove_listener(self, listener):
+        self._listeners.remove(listener)
 
-    def __len__(self):
-        return len(self._receive_queue)
+    def notify_all(self, msg):
+        for o in self._listeners:
+            o.notify(msg)
 
 
 # class Service(object):
@@ -815,7 +854,9 @@ class LocalCommunicationProxy(CommunicationProxy):
         if topic_name not in self.msg_queues:
             self.msg_queues[topic_name] = LocalMessageQueue(topic_name, msg_type)
 
-        return LocalTopicSubscriber(self.msg_queues[topic_name], queue_size=max_queue_size, postprocessor=postprocessor)
+        return LocalTopicSubscriber(msg_queue=self.msg_queues[topic_name],
+                                    queue_size=max_queue_size,
+                                    postprocessor=postprocessor)
 
     def get_service(self, service_name, service_class, callback):
         raise NotImplementedError
@@ -904,22 +945,24 @@ class RosTopicPublisher(TopicPublisher):
 
         self._publisher = rospy.Publisher(name=self.topic_name,
                                           data_class=self.msg_type,
-                                          queue_size=self.queue_size,
-                                          latch=True)
+                                          queue_size=self.queue_size)
 
     def publish(self, msg):
         if callable(self.preprocessor):
-            msg = self.preprocessor(msg)
+            try:
+                msg = self.preprocessor(msg)
+            except:
+                pass
 
         self._publisher.publish(msg)
 
 
 class RosTopicSubscriber(TopicSubscriber):
     def __init__(self, topic_name, msg_type=None, queue_size=None, postprocessor=None):
-        super(RosTopicSubscriber, self).__init__(topic_name, msg_type, queue_size, postprocessor)
-
-        self.msg_type = std_msgs.String if msg_type is None else msg_type
-        self.queue_size = 10 if queue_size is None else queue_size
+        super(RosTopicSubscriber, self).__init__(topic_name=topic_name,
+                                                 msg_type=std_msgs.String if msg_type is None else msg_type,
+                                                 queue_size=1 if queue_size is None else queue_size,
+                                                 postprocessor=postprocessor)
 
         if postprocessor is None:
             if self.msg_type is std_msgs.String:
@@ -930,15 +973,19 @@ class RosTopicSubscriber(TopicSubscriber):
 
         self._subscriber = rospy.Subscriber(name=self.topic_name,
                                             data_class=self.msg_type,
-                                            callback=self._listener_func,
+                                            callback=self._subscribe,
                                             callback_args=None,
                                             queue_size=self.queue_size)
 
-    def _listener_func(self, msg, *args):
+    def _subscribe(self, msg, *args):
         if callable(self.postprocessor):
-            msg = self.postprocessor(msg)
+            try:
+                msg = self.postprocessor(msg)
+            except:
+                pass
 
-        self._receive_queue.append(msg)
+        # Notify listeners
+        self.notify_all(msg)
 
 
 class LocalTopicPublisher(TopicPublisher):
@@ -957,7 +1004,10 @@ class LocalTopicPublisher(TopicPublisher):
                     self.msg_queue.topic_name))
 
         if callable(self.preprocessor):
-            msg = self.preprocessor(msg)
+            try:
+                msg = self.preprocessor(msg)
+            except:
+                pass
 
         self.msg_queue.push(msg)
 
@@ -971,14 +1021,19 @@ class LocalTopicSubscriber(TopicSubscriber):
 
         self.msg_queue = msg_queue
 
-    @property
-    def next_msg(self):
-        msg = self.msg_queue.pop()
-        if msg is not None:
-            if callable(self.postprocessor):
-                msg = self.postprocessor(msg)
+        self._listener = LIDAThread(callback=self._listener_func)
+        self._listener.daemon = True
+        self._listener.start()
 
-        return msg
+    def _listener_func(self):
+        msg = self.msg_queue.pop()
+        if callable(self.postprocessor):
+            try:
+                msg = self.postprocessor(msg)
+            except:
+                pass
+
+        self.notify_all(msg)
 
 
 class LocalMessageQueue(object):
@@ -991,18 +1046,21 @@ class LocalMessageQueue(object):
         self.name = name
         self.msg_type = msg_type
         self.max_queue_size = max_queue_size
+        self.event = threading.Event()
 
         self._queue = collections.deque(maxlen=max_queue_size)
 
     def push(self, msg):
         if msg is not None:
             self._queue.append(msg)
+            self.event.set()
 
     def pop(self):
         try:
             msg = self._queue.popleft()
         except IndexError:
             msg = None
+            self.event.clear()
 
         return msg
 

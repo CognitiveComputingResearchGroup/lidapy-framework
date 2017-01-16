@@ -1,8 +1,7 @@
 #! /usr/bin/env python
 
-import sys
-
 import random
+from sys import argv
 
 from lidapy import Config
 from lidapy import LIDAThread
@@ -15,16 +14,16 @@ topic = Topic('tl_topic')
 
 # Method invoked by talker
 def talk():
-    topic.publish(str(random.randint(0, 1000000)))
+    topic.send(str(random.randint(0, 1000000)))
 
 
 # Method invoked by listener
 def listen():
-    loginfo('Received message: {}'.format(topic.next_msg))
+    loginfo('Received message: {}'.format(topic.receive()))
 
 
 # Initialize the lidapy framework
-init(config=Config(sys.argv[1]), process_name='talker_listener')
+init(config=Config(argv[1]), process_name='talker_listener')
 
 LIDAThread(name='talker', callback=talk).start()
 LIDAThread(name='listener', callback=listen).start()

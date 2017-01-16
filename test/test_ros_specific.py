@@ -4,14 +4,13 @@
 ## NOTE: The RosMaster process must be running for these test cases to pass.  #
 ###############################################################################
 
-import time
+import collections
 import unittest
 
 import lidapy
 from lidapy import CognitiveContent
 from lidapy import Config
 from lidapy import MsgUtils
-from lidapy import ParameterService
 from lidapy import RosMsgUtils
 from lidapy import Topic
 from std_msgs.msg import String
@@ -28,22 +27,23 @@ class RosTopicTest(unittest.TestCase):
 
     def test_create_pub_sub(self):
         topic = Topic(name='topic')
+        topic._init_publisher()
+        topic._init_subscriber()
 
-        self.assertEqual(type(topic.publisher), lidapy.RosTopicPublisher)
-        self.assertEqual(type(topic.subscriber), lidapy.RosTopicSubscriber)
+        self.assertEqual(type(topic._publisher), lidapy.RosTopicPublisher)
+        self.assertEqual(type(topic._subscriber), lidapy.RosTopicSubscriber)
 
-        self.assertEqual(topic.publisher.msg_type, topic.subscriber.msg_type)
+        self.assertEqual(topic._publisher.msg_type, topic._subscriber.msg_type)
 
     def test(self):
         topic = Topic(name='RosTopicTest_Topic')
 
         sent_msg = '1'
-        topic.publish(sent_msg)
 
         recv_msg = None
         while not recv_msg:
-            time.sleep(.1)
-            recv_msg = topic.next_msg
+            topic.send(sent_msg)
+            recv_msg = topic.receive(timeout=0.001)
 
         self.assertEqual(sent_msg, recv_msg)
 
@@ -51,12 +51,11 @@ class RosTopicTest(unittest.TestCase):
         topic = Topic('topic_2', preprocessor=lambda x: str(x) + '_processed', postprocessor=lambda x: x.data)
 
         sent_msg = '1'
-        topic.publish(sent_msg)
 
         recv_msg = None
         while not recv_msg:
-            time.sleep(.1)
-            recv_msg = topic.next_msg
+            topic.send(sent_msg)
+            recv_msg = topic.receive(timeout=0.001)
 
         if '_processed' not in recv_msg:
             self.fail('Failed to find expected string')
@@ -64,15 +63,12 @@ class RosTopicTest(unittest.TestCase):
     def test_postprocessor(self):
         topic = Topic('topic_3', preprocessor=lambda x: x, postprocessor=lambda x: x.data.replace('_processed', ''))
 
-        sent_msg = '1'
-        topic.publish(sent_msg + '_processed')
-
         recv_msg = None
         while not recv_msg:
-            time.sleep(.1)
-            recv_msg = topic.next_msg
+            topic.send('1_processed')
+            recv_msg = topic.receive(timeout=0.001)
 
-        self.assertEqual(sent_msg, recv_msg)
+        self.assertEqual('1', recv_msg)
 
 
 class RosCommunicationProxyTest(unittest.TestCase):
@@ -100,6 +96,7 @@ class RosCommunicationProxyTest(unittest.TestCase):
         def callback(msg):
             pass
 
+        observers = collections.deque()
         sub = self._var.ipc.get_subscriber(topic_name='topic', postprocessor=callback)
 
         self.assertIsInstance(sub.__class__, lidapy.RosTopicSubscriber.__class__)
