@@ -462,7 +462,7 @@ class TopicSubscriberTest(unittest.TestCase):
 
         topic.send('msg')
 
-        time.sleep(.1)
+        time.sleep(1)
 
         for listener in listeners:
             self.assertEqual(1, len(listener.msg_queue))
