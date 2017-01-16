@@ -85,7 +85,7 @@ def detect_stuck():
     # No sensor evidence of being stuck.  This is to prevent
     # confusion when traveling in a lane or when no surrounding
     # objects.
-    elif any(r > .5 for r in ranges[20:-20]):
+    elif all(r > .5 for r in ranges[20:-20]):
         pass
 
     else:
