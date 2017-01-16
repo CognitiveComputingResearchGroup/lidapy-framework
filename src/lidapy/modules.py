@@ -66,7 +66,7 @@ class ActionSelection(LIDAModule):
 
     # The callback for the receiver task
     def receive_candidates(self):
-        next_candidates = CANDIDATE_BEHAVIORS_TOPIC.next_msg
+        next_candidates = CANDIDATE_BEHAVIORS_TOPIC.receive()
         if next_candidates is not None:
             self.candidate_behaviors.push(next_candidates)
 
@@ -99,7 +99,7 @@ class ActionSelection(LIDAModule):
         # execution (if applicable)
         if behavior is not None:
             logdebug("Publishing selected behaviors for execution")
-            SELECTED_BEHAVIORS_TOPIC.publish(behavior)
+            SELECTED_BEHAVIORS_TOPIC.send(behavior)
         else:
             logdebug("No behaviors selected for execution")
 
@@ -107,7 +107,7 @@ class ActionSelection(LIDAModule):
         self.behavior_net.decay(self.rate_in_hz)
 
     def learn(self):
-        global_broadcast = GLOBAL_BROADCAST_TOPIC.next_msg
+        global_broadcast = GLOBAL_BROADCAST_TOPIC.receive
         if global_broadcast is not None:
             # TODO: Need to implement learning here
             pass
@@ -277,7 +277,7 @@ class EpisodicMemory(LIDAModule):
         logdebug("Receiving workspace cue")
 
     def learn(self):
-        global_broadcast = GLOBAL_BROADCAST_TOPIC.next_msg
+        global_broadcast = GLOBAL_BROADCAST_TOPIC.receive
         if global_broadcast is not None:
             # TODO: Need to implement learning here
             pass
@@ -317,7 +317,7 @@ class PerceptualAssociativeMemory(LIDAModule):
         self.tasks += self.builtin_tasks
 
     def learn(self):
-        global_broadcast = GLOBAL_BROADCAST_TOPIC.next_msg
+        global_broadcast = GLOBAL_BROADCAST_TOPIC.receive
         if global_broadcast is not None:
             # TODO: Need to implement learning here
             pass
@@ -338,7 +338,7 @@ class ProceduralMemory(LIDAModule):
         self.tasks += self.builtin_tasks
 
     def learn(self):
-        global_broadcast = GLOBAL_BROADCAST_TOPIC.next_msg
+        global_broadcast = GLOBAL_BROADCAST_TOPIC.receive
         if global_broadcast is not None:
             # TODO: Need to implement learning here
             pass
@@ -359,7 +359,7 @@ class SensoryMemory(LIDAModule):
         self.tasks += self.builtin_tasks
 
     def learn(self):
-        global_broadcast = GLOBAL_BROADCAST_TOPIC.next_msg
+        global_broadcast = GLOBAL_BROADCAST_TOPIC.receive
         if global_broadcast is not None:
             # TODO: Need to implement learning here
             pass
@@ -425,7 +425,7 @@ class SensoryMotorMemory(LIDAModule):
         self.tasks += self.builtin_tasks
 
     def learn(self):
-        global_broadcast = GLOBAL_BROADCAST_TOPIC.next_msg
+        global_broadcast = GLOBAL_BROADCAST_TOPIC.receive
         if global_broadcast is not None:
             # TODO: Need to implement learning here
             pass
@@ -446,7 +446,7 @@ class SpatialMemory(LIDAModule):
         self.tasks += self.builtin_tasks
 
     def learn(self):
-        global_broadcast = GLOBAL_BROADCAST_TOPIC.next_msg
+        global_broadcast = GLOBAL_BROADCAST_TOPIC.receive
         if global_broadcast is not None:
             # TODO: Need to implement learning here
             pass
@@ -467,7 +467,7 @@ class TransientEpisodicMemory(LIDAModule):
         self.tasks += self.builtin_tasks
 
     def learn(self):
-        global_broadcast = GLOBAL_BROADCAST_TOPIC.next_msg
+        global_broadcast = GLOBAL_BROADCAST_TOPIC.receive
         if global_broadcast is not None:
             # TODO: Need to implement learning here
             pass
@@ -488,7 +488,7 @@ class Workspace(LIDAModule):
         self.tasks += self.builtin_tasks
 
     def learn(self):
-        global_broadcast = GLOBAL_BROADCAST_TOPIC.next_msg
+        global_broadcast = GLOBAL_BROADCAST_TOPIC.receive
         if global_broadcast is not None:
             # TODO: Need to implement learning here
             pass

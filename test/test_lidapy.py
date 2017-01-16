@@ -8,6 +8,7 @@ from lidapy import Activatable
 from lidapy import CognitiveContent
 from lidapy import Config
 from lidapy import DecayTask
+from lidapy import MsgListener
 from lidapy import Task
 from lidapy import Topic
 from lidapy import create_class_instance
@@ -19,7 +20,7 @@ class ConfigTest(unittest.TestCase):
     def test_config_with_file_path(self):
         # Test that non-existent configuration file returns IOError
         with self.assertRaises(IOError):
-            Config(file_path="does_not_exist")
+            Config(file_path='does_not_exist')
 
         # Use the TemporaryFile context manager for easy clean-up
         with tempfile.NamedTemporaryFile() as tmp:
@@ -48,75 +49,75 @@ class ConfigTest(unittest.TestCase):
     def test_config_no_file_path(self):
         config = Config()
 
-        config.set_param(name="p1", value="gv1")
-        config.set_param(name="p1", value="s1v1", section="section_1")
-        config.set_param(name="p2", value="s1v2", section="section_1")
-        config.set_param(name="p1", value="s2v1", section="section_2")
-        config.set_param(name="p2", value="s2v2", section="section_2")
+        config.set_param(name='p1', value='gv1')
+        config.set_param(name='p1', value='s1v1', section='section_1')
+        config.set_param(name='p2', value='s1v2', section='section_1')
+        config.set_param(name='p1', value='s2v1', section='section_2')
+        config.set_param(name='p2', value='s2v2', section='section_2')
 
         self._check_values(config)
 
     def _check_values(self, config):
         # Verify that global value from config matches expected value
-        expected = "gv1"
-        actual = config.get_param("p1")
+        expected = 'gv1'
+        actual = config.get_param('p1')
 
         self.assertEqual(expected, actual)
 
         # Verify that p1 value from section_1 matches the expected value
-        expected = "s1v1"
-        actual = config.get_param("p1", section="section_1")
+        expected = 's1v1'
+        actual = config.get_param('p1', section='section_1')
 
         self.assertEqual(expected, actual)
 
         # Verify that p2 value from section_1 matches the expected value
-        expected = "s1v2"
-        actual = config.get_param("p2", section="section_1")
+        expected = 's1v2'
+        actual = config.get_param('p2', section='section_1')
 
         self.assertEqual(expected, actual)
 
         # Verify that p1 value from section_2 matches the expected value
-        expected = "s2v1"
-        actual = config.get_param("p1", section="section_2")
+        expected = 's2v1'
+        actual = config.get_param('p1', section='section_2')
 
         self.assertEqual(expected, actual)
 
         # Verify that p2 value from section_2 matches the expected value
-        expected = "s2v2"
-        actual = config.get_param("p2", section="section_2")
+        expected = 's2v2'
+        actual = config.get_param('p2', section='section_2')
 
         self.assertEqual(expected, actual)
 
         # Verify that None is returned when a parameter
         # is requested for a non-existent type with no default
         expected = None
-        actual = config.get_param("p1", section="does_not_exist")
+        actual = config.get_param('p1', section='does_not_exist')
 
         self.assertEquals(expected, actual)
 
         # Verify that None is returned when a global parameter
         # is requested that does not exist
         expected = None
-        actual = config.get_param("does_not_exist")
+        actual = config.get_param('does_not_exist')
 
         self.assertEqual(expected, actual)
 
         # Verify that None is returned when a section parameter
         # is requested that does not exist
         expected = None
-        actual = config.get_param("does_not_exist", section="section_1")
+        actual = config.get_param('does_not_exist', section='section_1')
 
         self.assertEqual(expected, actual)
 
         # Verify default returned when non-existent parameter requested
-        expected = "d1"
-        actual = config.get_param("does_not_exist", section="section_1", default=expected)
+        expected = 'd1'
+        actual = config.get_param('does_not_exist', section='section_1', default=expected)
 
         self.assertEquals(expected, actual)
 
         # Verify default returned when non-existent parameter requested
-        expected = "d1"
-        actual = config.get_param("p1", section="does_not_exist", default=expected)
+        expected = 'd1'
+        actual = config.get_param('p1', section='does_not_exist', default=expected)
 
         self.assertEquals(expected, actual)
 
@@ -143,6 +144,7 @@ class ConfigTest(unittest.TestCase):
         #
         #         config = Config(file_path=tmp.name, use_param_service=True)
         #         self._check_values(config)
+
 
 class ActivatableTest(unittest.TestCase):
     def test_init(self):
@@ -246,7 +248,8 @@ class LocalCommunicationProxyTest(unittest.TestCase):
         def callback():
             pass
 
-        sub = self._var.ipc.get_subscriber(topic_name='topic', postprocessor=callback)
+        sub = self._var.ipc.get_subscriber(topic_name='topic',
+                                           postprocessor=callback)
 
         self.assertIsInstance(sub.__class__, lidapy.LocalTopicSubscriber.__class__)
         self.assertEqual(sub.topic_name, 'topic')
@@ -263,9 +266,9 @@ class LocalCommunicationProxyTest(unittest.TestCase):
 
 class LocalMessageQueueTest(unittest.TestCase):
     def test_init(self):
-        q = lidapy.LocalMessageQueue(name="queue_name", msg_type=Activatable, max_queue_size=15)
+        q = lidapy.LocalMessageQueue(name='queue_name', msg_type=Activatable, max_queue_size=15)
 
-        self.assertEqual(q.name, "queue_name")
+        self.assertEqual(q.name, 'queue_name')
         self.assertEqual(q.msg_type, Activatable)
         self.assertEqual(q.max_queue_size, 15)
 
@@ -289,17 +292,30 @@ class LocalMessageQueueTest(unittest.TestCase):
             actual = q.pop()
 
             if expected != actual:
-                self.fail("Expected {} != Actual {}".format(expected, actual))
+                self.fail('Expected {} != Actual {}'.format(expected, actual))
 
         # Verify queue is empty after popping all values
         self.assertEqual(len(q), 0)
         self.assertEqual(len(msgs), 0)
 
+    def test_event(self):
+        q = lidapy.LocalMessageQueue()
+
+        self.assertEqual(q.event.is_set(), False)
+        q.push('msg')
+        self.assertEqual(q.event.is_set(), True)
+        q.peek()
+        self.assertEqual(q.event.is_set(), True)
+        # First pop does not clear event.  Only cleared
+        # when pop from empty queue
+        q.pop()
+        q.pop()
+        self.assertEqual(q.event.is_set(), False)
+
 
 class LocalTopicTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-
         config = Config()
         config.set_param('logger', 'lidapy.ConsoleLogger')
         config.set_param('ipc', 'lidapy.LocalCommunicationProxy')
@@ -307,70 +323,149 @@ class LocalTopicTest(unittest.TestCase):
         lidapy.init(config=config, process_name='test')
 
     def test_init(self):
-
         def custom_pre():
-            return "custom_pre"
+            return 'custom_pre'
 
         def custom_post():
-            return "custom_post"
+            return 'custom_post'
 
         # Test initializer sets attributes correctly
-        topic = Topic(name="topic", msg_type=Activatable, queue_size=50, preprocessor=custom_pre,
+        topic = Topic(name='topic', msg_type=Activatable, queue_size=50, preprocessor=custom_pre,
                       postprocessor=custom_post)
 
-        self.assertEqual(topic.name, "topic")
+        self.assertEqual(topic.name, 'topic')
         self.assertEqual(topic.msg_type, Activatable)
         self.assertEqual(topic.queue_size, 50)
         self.assertEqual(topic.preprocessor, custom_pre)
         self.assertEqual(topic.postprocessor, custom_post)
 
     def test_create_pub_sub(self):
-        topic = Topic(name="topic")
+        topic = Topic(name='topic')
 
-        self.assertEqual(type(topic.publisher), lidapy.LocalTopicPublisher)
-        self.assertEqual(type(topic.subscriber), lidapy.LocalTopicSubscriber)
+        topic._init_publisher()
+        topic._init_subscriber()
 
-        self.assertEqual(topic.publisher.msg_type, topic.subscriber.msg_type)
+        self.assertEqual(type(topic._publisher), lidapy.LocalTopicPublisher)
+        self.assertEqual(type(topic._subscriber), lidapy.LocalTopicSubscriber)
 
-    def test(self):
-        topic = Topic(name="LocalTopicTest_Topic")
-
-        sent_msg = '1'
-        topic.publish(sent_msg)
-
-        recv_msg = None
-        while not recv_msg:
-            time.sleep(.1)
-            recv_msg = topic.next_msg
-
-        self.assertEqual(sent_msg, recv_msg)
+        self.assertEqual(topic._publisher.msg_type, topic._subscriber.msg_type)
 
     def test_preprocessor(self):
-        topic = Topic("topic", preprocessor=lambda x: str(x) + "_processed")
+        topic = Topic('topic', preprocessor=lambda x: str(x) + '_processed')
 
-        sent_msg = '1'
-        topic.publish(sent_msg)
+        listener = topic.add_listener()
 
         recv_msg = None
-        while not recv_msg:
-            time.sleep(.1)
-            recv_msg = topic.next_msg
+        while recv_msg is None:
+            topic.send('1')
+            recv_msg = listener.receive(timeout=.001)
 
-        if "_processed" not in recv_msg:
-            self.fail("Failed to find expected string")
+        if '_processed' not in recv_msg:
+            self.fail('Failed to find expected string')
 
     def test_postprocessor(self):
-        topic = Topic("topic", postprocessor=lambda x: x.replace("_processed", ""))
+        topic = Topic('topic', postprocessor=lambda x: x.replace('_processed', ''))
 
-        sent_msg = '1'
-        topic.publish(sent_msg + "_processed")
+        listener = topic.add_listener()
 
-        recv_msg = None
-        while not recv_msg:
-            time.sleep(.1)
-            recv_msg = topic.next_msg
+        msg = None
+        while msg is None:
+            topic.send('1_processed')
+            msg = listener.receive(timeout=.001)
 
-        self.assertEqual(sent_msg, recv_msg)
+        self.assertEqual('1', msg)
+
+
+class MsgListenerTest(unittest.TestCase):
+    def test(self):
+        listener = MsgListener(queue_size=10)
+
+        # Test initial state
+        self.assertEqual(listener.event.is_set(), False)
+        self.assertEqual(len(listener.msg_queue), 0)
+        self.assertEqual(listener.receive(timeout=0.001), None)
+
+        listener.notify('msg')
+
+        # Test notify sets event and adds message to the message
+        # queue for retrieval
+        self.assertEqual(listener.event.is_set(), True)
+        self.assertEqual(len(listener.msg_queue), 1)
+
+        next_msg = listener.receive(timeout=0.001)
+
+        # Test that next_msg pulls last message from message queue.
+        # Also tests that the event is not unset.  This is to handle
+        # multiple sets (len(Q) > 1) or potential issues due to
+        # multi-threads (read/write race conditions).
+        self.assertEqual(next_msg, 'msg')
+        self.assertEqual(listener.event.is_set(), True)
+        self.assertEqual(len(listener.msg_queue), 0)
+
+        next_msg = listener.receive(timeout=0.001)
+
+        # Verify that subsequent next_msg calls will return
+        # None and clear the event.
+        self.assertEqual(next_msg, None)
+        self.assertEqual(listener.event.is_set(), False)
+        self.assertEqual(len(listener.msg_queue), 0)
+
+        # Test multiple messages
+        listener.notify('msg1')
+        listener.notify('msg2')
+
+        next_msg = listener.receive(timeout=0.001)
+
+        # Test that first message returned (in proper FIFO order)
+        # and that the event set is retained because of remaining
+        # message.  Also verify that message queue still has a
+        # single message.
+        self.assertEqual(next_msg, 'msg1')
+        self.assertEqual(listener.event.is_set(), True)
+        self.assertEqual(len(listener.msg_queue), 1)
+
+        next_msg = listener.receive(timeout=0.001)
+
+        # Test that second message returned and that the event is still
+        # set. Also verify that message queue is now empty.
+        self.assertEqual(next_msg, 'msg2')
+        self.assertEqual(listener.event.is_set(), True)
+        self.assertEqual(len(listener.msg_queue), 0)
+
+        next_msg = listener.receive(timeout=0.001)
+
+        # Verify that subsequent next_msg calls will return
+        # None and clear the event.
+        self.assertEqual(next_msg, None)
+        self.assertEqual(listener.event.is_set(), False)
+        self.assertEqual(len(listener.msg_queue), 0)
+
+
+class TopicSubscriberTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        config = Config()
+        config.set_param('logger', 'lidapy.ConsoleLogger')
+        config.set_param('ipc', 'lidapy.LocalCommunicationProxy')
+
+        lidapy.init(config=config, process_name='test')
+
+    def test_listeners(self):
+        n_listeners = 100
+
+        listeners = [MsgListener() for n in xrange(n_listeners)]
+
+        topic = Topic('test_topic')
+        topic._init_subscriber()
+        for listener in listeners:
+            topic._subscriber.add_listener(listener)
+
+        topic.send('msg')
+
+        time.sleep(.1)
+
+        for listener in listeners:
+            self.assertEqual(1, len(listener.msg_queue))
 
 
 class LIDAThreadTest(unittest.TestCase):
@@ -395,7 +490,7 @@ class LIDAThreadTest(unittest.TestCase):
 
         try:
 
-            task = lidapy.LIDAThread(name="test",
+            task = lidapy.LIDAThread(name='test',
                                      callback=callback_cls,
                                      exec_count=100)
 
@@ -409,7 +504,7 @@ class LIDAThreadTest(unittest.TestCase):
             self.assertEqual(100, callback_cls.count)
 
         except Exception as e:
-            self.fail("Unexpected Exception: {}".format(e))
+            self.fail('Unexpected Exception: {}'.format(e))
 
 
 class TaskTest(unittest.TestCase):
@@ -431,7 +526,7 @@ class TaskTest(unittest.TestCase):
 
         callback_cls = CallBack()
 
-        bg_task = Task(name="test", callback=callback_cls, exec_count=100)
+        bg_task = Task(name='test', callback=callback_cls, exec_count=100)
         bg_task.start()
         bg_task.wait_until_complete()
 
@@ -450,7 +545,7 @@ class DecayTaskTest(unittest.TestCase):
         lidapy.init(config=config, process_name='test')
 
     def test_init(self):
-        name = "linearDecayTask"
+        name = 'linearDecayTask'
         strategy = LinearDecayStrategy(slope=0.1)
         target = Activatable()
         exec_count = 17
@@ -488,7 +583,7 @@ class DecayTaskTest(unittest.TestCase):
             cc.activation = 1.0
 
         linear_decay = LinearDecayStrategy(slope=0.1)
-        decay_task = DecayTask(name="linearDecay", strategy=linear_decay, target=cc_list, exec_count=10)
+        decay_task = DecayTask(name='linearDecay', strategy=linear_decay, target=cc_list, exec_count=10)
         decay_task.start()
         decay_task.wait_until_complete()
 
@@ -514,7 +609,7 @@ class DecayTaskTest(unittest.TestCase):
         def bla_setter(act, val):
             act.base_level_activation = val
 
-        decay_task = DecayTask(name="linearDecay", strategy=linear_decay,
+        decay_task = DecayTask(name='linearDecay', strategy=linear_decay,
                                target=cc_list, getter=bla_getter, setter=bla_setter,
                                exec_count=10)
 
@@ -748,15 +843,15 @@ class CognitiveContentTest(unittest.TestCase):
 
 class FunctionsTestCases(unittest.TestCase):
     def test_create_class_instance(self):
-        logger = create_class_instance("lidapy.ConsoleLogger")
+        logger = create_class_instance('lidapy.ConsoleLogger')
         self.assertIsInstance(logger, lidapy.ConsoleLogger)
 
         # Test positional args
-        logger = create_class_instance("lidapy.ConsoleLogger", lidapy.LOG_LEVEL_DEBUG)
+        logger = create_class_instance('lidapy.ConsoleLogger', lidapy.LOG_LEVEL_DEBUG)
         self.assertIsInstance(logger, lidapy.ConsoleLogger)
         self.assertEqual(logger.log_level, lidapy.LOG_LEVEL_DEBUG)
 
         # Test keyword args
-        logger = create_class_instance("lidapy.ConsoleLogger", log_level=lidapy.LOG_LEVEL_DEBUG)
+        logger = create_class_instance('lidapy.ConsoleLogger', log_level=lidapy.LOG_LEVEL_DEBUG)
         self.assertIsInstance(logger, lidapy.ConsoleLogger)
         self.assertEqual(logger.log_level, lidapy.LOG_LEVEL_DEBUG)
