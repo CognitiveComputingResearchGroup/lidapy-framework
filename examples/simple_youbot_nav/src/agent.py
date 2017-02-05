@@ -114,11 +114,11 @@ class WheelAction(object):
         return '[angle: {}; direction: {}; duration: {}]'.format(self.angle, self.direction, self.duration)
 
 
-MOVE_FORWARD = WheelAction(angle=0.0, direction=WheelAction.FORWARD, duration=0.5)
+MOVE_FORWARD = WheelAction(angle=0.0, direction=WheelAction.FORWARD, duration=0.1)
 MOVE_BACKWARD = WheelAction(angle=0.8, direction=WheelAction.BACKWARD, duration=3)
-MOVE_RIGHT = WheelAction(angle=-0.5, direction=WheelAction.FORWARD, duration=0.5)
-MOVE_LEFT = WheelAction(angle=0.5, direction=WheelAction.FORWARD, duration=0.5)
-STOP = WheelAction(angle=0.0, direction=WheelAction.FORWARD, duration=0.5)
+MOVE_RIGHT = WheelAction(angle=-0.5, direction=WheelAction.FORWARD, duration=0.1)
+MOVE_LEFT = WheelAction(angle=0.5, direction=WheelAction.FORWARD, duration=0.1)
+STOP = WheelAction(angle=0.0, direction=WheelAction.FORWARD, duration=0.1)
 
 feature_to_action_map = {FRONT: MOVE_FORWARD,
                          RIGHT: MOVE_RIGHT,
