@@ -110,12 +110,12 @@ class Config(object):
     def get_type_or_global_param(self, section, name, default=None):
 
         # Try to find param_name under param_type params
-        param_value = self.get_param(section, name)
+        param_value = self.get_param(name=name, section=section)
         if param_value is not None:
             return param_value
 
         # Try to find param_name under global params
-        param_value = self.get_param(name)
+        param_value = self.get_param(name=name)
         if param_value is not None:
             return param_value
 
@@ -186,7 +186,7 @@ class LIDARunnable(object):
 
     @property
     def rate_in_hz(self):
-        return int(_var.config.get_type_or_global_param(self.name, 'rate_in_hz', 100))
+        return int(_var.config.get_type_or_global_param(section=self.name, name='rate_in_hz', default=100))
 
 
 class LIDAProcess(multiprocessing.Process, LIDARunnable):
