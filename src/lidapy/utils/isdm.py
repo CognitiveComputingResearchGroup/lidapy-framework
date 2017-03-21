@@ -114,20 +114,24 @@ class MCRVector(object):
 
 class HardLocation(MCRVector):
     def __init__(self, size=2048, r=(0,15)):
-        _vector = MCRVector.randomvector(size, r)._dims
-        super(HardLocation, self).__init__(_vector, size, r)
-        self._counter = HardLocation.create_counter(size,r)
+        _vector = [dim.value for dim in MCRVector.randomvector(size, r)._dims]
+        super(HardLocation, self).__init__(_vector, r)
+        self._counter = HardLocation.create_counter(size, r)
 
     def write(self, word):
         for i, dim in enumerate(word):
             self._counters[i][dim] += 1
 
-    def create_counter(n_dim=2048, r=(0,15)):
+    @staticmethod
+    def create_counter(n_dim=2048, r=(0, 15)):
         axis_length = r[1]-r[0]+1
         _counters = list()
-        for i in n_dim:
+        for i in xrange(n_dim):
             _counters.append(np.array([0]*axis_length))
         return _counters
+
+    def __iter__(self):
+        self.start = 0
 
     def __add__(self, other):
         result = HardLocation(self.size, (self._min, self._max))
@@ -147,7 +151,7 @@ class IntegerSDM(object):
         self._axis_length = r[1]-r[0]+1
         self._n_dims = n_dims
         self._r = r
-        self.hard_locations = [HardLocation(n_dims, r) for i in n_hard_locations]
+        self.hard_locations = [HardLocation(n_dims, r) for i in xrange(n_hard_locations)]
         # phi_inv = scipy.stats.norm.ppf(0.001) the calculation used below
         if self._axis_length%2 !=0:
             raise Exception('r should be even')
@@ -179,3 +183,6 @@ class IntegerSDM(object):
         for location in hard_locations_in_radius:
             location.write(word)
 
+r = (0,15)
+ndim = 1000
+pam = IntegerSDM(100, ndim, r)
