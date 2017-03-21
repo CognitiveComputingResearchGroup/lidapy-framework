@@ -15,7 +15,7 @@ class ModularDimension(object):
 
     __slots__ = ['mag', 'value']
 
-    def __init__(self, value, r):
+    def __init__(self, value):
         self.mag = 1
         self.value = value
 
@@ -28,7 +28,7 @@ class ModularDimension(object):
         self.value = int(theta/self.del_theta)
 
     def __add__(self, other):
-        result = ModularDimension(0, [0, 15])
+        result = ModularDimension(0)
         y = other.mag * sin(other.theta) + self.mag * sin(self.theta)
         x = other.mag * cos(other.theta) + self.mag * cos(self.theta)
         if x == 0:
@@ -69,7 +69,7 @@ class MCRVector(object):
     def __init__(self, dims):
         if len(dims) != ndim:
             raise ValueError
-        self._dims = [ModularDimension(i, r) for i in dims]
+        self._dims = [ModularDimension(i) for i in dims]
 
     def __len__(self):
         return len(self._dims)
@@ -104,14 +104,14 @@ class HardLocation(MCRVector):
     def __init__(self):
         _vector = [dim.value for dim in MCRVector.randomvector()._dims]
         super(HardLocation, self).__init__(_vector)
-        self._counter = HardLocation.create_counter()
+        self._counters = HardLocation.create_counters()
 
     def write(self, word):
-        for i, dim in enumerate(word):
-            self._counters[i][dim] += 1
+        for i, dim in enumerate(word._dims):
+            self._counters[i][dim.value] += 1
 
     @staticmethod
-    def create_counter():
+    def create_counters():
         _counters = list()
         for i in xrange(ndim):
             _counters.append(np.array([0]*_axis_length))
@@ -122,10 +122,10 @@ class HardLocation(MCRVector):
 
     def __add__(self, other):
         result = HardLocation()
-        for i, counter_dim in enumerate(result._counter):
-            result._counter[i] = other._counter[i] + self._counter[i]
+        for i, counter_dim in enumerate(result._counters):
+            result._counters[i] = other._counters[i]+self._counters[i]
 
-        result._dims = self._vector+other._vector
+        result._dims = self._dims+other._dims
         return result
 
     @property
@@ -143,7 +143,7 @@ class IntegerSDM(object):
         r_ = _axis_length
         self.access_sphere_radius = ((ndim*(r_**2+8)/48)**.5)*phi_inv+((ndim*r_)/4)
 
-    def read(self, address, prev_distances=[]):  # TODO fix default []
+    def read(self, address, prev_distances=[8000]):  # TODO fix default []
         if len(prev_distances) > 100 or prev_distances[-1] < 100:
             return address
 
@@ -160,15 +160,18 @@ class IntegerSDM(object):
         word = list()
         for counter in total.counters:
             word.append(np.argmax(counter))
+        word = MCRVector(word)
 
         prev_distances.append(address.distance(word))
 
-        return self.read(MCRVector(word), prev_distances)
+        return self.read(word, prev_distances)
 
     def write(self, word):
         hard_locations_in_radius = [location for location in self.hard_locations
                                     if word.distance(location) < self.access_sphere_radius]
+        if len(hard_locations_in_radius) < 1:
+            raise Exception("cannot be written")
         for location in hard_locations_in_radius:
             location.write(word)
 
-pam = IntegerSDM(100)
+pam = IntegerSDM(1000)
