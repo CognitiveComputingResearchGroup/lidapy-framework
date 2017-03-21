@@ -99,7 +99,7 @@ class MCRVector(object):
 
 class HardLocation(MCRVector):
 
-    __slots__ = ['_counter, _dims']
+    __slots__ = ['_counter', '_dims']
 
     def __init__(self):
         _vector = [dim.value for dim in MCRVector.randomvector()._dims]
@@ -123,7 +123,7 @@ class HardLocation(MCRVector):
     def __add__(self, other):
         result = HardLocation()
         for i, counter_dim in enumerate(result._counter):
-           result._counter[i] = other._counter[i] + self._counter[i]
+            result._counter[i] = other._counter[i] + self._counter[i]
 
         result._dims = self._vector+other._vector
         return result
@@ -136,29 +136,33 @@ class HardLocation(MCRVector):
 class IntegerSDM(object):
     def __init__(self, n_hard_locations):
         self.hard_locations = [HardLocation() for i in xrange(n_hard_locations)]
-        # phi_inv = scipy.stats.norm.ppf(0.001) the calculation used below
         if _axis_length % 2 != 0:
             raise Exception('r should be even')
+        # phi_inv = scipy.stats.norm.ppf(0.001) the calculation used below
         phi_inv = -3.0902323061678132 # for p=0.0001 phi_inv(p) = -3.0902...
         r_ = _axis_length
         self.access_sphere_radius = ((ndim*(r_**2+8)/48)**.5)*phi_inv+((ndim*r_)/4)
 
-    def read(self, address, prev_distances=[]): #TODO fix default []
+    def read(self, address, prev_distances=[]):  # TODO fix default []
         if len(prev_distances) > 100 or prev_distances[-1] < 100:
             return address
 
         hard_locations_in_radius = [location for location in self.hard_locations
                                     if address.distance(location) < self.access_sphere_radius]
+
+        # adding the counters of locations in radius
         empty_location = HardLocation()
         total = empty_location
         for location in hard_locations_in_radius:
             total = total+location
 
+        # creating the word from max of counters
         word = list()
         for counter in total.counters:
             word.append(np.argmax(counter))
 
         prev_distances.append(address.distance(word))
+
         return self.read(MCRVector(word), prev_distances)
 
     def write(self, word):
@@ -167,4 +171,4 @@ class IntegerSDM(object):
         for location in hard_locations_in_radius:
             location.write(word)
 
-pam = IntegerSDM(100, ndim)
+pam = IntegerSDM(100)
