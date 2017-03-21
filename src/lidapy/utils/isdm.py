@@ -175,3 +175,7 @@ class IntegerSDM(object):
             location.write(word)
 
 pam = IntegerSDM(1000)
+v1 = MCRVector.randomvector()
+pam.write(v1)
+v2 = pam.read(v1)
+print(v2.distance(v1) < 100)
