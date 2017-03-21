@@ -7,23 +7,25 @@ r_max = r[1]
 r_min = r[0]
 TWO_PI = 2*pi
 del_theta = TWO_PI/_axis_length
+ndim = 1000
+
 
 class ModularDimension(object):
     global TWO_PI
 
+    __slots__ = ['mag', 'value']
+
     def __init__(self, value, r):
         self.mag = 1
         self.value = value
-        self._theta = self.value * del_theta
 
     @property
     def theta(self):
-        return self._theta
+        return self.value * del_theta
 
     @theta.setter
     def theta(self, theta):
         self.value = int(theta/self.del_theta)
-        self._theta = theta
 
     def __add__(self, other):
         result = ModularDimension(0, [0, 15])
@@ -52,76 +54,66 @@ class ModularDimension(object):
         return result
 
     def __sub__(self, other):
-        return ModularDimension(min([(self.value-other.value)%self._axis_length,
-                    (other.value-self.value)%self._axis_length]), (self._min, self._max))
+        return ModularDimension(min([(self.value-other.value) % _axis_length,
+                                     (other.value-self.value) % _axis_length]))
 
     def __mul__(self, other):
-        return ModularDimension((self.value+other.value) % self._axis_length,
-                                (self._min, self._max))
+        return ModularDimension((self.value+other.value) % _axis_length)
 
     def __invert__(self):
-        return ModularDimension((self._max+1-self.value) % self._axis_length,
-                                (self._min, self._max))
+        return ModularDimension((r_max+1-self.value) % _axis_length)
 
 
 class MCRVector(object):
 
     def __init__(self, dims):
-        self._size = len(dims)
+        if len(dims) != ndim:
+            raise ValueError
         self._dims = [ModularDimension(i, r) for i in dims]
 
     def __len__(self):
-        return self._size
+        return len(self._dims)
 
     def __invert__(self):
         dims_copy = self._dims.copy()
         np.apply_along_axis(lambda dim: ~dim, 0, dims_copy)
-        return MCRVector(dims_copy, self.size, (r_min, r_max))
+        return MCRVector(dims_copy)
 
     def __mul__(self, other):
-        if self.size != other.size:
-            raise ValueError
         return MCRVector([(self[i]*other[i]).value for i in range(len(other))])
 
     def __add__(self, other):
-        if self.size != other.size:
-            raise ValueError
         return MCRVector([(self[i]+other[i]).value for i in range(len(other))])
 
     def distance(self, other):
-        if self.size != other.size:
-            raise ValueError
         return sum([(self[i]-other[i]).value for i in range(len(other))])
 
     def __getitem__(self, item):
         return self._dims[item]
 
-    @property
-    def size(self):
-        return self._size
-
     @classmethod
-    def randomvector(cls, size=2048):
-        _dims = np.random.random_integers(r_min, r_max, size)
+    def randomvector(cls):
+        _dims = np.random.random_integers(r_min, r_max, ndim)
         return cls(_dims)
 
 
 class HardLocation(MCRVector):
 
-    __slots__ = ['_vector']
-    def __init__(self, size=2048):
-        _vector = [dim.value for dim in MCRVector.randomvector(size)._dims]
+    __slots__ = ['_counter, _dims']
+
+    def __init__(self):
+        _vector = [dim.value for dim in MCRVector.randomvector()._dims]
         super(HardLocation, self).__init__(_vector)
-        self._counter = HardLocation.create_counter(size)
+        self._counter = HardLocation.create_counter()
 
     def write(self, word):
         for i, dim in enumerate(word):
             self._counters[i][dim] += 1
 
     @staticmethod
-    def create_counter(n_dim=2048):
+    def create_counter():
         _counters = list()
-        for i in xrange(n_dim):
+        for i in xrange(ndim):
             _counters.append(np.array([0]*_axis_length))
         return _counters
 
@@ -129,7 +121,7 @@ class HardLocation(MCRVector):
         self.start = 0
 
     def __add__(self, other):
-        result = HardLocation(self.size)
+        result = HardLocation()
         for i, counter_dim in enumerate(result._counter):
            result._counter[i] = other._counter[i] + self._counter[i]
 
@@ -142,23 +134,22 @@ class HardLocation(MCRVector):
 
 
 class IntegerSDM(object):
-    def __init__(self, n_hard_locations, n_dims):
-        self._n_dims = n_dims
-        self.hard_locations = [HardLocation(n_dims) for i in xrange(n_hard_locations)]
+    def __init__(self, n_hard_locations):
+        self.hard_locations = [HardLocation() for i in xrange(n_hard_locations)]
         # phi_inv = scipy.stats.norm.ppf(0.001) the calculation used below
         if _axis_length % 2 != 0:
             raise Exception('r should be even')
-        phi_inv = -3.0902323061678132
+        phi_inv = -3.0902323061678132 # for p=0.0001 phi_inv(p) = -3.0902...
         r_ = _axis_length
-        self.access_sphere_radius = ((n_dims*(r_**2+8)/48)**.5)*phi_inv+((n_dims*r_)/4)
+        self.access_sphere_radius = ((ndim*(r_**2+8)/48)**.5)*phi_inv+((ndim*r_)/4)
 
     def read(self, address, prev_distances=[]): #TODO fix default []
         if len(prev_distances) > 100 or prev_distances[-1] < 100:
             return address
 
         hard_locations_in_radius = [location for location in self.hard_locations
-                                    if address.distance(location)<self.access_sphere_radius]
-        empty_location = HardLocation(self._n_dims)
+                                    if address.distance(location) < self.access_sphere_radius]
+        empty_location = HardLocation()
         total = empty_location
         for location in hard_locations_in_radius:
             total = total+location
@@ -176,5 +167,4 @@ class IntegerSDM(object):
         for location in hard_locations_in_radius:
             location.write(word)
 
-ndim = 1000
 pam = IntegerSDM(100, ndim)
