@@ -137,7 +137,6 @@ class HardLocation(MCRVector):
         result._dims = self._vector+other._vector
         return result
 
-
     @property
     def counters(self):
         return self._counters
