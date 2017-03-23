@@ -9,7 +9,6 @@ TWO_PI = 2*pi
 del_theta = TWO_PI/_axis_length
 ndim = 1000
 
-
 class ModularDimension(object):
     global TWO_PI
 
@@ -69,24 +68,40 @@ class MCRVector(object):
     def __init__(self, dims):
         if len(dims) != ndim:
             raise ValueError
-        self._dims = [ModularDimension(i) for i in dims]
+        self._dims = np.array(dims, dtype=np.uint8)
 
     def __len__(self):
         return len(self._dims)
 
     def __invert__(self):
         dims_copy = self._dims.copy()
-        np.apply_along_axis(lambda dim: ~dim, 0, dims_copy)
-        return MCRVector(dims_copy)
+        np.apply_along_axis(lambda dim: r_max+1-dim % _axis_length, 0, dims_copy)
+        return dims_copy
+
+    @staticmethod
+    def dim_product(dim1, dim2):
+        return dim1+dim2 % _axis_length
+
+    @staticmethod
+    def dim_sum(dim1, dim2):
+        dim_one = ModularDimension(dim1)
+        dim_two = ModularDimension(dim2)
+        result = dim_one+dim_two
+        return result.value
+
+    @staticmethod
+    def dim_sub(dim1, dim2):
+        return (min([(dim1-dim2) % _axis_length,
+                     (dim1-dim1) % _axis_length]))
 
     def __mul__(self, other):
-        return MCRVector([(self[i]*other[i]).value for i in range(len(other))])
+        return MCRVector([MCRVector.dim_product(self[i], other[i]) for i in range(len(other))])
 
-    def __add__(self, other):
-        return MCRVector([(self[i]+other[i]).value for i in range(len(other))])
+    def __add__(self, other):  # Catch - every add operation resets the magnitude of bits. Not so in [Snaider, 2012]
+        return MCRVector([MCRVector.dim_sum(self[i], other[i]) for i in range(len(other))])
 
     def distance(self, other):
-        return sum([(self[i]-other[i]).value for i in range(len(other))])
+        return sum([MCRVector.dim_sub(self[i], other[i]) for i in range(len(other))])
 
     def __getitem__(self, item):
         return self._dims[item]
@@ -102,13 +117,13 @@ class HardLocation(MCRVector):
     __slots__ = ['_counter', '_dims']
 
     def __init__(self):
-        _vector = [dim.value for dim in MCRVector.randomvector()._dims]
+        _vector = [dim for dim in MCRVector.randomvector()._dims]
         super(HardLocation, self).__init__(_vector)
         self._counters = HardLocation.create_counters()
 
     def write(self, word):
         for i, dim in enumerate(word._dims):
-            self._counters[i][dim.value] += 1
+            self._counters[i][dim] += 1
 
     @staticmethod
     def create_counters():
@@ -174,4 +189,9 @@ class IntegerSDM(object):
         for location in hard_locations_in_radius:
             location.write(word)
 
+import time
+start = time.time()
 pam = IntegerSDM(1000)
+import pickle
+pickle.dump(pam, open('pam1000', 'wb'), -1)
+print(time.time()-start)
