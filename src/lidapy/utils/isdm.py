@@ -189,9 +189,8 @@ class IntegerSDM(object):
         for location in hard_locations_in_radius:
             location.write(word)
 
-import time
-start = time.time()
 pam = IntegerSDM(1000)
-import pickle
-pickle.dump(pam, open('pam1000', 'wb'), -1)
-print(time.time()-start)
+v1 = MCRVector.randomvector()
+pam.write(v1)
+v2 = pam.read(v1)
+print(v2.distance(v1) < 100)
