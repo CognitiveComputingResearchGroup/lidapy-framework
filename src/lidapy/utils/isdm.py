@@ -1,7 +1,11 @@
 from math import pi, sin, cos, atan
 import platform
 import shutil
-import pickle
+try:
+    import msgpack as pickle
+    print("msgpack imported")
+finally:
+    import pickle
 import os
 import numpy as np
 from functools import lru_cache
@@ -19,34 +23,25 @@ TWO_PI = 2*pi
 del_theta = TWO_PI/_axis_length
 ndim = 1000
 _memory_location = 'pam'
+same_vector_distance_threshold = 100
 
 
 class ModularDimension(object):
     global TWO_PI
 
-    __slots__ = ['mag', '_theta']
+    __slots__ = ['mag', 'value']
 
     def __init__(self, value):
         self.mag = 1
-        self._theta = 0
         self.value = value
 
     @property
-    def value(self):
-        val = self._theta/del_theta
-        return int(round(val)) % _axis_length
-
-    @value.setter
-    def value(self, value_):
-        self._theta = value_ * del_theta
-
-    @property
     def theta(self):
-        return self._theta
+        return self.value * del_theta
 
     @theta.setter
     def theta(self, theta_):
-        self. _theta = theta_
+        self.value = round(theta_/del_theta) % _axis_length
 
     def __add__(self, other):
         result = ModularDimension(0)
@@ -77,18 +72,63 @@ class ModularDimension(object):
 
     def __invert__(self):
         return ModularDimension((r_max+1-self.value) % _axis_length)
+v = ModularDimension(0)
+r = ModularDimension(7)
+t = ModularDimension(13)
+print((v+t+r).value)
+
+sin = dict([(key, np.sin(key*del_theta)) for key in range(_axis_length)])
+cos = dict([(key, np.cos(key*del_theta)) for key in range(_axis_length)])
+
+def add_two_dimensions(value1, magnitude1, value2, magnitude2):
+    # x and y components are flipped for visualizing the vectors on a clock style circle with 0 at the top
+    x = magnitude1*cos[value1] + magnitude2*cos[value2]
+    y = magnitude1*sin[value1] + magnitude2*sin[value2]
+
+    if x == 0:
+        if y > 0:
+            result = (TWO_PI/4)
+        else:
+            result = (TWO_PI*(3.0/4))
+    else:
+        result = atan(abs(y/x))
+
+    if y < 0 < x:
+        result = TWO_PI - result
+    elif y < 0 and x < 0:
+        result = TWO_PI / 2 + result
+    elif x < 0 < y:
+        result = TWO_PI / 2 - result
+
+    if x == 0 and y == 0:
+        # insert the chance logic
+        result = atan(sin[value1]/cos[value1]) + TWO_PI / 4
+
+    magnitude = (value1**2+value2**2)**.5
+
+    return (round(result/del_theta) % _axis_length, magnitude)
 
 import itertools
 
-for a,b in itertools.combinations(range(15), 2):
-    print(a, b, (ModularDimension(a)+ModularDimension(b)).value)
+for a,b in itertools.combinations(range(16), 2):
+    print(a, b, add_two_dimensions(a, 1, b, 1)[0])
+
 
 class MCRVector(object):
 
-    def __init__(self, dims):
+    __slots__ = ['_dims', '_factor', '_magnitudes_']
+    def __init__(self, dims, factor=1, _mag=np.array([1]*ndim)):
         if len(dims) != ndim:
             raise ValueError
-        self._dims = [ModularDimension(i) for i in dims]
+        self._dims = dims
+        self._factor = factor
+        self._magnitudes_ = _mag
+
+    @property
+    def _magnitudes(self):
+        magnitudes = self._magnitudes_
+        self._magnitudes_ = [1]*ndim
+        return magnitudes
 
     @classmethod
     def random_vector(cls):
@@ -99,33 +139,46 @@ class MCRVector(object):
         return len(self._dims)
 
     def __invert__(self):
-        dims_copy = [(~dim).value for dim in self.dims]
-
-        return MCRVector(dims_copy)
+        dims_copy = [(_axis_length-dim) % _axis_length for dim in self.dims]
+        return MCRVector(np.array(dims_copy))
 
     def __mul__(self, other):
-        return MCRVector([(self[i]*other[i]).value for i in range(len(other))])
+        if isinstance(other, int) or isinstance(other, float):
+            return MCRVector(self.dims.copy(), factor=self.factor*other)
+        else:
+            return MCRVector(np.apply_along_axis(lambda dim: dim % _axis_length, 0, self.dims+other.dims))
 
     def __add__(self, other):
-        return MCRVector([(self[i]+other[i]).value for i in range(len(other))])
+        self_magnitudes = self._magnitudes
+        other_magnitudes = other._magnitudes
+        addition_result = [add_two_dimensions(*param_values) for param_values in zip(self.dims,
+                                                                                     self_magnitudes*self.factor,
+                                                                                     other.dims,
+                                                                                     other_magnitudes*other.factor)]
+        return MCRVector(np.array([i[0] for i in addition_result]), _mag=[i[1] for i in addition_result])
 
     def __getitem__(self, item):
         return self._dims[item]
 
     def distance(self, other):
-        return sum([(self[i]-other[i]).value for i in range(len(other))])
+        return sum([min((self_dim-other_dim) % _axis_length,
+                        (other_dim-self_dim) % _axis_length) for self_dim, other_dim in zip(self.dims, other.dims)])
 
     @property
     def dims(self):
         return self._dims
 
+    @property
+    def factor(self):
+        return self._factor
+
 
 class HardLocation(MCRVector):
 
-    __slots__ = ['_counter', '_dims']
+    __slots__ = ['_name', '_dims', '_factor', '_magnitudes_']
 
     def __init__(self, name):
-        _vector = [dim.value for dim in MCRVector.random_vector().dims]
+        _vector = MCRVector.random_vector().dims.copy()
         super(HardLocation, self).__init__(_vector)
         self._name = name
 
@@ -141,10 +194,7 @@ class HardLocation(MCRVector):
     def write(self, word):
         counters = self.counters
         for i, dim in enumerate(word.dims):
-            try:
-                counters[i][dim.value] += 1
-            except IndexError:
-                print(dim.value)
+            counters[i][dim] += 1
         self._update_counters(counters)
 
     def add_counters(self, counters):
@@ -182,10 +232,11 @@ class IntegerSDM(object):
         self.access_sphere_radius = ((ndim*(r_**2+8)/48)**.5)*phi_inv+((ndim*r_)/4)
         try:
             os.mkdir(_memory_location)
-            self._created = True
+            created = True
         except FileExistsError:
             print("This location already stores a memory. Run from a different location")
-            self._created = False
+            created = False
+        self._created = created
 
     @staticmethod
     @lru_cache(maxsize=100)
@@ -201,13 +252,21 @@ class IntegerSDM(object):
         mem_file = open(os.path.join(_memory_location, hard_location_name), 'wb')
         pickle.dump(counters, mem_file, -1)
 
-    def read(self, address, prev_distances=[8000]):  # TODO fix default []
-        if len(prev_distances) > 100 or prev_distances[-1] < 100:
-            return address
+    def read(self, address, prev_distances=[]):  # TODO fix default []
+        if len(prev_distances) > 2:
+            if prev_distances[-1] < same_vector_distance_threshold and len(prev_distances) < 100:
+                print(prev_distances)
+                print("read by convergence")
+                return address
+
+            if np.mean([prev_distances[i]-prev_distances[i-1] for i in range(1, len(prev_distances))]) > 0:
+                raise Exception("cannot be read")
 
         hard_locations_in_radius = [location for location in self.hard_locations
                                     if address.distance(location) < self.access_sphere_radius]
 
+        if len(hard_locations_in_radius)<0:
+            raise Exception("cannot be read")
         # adding the counters of locations in radius
         total = HardLocation.get_empty_counter()
         for location in hard_locations_in_radius:
@@ -217,7 +276,7 @@ class IntegerSDM(object):
         word = list()
         for counter in total:
             word.append(np.argmax(counter))
-        word = MCRVector(word)
+        word = MCRVector(np.array(word))
 
         prev_distances.append(address.distance(word))
 
@@ -252,6 +311,8 @@ if __name__ == '__main__':
     pam.write(sita)
 
     v1 = eat*(~ram)
+    print(v1.distance(ram))
+    print(v1.distance(eat))
     v1 = pam.read(v1)
     print(v1.distance(cake))
     print(v1.distance(sita))
