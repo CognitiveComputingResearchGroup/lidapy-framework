@@ -17,7 +17,7 @@ r_max = r[1]
 r_min = r[0]
 TWO_PI = 2*pi
 del_theta = TWO_PI/_axis_length
-ndim = 10
+ndim = 1000
 _memory_location = 'pam'
 
 
@@ -34,7 +34,7 @@ class ModularDimension(object):
     @property
     def value(self):
         val = self._theta/del_theta
-        return round(val) % _axis_length
+        return int(round(val)) % _axis_length
 
     @value.setter
     def value(self, value_):
@@ -51,22 +51,15 @@ class ModularDimension(object):
     def __add__(self, other):
         result = ModularDimension(0)
 
-        y = other.mag * sin(other.theta) + self.mag * sin(self.theta)
-        x = other.mag * cos(other.theta) + self.mag * cos(self.theta)
-        if x == 0:
-            if y > 0:
+        x = other.mag * sin(other.theta) + self.mag * sin(self.theta)
+        y = other.mag * cos(other.theta) + self.mag * cos(self.theta)
+        if y == 0:
+            if x > 0:
                 result.theta = (TWO_PI/4)
             else:
                 result.theta = (TWO_PI*(3.0/4))
         else:
-            result.theta = atan(abs(y/x))
-
-        if y < 0 < x:
-            result.theta = TWO_PI-result.theta
-        elif y < 0 and x < 0:
-            result.theta = (TWO_PI/2)+result.theta
-        elif x < 0 < y:
-            result.theta = (TWO_PI/2)-result.theta
+            result.theta = atan(x/y)
 
         if x == 0 and y == 0:
             # insert the chance logic
@@ -85,10 +78,6 @@ class ModularDimension(object):
     def __invert__(self):
         return ModularDimension((r_max+1-self.value) % _axis_length)
 
-d = ModularDimension(0)
-f = ModularDimension(7)
-r = ModularDimension(13)
-print((d+r+f).value)
 import itertools
 
 for a,b in itertools.combinations(range(15), 2):
@@ -110,9 +99,8 @@ class MCRVector(object):
         return len(self._dims)
 
     def __invert__(self):
-        dims_copy = [ModularDimension(dim.value) for dim in self.dims]
+        dims_copy = [(~dim).value for dim in self.dims]
 
-        np.apply_along_axis(lambda dim_: ~dim_, 0, dims_copy)
         return MCRVector(dims_copy)
 
     def __mul__(self, other):
@@ -141,15 +129,22 @@ class HardLocation(MCRVector):
         super(HardLocation, self).__init__(_vector)
         self._name = name
 
+    @staticmethod
+    def get_empty_counter():
+        return [np.array([0]*_axis_length) for _ in range(ndim)]
+
     def create_counters(self):
-        empty_counters = [np.array([0]*_axis_length) for _ in range(ndim)]
+        empty_counters = HardLocation.get_empty_counter()
         IntegerSDM.store_counters(self._name, empty_counters)
         return empty_counters
 
     def write(self, word):
         counters = self.counters
         for i, dim in enumerate(word.dims):
-            counters[i][dim.value] += 1
+            try:
+                counters[i][dim.value] += 1
+            except IndexError:
+                print(dim.value)
         self._update_counters(counters)
 
     def add_counters(self, counters):
@@ -209,7 +204,7 @@ class IntegerSDM(object):
                                     if address.distance(location) < self.access_sphere_radius]
 
         # adding the counters of locations in radius
-        total = HardLocation.create_counters()
+        total = HardLocation.get_empty_counter()
         for location in hard_locations_in_radius:
             total = location.add_counters(total)
 
@@ -234,20 +229,22 @@ class IntegerSDM(object):
     def __del__(self):
         shutil.rmtree(_memory_location)
 
-'''
 pam = IntegerSDM(10000)
 cake = MCRVector.random_vector()
 ram = MCRVector.random_vector()
 apple = MCRVector.random_vector()
 sita = MCRVector.random_vector()
-eat = ram*cake
+eat = ram*cake + sita*apple
 
+print(eat.distance(ram))
 
 pam.write(cake)
 pam.write(ram)
 pam.write(apple)
 pam.write(sita)
-pam.write(eat)
 
 v1 = eat*(~ram)
-'''
+v1 = pam.read(v1)
+print(v1.distance(cake))
+print(v1.distance(sita))
+print(cake.distance(sita))
