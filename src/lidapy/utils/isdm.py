@@ -4,7 +4,7 @@ import shutil
 try:
     import msgpack as pickle
     print("msgpack imported")
-finally:
+except ImportError:
     import pickle
 import os
 import numpy as np
