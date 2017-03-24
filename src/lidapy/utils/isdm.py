@@ -180,7 +180,12 @@ class IntegerSDM(object):
         phi_inv = -3.0902323061678132 # for p=0.0001 phi_inv(p) = -3.0902...
         r_ = _axis_length
         self.access_sphere_radius = ((ndim*(r_**2+8)/48)**.5)*phi_inv+((ndim*r_)/4)
-        os.mkdir(_memory_location)
+        try:
+            os.mkdir(_memory_location)
+            self._created = True
+        except FileExistsError:
+            print("This location already stores a memory. Run from a different location")
+            self._created = False
 
     @staticmethod
     @lru_cache(maxsize=100)
@@ -227,24 +232,27 @@ class IntegerSDM(object):
             location.write(word)
 
     def __del__(self):
-        shutil.rmtree(_memory_location)
+        if self._created:
+            shutil.rmtree(_memory_location)
 
-pam = IntegerSDM(10000)
-cake = MCRVector.random_vector()
-ram = MCRVector.random_vector()
-apple = MCRVector.random_vector()
-sita = MCRVector.random_vector()
-eat = ram*cake + sita*apple
 
-print(eat.distance(ram))
+if __name__ == '__main__':
+    pam = IntegerSDM(1000)
+    cake = MCRVector.random_vector()
+    ram = MCRVector.random_vector()
+    apple = MCRVector.random_vector()
+    sita = MCRVector.random_vector()
+    eat = ram*cake + sita*apple
 
-pam.write(cake)
-pam.write(ram)
-pam.write(apple)
-pam.write(sita)
+    print(eat.distance(ram))
 
-v1 = eat*(~ram)
-v1 = pam.read(v1)
-print(v1.distance(cake))
-print(v1.distance(sita))
-print(cake.distance(sita))
+    pam.write(cake)
+    pam.write(ram)
+    pam.write(apple)
+    pam.write(sita)
+
+    v1 = eat*(~ram)
+    v1 = pam.read(v1)
+    print(v1.distance(cake))
+    print(v1.distance(sita))
+    print(cake.distance(sita))
