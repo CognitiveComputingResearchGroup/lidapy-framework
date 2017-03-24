@@ -7,6 +7,7 @@ try:
 except ImportError:
     import pickle
 import os
+import itertools
 import numpy as np
 from functools import lru_cache
 '''
@@ -24,58 +25,6 @@ del_theta = TWO_PI/_axis_length
 ndim = 1000
 _memory_location = 'pam'
 same_vector_distance_threshold = 100
-
-
-class ModularDimension(object):
-    global TWO_PI
-
-    __slots__ = ['mag', 'value']
-
-    def __init__(self, value):
-        self.mag = 1
-        self.value = value
-
-    @property
-    def theta(self):
-        return self.value * del_theta
-
-    @theta.setter
-    def theta(self, theta_):
-        self.value = round(theta_/del_theta) % _axis_length
-
-    def __add__(self, other):
-        result = ModularDimension(0)
-
-        x = other.mag * sin(other.theta) + self.mag * sin(self.theta)
-        y = other.mag * cos(other.theta) + self.mag * cos(self.theta)
-        if y == 0:
-            if x > 0:
-                result.theta = (TWO_PI/4)
-            else:
-                result.theta = (TWO_PI*(3.0/4))
-        else:
-            result.theta = atan(x/y)
-
-        if x == 0 and y == 0:
-            # insert the chance logic
-            result.theta = self.theta + TWO_PI / 4
-
-        result.mag = (y**2+x**2)**0.5
-        return result
-
-    def __sub__(self, other):
-        return ModularDimension(min([(self.value-other.value) % _axis_length,
-                                     (other.value-self.value) % _axis_length]))
-
-    def __mul__(self, other):
-        return ModularDimension((self.value+other.value) % _axis_length)
-
-    def __invert__(self):
-        return ModularDimension((r_max+1-self.value) % _axis_length)
-v = ModularDimension(0)
-r = ModularDimension(7)
-t = ModularDimension(13)
-print((v+t+r).value)
 
 sin = dict([(key, np.sin(key*del_theta)) for key in range(_axis_length)])
 cos = dict([(key, np.cos(key*del_theta)) for key in range(_axis_length)])
@@ -108,11 +57,9 @@ def add_two_dimensions(value1, magnitude1, value2, magnitude2):
 
     return (round(result/del_theta) % _axis_length, magnitude)
 
-import itertools
-
+# Check add operation
 for a,b in itertools.combinations(range(16), 2):
     print(a, b, add_two_dimensions(a, 1, b, 1)[0])
-
 
 class MCRVector(object):
 
