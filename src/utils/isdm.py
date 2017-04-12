@@ -1,24 +1,10 @@
 from math import pi, sin, cos, atan
 import shutil
-from functools import partial
-'''
-try:
-    import msgpack as pickle
-    print("msgpack imported")
-except ImportError:
-'''
 import pickle
 import os
 import tensorflow as tf
 import numpy as np
-from functools import lru_cache
-
-'''
-if platform.python_version_tuple()[0] == '2':
-    import repoze.lru.lru_cache as lru_cache
-else:
-    import functools.lru_cache as lru_cache
-'''
+import pylru as lru
 r = (0, 15)
 _axis_length = r[1]-r[0]+1
 r_max = r[1]
@@ -70,7 +56,7 @@ class MCRVector(object):
 
     __slots__ = ['_dims', '_factor', '_magnitudes_internal']
 
-    def __init__(self, dims, factor=1, _mag=np.array([1]*ndim)):
+    def __init__(self, dims, factor=1., _mag=np.array([1]*ndim)):
         if len(dims) != ndim:
             raise ValueError
         self._dims = dims
@@ -84,7 +70,7 @@ class MCRVector(object):
         return magnitudes
 
     @classmethod
-    def random_vector(cls, factor=1, _mag=np.array([1]*ndim)):
+    def random_vector(cls, factor=1., _mag=np.array([1]*ndim)):
         _dims = np.random.random_integers(r_min, r_max, ndim)
         return cls(_dims, factor=factor, _mag=_mag)
 
@@ -103,15 +89,15 @@ class MCRVector(object):
 
     def __add__(self, other):
         # Optimization to prevent a lot of multiplications because _factor is mostly 1
-        self_magnitudes = self._magnitudes*self.factor if self.factor != 1 else self._magnitudes
-        other_magnitudes = other._magnitudes*other.factor if other.factor != 1 else other._magnitudes
+        self_magnitudes = self._magnitudes*self.factor if self.factor != 1. else self._magnitudes
+        other_magnitudes = other._magnitudes*other.factor if other.factor != 1. else other._magnitudes
 
         addition_result = [add_two_dimensions(*param_values) for param_values in zip(self.dims,
                                                                                      self_magnitudes,
                                                                                      other.dims,
                                                                                      other_magnitudes)]
 
-        return MCRVector(np.array([i[0] for i in addition_result]), _mag=[i[1] for i in addition_result])
+        return MCRVector(np.array([i[0] for i in addition_result]), _mag=np.array([i[1] for i in addition_result]))
 
     def __getitem__(self, item):
         return self._dims[item]
@@ -121,8 +107,11 @@ class MCRVector(object):
 
     @staticmethod
     def distance_between(x, y):
-        return sum([min((self_dim-other_dim) % _axis_length,
-                        (other_dim-self_dim) % _axis_length) for self_dim, other_dim in zip(x.dims, y.dims)])
+        diff1 = (x.dims-y.dims) % _axis_length
+        diff2 = (y.dims-x.dims) % _axis_length
+        mins = np.minimum(diff1, diff2)
+        manhattan_distance = np.sum(mins)
+        return manhattan_distance
 
     @property
     def dims(self):
@@ -154,9 +143,9 @@ class HardLocation(MCRVector):
         return [np.array([0]*_axis_length) for _ in range(ndim)]
 
     def create_counters(self):
-        empty_counters = HardLocation.get_empty_counter()
-        IntegerSDM.store_counters(self._name, empty_counters)
-        return empty_counters
+        counters = HardLocation.get_empty_counter()
+        IntegerSDM.store_counters(self.name, counters)
+        return counters
 
     def write(self, word):
         counters = self.counters
@@ -173,12 +162,11 @@ class HardLocation(MCRVector):
         return resultant_counters
 
     def _update_counters(self, counters):
-        IntegerSDM.store_counters(self._name, counters)
-        self.counters
+        IntegerSDM.store_counters(self.name, counters)
 
     @property
     def counters(self):
-        counters = IntegerSDM.retrieve_counters(self._name)
+        counters = IntegerSDM.retrieve_counters(self.name)
         if counters is None:
             counters = self.create_counters()
         return counters
@@ -190,51 +178,55 @@ class HardLocation(MCRVector):
     def __hash__(self):
         return hash(self.name)
 
+
 class IntegerSDM(object):
 
+    cache = lru.lrucache(1000)
+    cached = True
+
     @staticmethod
-    @lru_cache(maxsize=100)
     def retrieve_counters(hard_location_name):
+        if IntegerSDM.cached and hard_location_name in IntegerSDM.cache:
+            return IntegerSDM.cache[hard_location_name]
         try:
             mem_file = open(os.path.join(memory_location, hard_location_name), 'rb')
         except FileNotFoundError:
             return None
-        return pickle.load(mem_file)
+        counter = pickle.load(mem_file)
+        if IntegerSDM.cached:
+            IntegerSDM.cache[hard_location_name] = counter
+        return counter
 
     @staticmethod
     def store_counters(hard_location_name, counters):
+        if IntegerSDM.cached:
+            IntegerSDM.cache[hard_location_name] = counters
         mem_file = open(os.path.join(memory_location, hard_location_name), 'wb')
         pickle.dump(counters, mem_file)
 
-
-class CachedIntegerSDM(IntegerSDM):
     def __init__(self, n_hard_locations):
         self.hard_locations = [HardLocation(name='location'+str(i)) for i in range(n_hard_locations)]
         if _axis_length % 2 != 0:
             raise Exception('r should be even')
         # phi_inv = scipy.stats.norm.ppf(0.001) the calculation used below
-        phi_inv = -3.0902323061678132 # for p=0.001 phi_inv(p) = -3.0902...
+        phi_inv = -3.0902323061678132  # for p=0.001 phi_inv(p) = -3.0902...
         r_ = _axis_length
         self.access_sphere_radius = ((ndim*(r_**2+8)/48)**.5)*phi_inv+((ndim*r_)/4)
         try:
             os.mkdir(memory_location)
             created = True
         except FileExistsError:
-            print("This location", os.path.join(os.getcwd(), memory_location)," already stores a memory. Run from a different location")
+            print("Location", os.path.join(os.getcwd(), memory_location),
+                  " already stores a memory. Run from a different location by changing isdm.memory_location."
+                  "Or remove the folder specified.")
             created = False
         self._created = created
 
-    def hard_locations_in_radius(self, vector, radius=-1):
-        if radius == -1:
-            radius = self.access_sphere_radius
+    def read(self, address, prev_distances=None):
+        if prev_distances is None:
+            prev_distances = []
 
-        hard_locations_in_radius = [location for location in self.hard_locations
-                                    if vector.distance(location) < radius]
-
-        return hard_locations_in_radius
-
-    def read(self, address, prev_distances=[]):  # TODO fix default []
-        if len(prev_distances) > 2:
+        if len(prev_distances) > 1:
             if prev_distances[-1] < same_vector_distance_threshold or len(prev_distances) > 100:
                 print(prev_distances)
                 print("read by convergence")
@@ -274,7 +266,18 @@ class CachedIntegerSDM(IntegerSDM):
         if self._created:
             shutil.rmtree(memory_location)
 
-class NPIntegerSDM(CachedIntegerSDM):
+    def hard_locations_in_radius(self, vector, radius=-1):
+        if radius == -1:
+            radius = self.access_sphere_radius
+
+        hard_locations_in_radius = [location for location in self.hard_locations
+                                    if vector.distance(location) < radius]
+
+        return hard_locations_in_radius
+
+
+class NPIntegerSDM(IntegerSDM):
+    """ Faster Numpy based ISDM"""
     def __init__(self, n_hard_locations):
         super(NPIntegerSDM, self).__init__(n_hard_locations)
         hard_locations = np.array([location.dims for location in self.hard_locations])
@@ -294,7 +297,7 @@ class NPIntegerSDM(CachedIntegerSDM):
         return [self.hard_locations[location] for location in locations[0]]
 
 
-class TFIntegerSDM(CachedIntegerSDM):
+class TFIntegerSDM(IntegerSDM):
     def __init__(self, n_hard_locations):
         super(TFIntegerSDM, self).__init__(n_hard_locations)
         hard_locations = np.array([location.dims for location in self.hard_locations])
@@ -323,9 +326,7 @@ class TFIntegerSDM(CachedIntegerSDM):
 
 
 if __name__ == '__main__':
-
-    pam = NPIntegerSDM(100000)
-
+    pam = IntegerSDM(100000)
     cake = MCRVector.random_vector()
     ram = MCRVector.random_vector()
     apple = MCRVector.random_vector()
