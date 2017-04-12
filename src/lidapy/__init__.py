@@ -177,6 +177,7 @@ class LIDARunnable(object):
 
         self.name = name
         self.status = PENDING
+        self.exception = None
 
     def is_shutting_down(self):
         return _var.ipc.is_shutting_down()
@@ -207,8 +208,9 @@ class LIDAProcess(multiprocessing.Process, LIDARunnable):
                 self._update_status()
                 self.wait()
 
-        except Exception as self.exception:
+        except Exception as exception:
             self.status = ERROR
+            self.exception = exception
             logerror(self.exception)
             logerror(traceback.format_exc())
         finally:
@@ -286,7 +288,6 @@ class LIDAThread(threading.Thread, LIDARunnable):
         self.callback = callback
         self.callback_args = callback_args if callback_args is not None else []
         self.exec_count = exec_count
-        self.exception = None
 
         if self.exec_count is not None:
             if type(self.exec_count) is not int:
@@ -302,8 +303,9 @@ class LIDAThread(threading.Thread, LIDARunnable):
                 self.callback(*self.callback_args)
                 self._update_status()
                 self.wait()
-        except Exception as self.exception:
+        except Exception as exception:
             self.status = ERROR
+            self.exception = exception
             logerror(self.exception)
             logerror(traceback.format_exc())
         finally:
