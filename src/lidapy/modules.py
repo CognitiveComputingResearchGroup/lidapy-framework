@@ -256,18 +256,17 @@ class BehaviorNetwork(object):
 #     def __init__(self, last_n_broadcasts):
 #         self.last_n_broadcasts = last_n_broadcasts
 
-
-class EpisodicMemory(LIDAModule):
-    def __init__(self, tasks=None):
-        super(EpisodicMemory, self).__init__("episodic_memory", tasks)
+class Memory(LIDAModule):
+    def __init__(self, name, tasks=None):
+        super(Memory, self).__init__(name, tasks)
 
         self.builtin_tasks = [
-            Task(name="cue_receiver", callback=self.receive_cue),
-            Task(name="learner", callback=self.learn)
+            Task(name='cue_receiver', callback=self.receive_cue),
+            Task(name='learner', callback=self.receive_broadcast)
         ]
 
     def initialize(self):
-        super(EpisodicMemory, self).initialize()
+        super(Memory, self).initialize()
 
         # Added late to allow modification to built-ins before startup
         self.tasks += self.builtin_tasks
@@ -276,11 +275,28 @@ class EpisodicMemory(LIDAModule):
     def receive_cue(self):
         logdebug("Receiving workspace cue")
 
-    def learn(self):
+    def receive_broadcast(self):
         global_broadcast = GLOBAL_BROADCAST_TOPIC.receive
         if global_broadcast is not None:
-            # TODO: Need to implement learning here
-            pass
+            self.learn(global_broadcast)
+
+    def learn(self, global_broadcast):
+        pass
+
+
+class EpisodicMemory(Memory):
+    def __init__(self, tasks=None):
+        super(EpisodicMemory, self).__init__("episodic_memory", tasks)
+
+    def initialize(self):
+        super(EpisodicMemory, self).initialize()
+
+        # Added late to allow modification to built-ins before startup
+        self.tasks += self.builtin_tasks
+
+    def learn(self, global_broadcast):
+        # TODO: Need to implement learning here
+        pass
 
 
 class GlobalWorkspace(LIDAModule):
@@ -302,13 +318,9 @@ class GlobalWorkspace(LIDAModule):
         logdebug("Receiving workspace coalitions")
 
 
-class PerceptualAssociativeMemory(LIDAModule):
+class PerceptualAssociativeMemory(Memory):
     def __init__(self, tasks=None):
         super(PerceptualAssociativeMemory, self).__init__("perceptual_associative_memory", tasks)
-
-        self.builtin_tasks = [
-            Task(name="learner", callback=self.learn)
-        ]
 
     def initialize(self):
         super(PerceptualAssociativeMemory, self).initialize()
@@ -316,20 +328,14 @@ class PerceptualAssociativeMemory(LIDAModule):
         # Added late to allow modification to built-ins before startup
         self.tasks += self.builtin_tasks
 
-    def learn(self):
-        global_broadcast = GLOBAL_BROADCAST_TOPIC.receive
-        if global_broadcast is not None:
-            # TODO: Need to implement learning here
-            pass
+    def learn(self, global_broadcast):
+        # TODO: Need to implement learning here
+        pass
 
 
-class ProceduralMemory(LIDAModule):
+class ProceduralMemory(Memory):
     def __init__(self, tasks=None):
         super(ProceduralMemory, self).__init__("procedural_memory", tasks)
-
-        self.builtin_tasks = [
-            Task(name="learner", callback=self.learn)
-        ]
 
     def initialize(self):
         super(ProceduralMemory, self).initialize()
@@ -337,20 +343,14 @@ class ProceduralMemory(LIDAModule):
         # Added late to allow modification to built-ins before startup
         self.tasks += self.builtin_tasks
 
-    def learn(self):
-        global_broadcast = GLOBAL_BROADCAST_TOPIC.receive
-        if global_broadcast is not None:
-            # TODO: Need to implement learning here
-            pass
+    def learn(self, global_broadcast):
+        # TODO: Need to implement learning here
+        pass
 
 
-class SensoryMemory(LIDAModule):
+class SensoryMemory(Memory):
     def __init__(self, tasks=None):
         super(SensoryMemory, self).__init__("sensory_memory", tasks)
-
-        self.builtin_tasks = [
-            Task(name="learner", callback=self.learn)
-        ]
 
     def initialize(self):
         super(SensoryMemory, self).initialize()
@@ -358,11 +358,10 @@ class SensoryMemory(LIDAModule):
         # Added late to allow modification to built-ins before startup
         self.tasks += self.builtin_tasks
 
-    def learn(self):
-        global_broadcast = GLOBAL_BROADCAST_TOPIC.receive
-        if global_broadcast is not None:
-            # TODO: Need to implement learning here
-            pass
+    def learn(self, global_broadcast):
+        # TODO: Need to implement learning here
+        pass
+
 
 
 class SensoryScene(object):
@@ -410,13 +409,9 @@ class SensorySceneCodelet(Task):
 
 
 
-class SensoryMotorMemory(LIDAModule):
+class SensoryMotorMemory(Memory):
     def __init__(self):
         super(SensoryMotorMemory, self).__init__("sensory_motor_memory")
-
-        self.builtin_tasks = [
-            Task(name="learner", callback=self.learn)
-        ]
 
     def initialize(self):
         super(SensoryMotorMemory, self).initialize()
@@ -424,20 +419,14 @@ class SensoryMotorMemory(LIDAModule):
         # Added late to allow modification to built-ins before startup
         self.tasks += self.builtin_tasks
 
-    def learn(self):
-        global_broadcast = GLOBAL_BROADCAST_TOPIC.receive
-        if global_broadcast is not None:
-            # TODO: Need to implement learning here
-            pass
+    def learn(self, global_broadcast):
+        # TODO: Need to implement learning here
+        pass
 
 
-class SpatialMemory(LIDAModule):
+class SpatialMemory(Memory):
     def __init__(self, tasks=None):
         super(SpatialMemory, self).__init__("spatial_memory", tasks)
-
-        self.builtin_tasks = [
-            Task(name="learner", callback=self.learn)
-        ]
 
     def initialize(self):
         super(SpatialMemory, self).initialize()
@@ -445,20 +434,14 @@ class SpatialMemory(LIDAModule):
         # Added late to allow modification to built-ins before startup
         self.tasks += self.builtin_tasks
 
-    def learn(self):
-        global_broadcast = GLOBAL_BROADCAST_TOPIC.receive
-        if global_broadcast is not None:
-            # TODO: Need to implement learning here
-            pass
+    def learn(self, global_broadcast):
+        # TODO: Need to implement learning here
+        pass
 
 
-class TransientEpisodicMemory(LIDAModule):
+class TransientEpisodicMemory(Memory):
     def __init__(self):
         super(TransientEpisodicMemory, self).__init__("transient_episodic_memory")
-
-        self.builtin_tasks = [
-            Task(name="learner", callback=self.learn)
-        ]
 
     def initialize(self):
         super(TransientEpisodicMemory, self).initialize()
@@ -466,20 +449,14 @@ class TransientEpisodicMemory(LIDAModule):
         # Added late to allow modification to built-ins before startup
         self.tasks += self.builtin_tasks
 
-    def learn(self):
-        global_broadcast = GLOBAL_BROADCAST_TOPIC.receive
-        if global_broadcast is not None:
-            # TODO: Need to implement learning here
-            pass
+    def learn(self, global_broadcast):
+        # TODO: Need to implement learning here
+        pass
 
 
-class Workspace(LIDAModule):
+class Workspace(Memory):
     def __init__(self, tasks=None):
         super(Workspace, self).__init__("workspace", tasks)
-
-        self.builtin_tasks = [
-            Task(name="learner", callback=self.learn)
-        ]
 
     def initialize(self):
         super(Workspace, self).initialize()
@@ -487,8 +464,7 @@ class Workspace(LIDAModule):
         # Added late to allow modification to built-ins before startup
         self.tasks += self.builtin_tasks
 
-    def learn(self):
-        global_broadcast = GLOBAL_BROADCAST_TOPIC.receive
-        if global_broadcast is not None:
-            # TODO: Need to implement learning here
-            pass
+    def learn(self, global_broadcast):
+        # TODO: Need to implement learning here
+        pass
+
