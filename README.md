@@ -1,7 +1,6 @@
-# lidapy-framework
+# lidapy-framework [![Build Status](https://travis-ci.org/CognitiveComputingResearchGroup/lidapy-framework.svg?branch=master)](https://travis-ci.org/CognitiveComputingResearchGroup/lidapy-framework)
 A proof of concept for a distributed Python-based LIDA framework using ROS. To get brief introduction to ROS you can look at the [ROS Tutorial](http://wiki.ros.org/ROS/Tutorials).
 
-[![Build Status](https://travis-ci.org/CognitiveComputingResearchGroup/lidapy-framework.svg?branch=master)](https://travis-ci.org/CognitiveComputingResearchGroup/lidapy-framework)
 
 ## Setup lidapy
 
