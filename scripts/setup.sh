@@ -8,45 +8,50 @@ display_usage()
     echo -e "Usage:"
     echo -e "  $0 <directory>"  
     echo -e ""
+    echo -e "Options:"
+    echo -e "     -h     displays this help message"
+    echo -e "     -n     non-interactive mode"
+    echo -e "     -v     verbose output"
+
 }
 
 display_yn_prompt()
 {
     if [[ $interactive -eq 0 ]]; then
-	return
+        return
     fi
 
     while true; do
-	echo "$1"
-	echo "Is this correct? [YN]"
+        echo "$1"
+        echo "Is this correct? [YN]"
         read choice
         
-	case $choice in 
-	    [Yy]) choice="Y"; break;;
+        case $choice in 
+            [Yy]) choice="Y"; break;;
             [Nn]) choice="N"; break;;
             *) ;;
-	esac
+        esac
     done
 }
 
 # Options variables
 verbose=0
-interactive=0
+interactive=1
 
 # Process command line arguments
 OPTIND=1 # Reset getopts
-while getopts "hiv" opt; do
+while getopts "hnv" opt; do
     case "$opt" in
     h)
-	display_usage
-	exit 1
-	;;
-    i) 
-	interactive=1
-	;;
+        display_usage
+        exit 1
+        ;;
+    n) 
+        interactive=0
+        ;;
     v) 
-	verbose=1
-	;;
+        verbose=1
+        ;;
     esac
 done
 
@@ -82,8 +87,8 @@ while [[ -z $lidapy_framework_dir ]]; do
     # Unable to locate the lidapy-framework; if interactive mode then prompt user for location
     # else abort with error
     if [[ $interactive -eq 0 ]]; then
-	echo "Aborting. Unable to find lidapy-framework directory!"
-	exit 1
+        echo "Aborting. Unable to find lidapy-framework directory!"
+        exit 1
     fi
 
     echo "Please supply the location of the lidapy-framework directory."
