@@ -6,7 +6,7 @@ A Python-based LIDA framework using [ROS](http://wiki.ros.org/ROS/Tutorials).
 ## Dependencies
 
 [ROS Jade](http://wiki.ros.org/jade) is a dependency of the lidapy-framework, and is only supported on the following 
-[Ubuntu](www.ubuntu.com) releases:
+[Ubuntu](http://www.ubuntu.com) releases:
 * Trusty (14.04)
 * Utopic (14.10)
 * Vivid (15.04)
@@ -18,7 +18,7 @@ Two setup options are provided below for installing the lidapy-framework and the
 **Option 1** requires a supported version of the Ubuntu OS, and requires manual installation of the lidapy-framework
 dependencies.  
 **Option 2** uses the [common-ccrgdev](https://github.com/CognitiveComputingResearchGroup/common-ccrgdev) development
-environment, and will work for non-supported OSes (using [VirtualBox](www.virtualbox.org)) and provides automated
+environment, and will work for non-supported OSes (using [VirtualBox](http://www.virtualbox.org)) and provides automated
 dependency installation (using [Vagrant](https://www.vagrantup.com/) provisioning).
 
 If you plan on using Gazebo (3D environment simulation/visualization) for your agent's environment, option 1 is 
