@@ -21,8 +21,8 @@ dependencies.
 environment.  This option will work for non-supported OSes (using [VirtualBox](http://www.virtualbox.org)) and provides 
 automated dependency installation (using [Vagrant](https://www.vagrantup.com/) provisioning).
 
-If you plan on using Gazebo (3D environment simulation/visualization) for your agent's environment, option 1 is 
-highly encouraged (as option 2 can result in unacceptably slow performance).
+If you plan on using [Gazebo](http://gazebosim.org)  (3D environment simulation/visualization) for your agent's 
+environment, option 1 is highly encouraged (as option 2 can result in unacceptably slow performance).
 
 ### Option 1 - Setup for Supported Ubuntu OS 
 
