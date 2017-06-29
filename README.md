@@ -18,8 +18,8 @@ Two setup options are provided below for installing the lidapy-framework and the
 **Option 1** requires a supported version of the Ubuntu OS, and requires manual installation of the lidapy-framework
 dependencies.  
 **Option 2** uses the [common-ccrgdev](https://github.com/CognitiveComputingResearchGroup/common-ccrgdev) development
-environment, and will work for non-supported OSes (using [VirtualBox](http://www.virtualbox.org)) and provides automated
-dependency installation (using [Vagrant](https://www.vagrantup.com/) provisioning).
+environment.  This option will work for non-supported OSes (using [VirtualBox](http://www.virtualbox.org)) and provides 
+automated dependency installation (using [Vagrant](https://www.vagrantup.com/) provisioning).
 
 If you plan on using Gazebo (3D environment simulation/visualization) for your agent's environment, option 1 is 
 highly encouraged (as option 2 can result in unacceptably slow performance).
