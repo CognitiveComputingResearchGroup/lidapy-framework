@@ -49,11 +49,11 @@ file or to clone into a directory where you want lidapy-framework to live run th
 git clone https://github.com/CognitiveComputingResearchGroup/lidapy-framework.git
 ~~~
   
-#### Setup a ROS workspace for lidapy-framework
+#### Create a ROS workspace for lidapy-framework
 We provide a script that will setup the lidapy workspace for you and configure the environment variables as needed. Run 
 this script by executing the following command from lidapy-framework directory
     
-Usage ./scripts/setup.sh [full-path-of-workspace-directory]
+Usage ./scripts/create_workspace.sh [full-path-of-workspace-directory]
     
 Example:
 ~~~  
