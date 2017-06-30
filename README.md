@@ -58,16 +58,16 @@ get this by going the [common-ccrgdev](https://github.com/CognitiveComputingRese
 A script is provided that will create and configure a ROS workspace for developing lidapy-framework agents. 
 Run this script by executing the following command from the lidapy-framework directory
     
-Usage ./scripts/setup.sh [full-path-of-workspace-directory]
+Usage ./scripts/create_workspace.sh [full-path-of-workspace-directory]
     
 Example:
 ~~~  
-./scripts/setup.sh /home/user/lidapy-workspace
+./scripts/create_workspace.sh /home/user/lidapy-workspace
 ~~~
 
-When running the script the first time, you will have to run ```source ~/.lidapy/setup.bash```. The setup.sh script will 
-automatically update your bash environment configuration file (i.e, .bashrc) to execute setup.bash for all subsequent 
-bash sessions.
+After executing ```create_workspace.sh```, you must run ```source ~/.lidapy/setup.bash```  in order to update the 
+ROS environment variables in your current bash session.  For all subsequent bash sessions, ```source ~/.lidapy/setup.bash```
+will be executed automatically.
 
 ## Run an agent
 
