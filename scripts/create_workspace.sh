@@ -11,7 +11,6 @@ display_usage()
     echo -e "Options:"
     echo -e "     -h     displays this help message"
     echo -e "     -n     non-interactive mode"
-    echo -e "     -v     verbose output"
 
 }
 
@@ -34,9 +33,41 @@ display_yn_prompt()
     done
 }
 
+cleanup_and_exit()
+{
+    echo "Aborting!  Attempting to cleanup work in progress."
+
+    if [[ -e "$workspace_dir" ]]; then
+
+        display_yn_prompt "Remove directory $workspace_dir?" 
+        if [[ $choice != "N" ]]; then
+            rm -rfv "$workspace_dir"
+        fi
+
+    fi
+
+    if [[ -e "$HOME/.lidapy" ]]; then
+
+        display_yn_prompt "Remove directory $HOME/.lidapy?" 
+        if [[ $choice != "N" ]]; then
+            rm -rfv "$HOME/.lidapy" 
+        fi
+
+    fi
+
+    echo "Done!"
+
+    exit 1
+}
+
+
+
 # Options variables
-verbose=0
 interactive=1
+errors=0
+
+# Handle control-c and cleanup
+trap cleanup_and_exit 2
 
 # Process command line arguments
 OPTIND=1 # Reset getopts
@@ -48,9 +79,6 @@ while getopts "hnv" opt; do
         ;;
     n) 
         interactive=0
-        ;;
-    v) 
-        verbose=1
         ;;
     esac
 done
@@ -81,8 +109,10 @@ if [[ -e $workspace_dir ]]; then
 fi
 
 # Attempt to auto-detect the location of the lidapy-framework
-lidapy_framework_dir=$(find $HOME -type d -name lidapy-framework 2>/dev/null)
-while [[ -z $lidapy_framework_dir ]]; do
+echo "Searching for lidapy-framework directory."
+
+lidapy_framework_dir=$(find $HOME -type d -name lidapy-framework -print -quit 2>/dev/null)
+while [[ -z "$lidapy_framework_dir" ]]; do
 
     # Unable to locate the lidapy-framework; if interactive mode then prompt user for location
     # else abort with error
@@ -95,46 +125,59 @@ while [[ -z $lidapy_framework_dir ]]; do
     read lidapy_framework_dir
 done
 
-display_yn_prompt "LidaPy Framework = $lidapy_framework_dir" 
+display_yn_prompt "lidapy-framework = $lidapy_framework_dir" 
 if [[ $choice == "N" ]]; then
     echo "Aborting."
     exit 1
 fi
 
-if [[ ! -d $lidapy_framework_dir ]]; then
-    echo "Aborting. LidaPy Framework directory does not exist or is unreadable!"
+echo "Attempting to use $lidapy_framework_dir for lidapy-framework directory."
+
+if [[ ! -d "$lidapy_framework_dir" ]]; then
+    echo "Aborting. lidapy-framework directory does not exist or is unreadable!"
     exit 1
 fi
 
 mkdir -vp $workspace_dir/src
-cp -R $lidapy_framework_dir/ros/lidapy_rosdeps $workspace_dir/src
-cp -R $lidapy_framework_dir/examples/* $workspace_dir/src
 
-cd $workspace_dir
+cp -vR $lidapy_framework_dir/ros/lidapy_rosdeps $workspace_dir/src
+cp -vR $lidapy_framework_dir/examples/* $workspace_dir/src
+
+cd "$workspace_dir"
 
 display_yn_prompt "Would you like to build the examples workspace?"
-if [[ $choice == "Y" || $interactive -eq 0 ]]; then
+if [[ $choice != "N" ]]; then
     catkin_make
-fi
-
-mkdir $HOME/.lidapy
-
-if [[ -e "$HOME/.lidapy/setup.bash" ]]; then
-    display_yn_prompt "A lidapy-framework configuration file already exists.  Override?"
-    if [[ $choice == "Y" || $interactive -eq 0 ]]; then
-        rm -v "$HOME/.lidapy/setup.bash"
+    if [[ $? -ne 0 ]]; then
+	cleanup_and_exit
     fi
 fi
 
-echo -e "\nsource $workspace_dir/devel/setup.bash" >> $HOME/.lidapy/setup.bash
-echo -e "\nexport PYTHONPATH=\$PYTHONPATH:$lidapy_framework_dir/src" >> $HOME/.lidapy/setup.bash
-
 display_yn_prompt "Update BASH configuration for lidapy-framework?"
-if [[ $choice == "Y" || $interactive -eq 0 ]]; then
+if [[ $choice != "N" ]]; then
+    mkdir -v $HOME/.lidapy
+    if [[ $? -ne 0 ]]; then
+	cleanup_and_exit
+    fi
+
+    if [[ -e "$HOME/.lidapy/setup.bash" ]]; then
+	display_yn_prompt "A lidapy-framework configuration file already exists.  Override?"
+	if [[ $choice != "N" ]]; then
+	    echo "Removing existing lidapy-framework configuration file $HOME/.lidapy/setup.bash"
+	    rm -v "$HOME/.lidapy/setup.bash"
+	    if [[ $? -ne 0 ]]; then
+		cleanup_and_exit
+	    fi
+	fi
+    fi
+
+    echo -e "\nsource $workspace_dir/devel/setup.bash" >> "$HOME/.lidapy/setup.bash"
+    echo -e "\nexport PYTHONPATH=\$PYTHONPATH:$lidapy_framework_dir/src" >> "$HOME/.lidapy/setup.bash"
+
     echo "Adding \"source \$HOME/.lidapy/setup.bash\" to .bashrc."
-    echo -e "\nsource \$HOME/.lidapy/setup.bash" >> $HOME/.bashrc
+    echo -e "\nsource \$HOME/.lidapy/setup.bash" >> "$HOME/.bashrc"
 fi
 
-echo "Execute \"source \$HOME/.lidapy/setup.bash\" to update environment for lidapy framework."
+echo "SUCCESS!  A lidapy-framework workspace ($workspace_dir) has been created."
 
 exit 0
