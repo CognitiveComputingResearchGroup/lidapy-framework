@@ -26,7 +26,6 @@ environment, option 1 is highly encouraged (as option 2 can result in unacceptab
 
 ### Option 1 - Setup for Supported Ubuntu OS 
 
-
 #### ROS (Jade)
 Follow the [Ros Jade Installation Instructions](http://wiki.ros.org/jade/Installation/Ubuntu)
 
@@ -51,19 +50,16 @@ git clone https://github.com/CognitiveComputingResearchGroup/lidapy-framework.gi
   
 ### Option 2 - Setting up a virtual machine
 
-If you do not want to go through all these steps you may want to using our common CCRG Develpoment environment. You can 
+If you do not want to go through all these steps you may want to using our common CCRG Development environment. You can 
 get this by going the [common-ccrgdev](https://github.com/CognitiveComputingResearchGroup/common-ccrgdev) repository.
 
 ## Create a ROS workspace for lidapy-framework
-A script is provided that will create and configure a ROS workspace for developing lidapy-framework agents. 
-Run this script by executing the following command from the lidapy-framework directory
+A script is provided in the lidapy-framework ```scripts``` directory that will create and 
+configure a ROS workspace for developing lidapy-framework agents.
     
-Usage ./scripts/create_workspace.sh [full-path-of-workspace-directory]
-    
-Example:
-~~~  
-./scripts/create_workspace.sh /home/user/lidapy-workspace
-~~~
+**Usage:** ```./create_workspace.sh <full-path-of-workspace-directory> ```
+   
+**Example:** ```./create_workspace.sh /home/user/lidapy-workspace ```
 
 After executing ```create_workspace.sh```, you must run ```source ~/.lidapy/setup.bash```  in order to update the 
 ROS environment variables in your current bash session.  For all subsequent bash sessions, ```source ~/.lidapy/setup.bash```
