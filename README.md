@@ -29,16 +29,6 @@ environment, option 1 is highly encouraged (as option 2 can result in unacceptab
 #### ROS (Jade)
 Follow the [Ros Jade Installation Instructions](http://wiki.ros.org/jade/Installation/Ubuntu)
 
-#### Gazebo (Gazebo5)
-While Gazebo is not required, several of the lidapy-framework examples depend on gazebo5.
-
-Once ROS has been installed, Gazebo can be installed using the following commands:
-
-~~~
-sudo apt-get install gazebo5
-sudo apt-get install ros-jade-gazebo-ros-pkgs
-~~~
-
 #### Get lidapy-framework
 To setup lidapy you need to download or clone this repository. To download click 
 [here](https://github.com/CognitiveComputingResearchGroup/lidapy-framework/archive/master.zip) and unzip the downloaded 
