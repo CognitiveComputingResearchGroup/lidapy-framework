@@ -141,16 +141,21 @@ fi
 mkdir -vp $workspace_dir/src
 
 cp -vR $lidapy_framework_dir/ros/lidapy_rosdeps $workspace_dir/src
-cp -vR $lidapy_framework_dir/examples/* $workspace_dir/src
 
 cd "$workspace_dir"
 
-display_yn_prompt "Would you like to build the examples workspace?"
+display_yn_prompt "Would you like add the lidapy-framework examples to the workspace?"
 if [[ $choice != "N" ]]; then
-    catkin_make
+    cp -vR $lidapy_framework_dir/examples/* $workspace_dir/src
     if [[ $? -ne 0 ]]; then
 	cleanup_and_exit
     fi
+fi
+
+echo "Initializing workspace and building packages"
+catkin_make
+if [[ $? -ne 0 ]]; then
+    cleanup_and_exit
 fi
 
 display_yn_prompt "Update BASH configuration for lidapy-framework?"
