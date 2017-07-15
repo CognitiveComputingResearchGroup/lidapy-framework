@@ -1,0 +1,22 @@
+<launch>
+
+    <arg name="urdf" default="$(find wanderbot)/robots/freight.urdf"/>
+    <arg name="model" default="freight"/>
+    <arg name="x-pos" default="-20.9133"/>
+    <arg name="y-pos" default="8.17326"/>
+
+    <!-- Load the urdf model into the parameter server -->
+    <param name="robot_description" textfile="$(arg urdf)" />
+
+    <!-- Start Gazebo with empty world -->
+    <include file="$(find wanderbot)/gazebo/lida_maze.launch">
+	<arg name="paused" default="true"/>
+	<arg name="world_name" default="$(find wanderbot)/gazebo/worlds/lida_maze.xml"/>
+    </include>
+
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher"/>
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
+
+    <!-- Spawn a fetch model in Gazebo, taking the description from the parameter server -->
+    <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-param robot_description -urdf -x $(arg x-pos) -y $(arg y-pos) -model $(arg model)" /> 
+</launch>

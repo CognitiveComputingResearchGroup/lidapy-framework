@@ -11,6 +11,9 @@ A Python-based LIDA framework using [ROS](http://wiki.ros.org/ROS/Tutorials).
 * Utopic (14.10)
 * Vivid (15.04)
 
+Python specific dependencies are documented and managed using the `requirements.txt` file, which is located in
+the top-level project directory.  These dependencies can be installed using the command `pip install -r requirements.txt`.
+
 ## Setup Options
  
 Two setup options are provided below for installing the lidapy-framework and the necessary dependencies.  
@@ -37,7 +40,15 @@ file or to clone into a directory where you want lidapy-framework to live run th
 ~~~
 git clone https://github.com/CognitiveComputingResearchGroup/lidapy-framework.git
 ~~~
-  
+
+#### Install lidapy-framework Python dependencies
+
+~~~
+cd lidapy-framework
+pip install -r requirements.txt
+~~~
+
+
 ### Option 2 - Setting up a virtual machine
 
 If you do not want to go through all these steps you may want to using our common CCRG Development environment. You can 
