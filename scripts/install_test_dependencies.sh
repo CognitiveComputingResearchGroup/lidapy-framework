@@ -6,3 +6,10 @@ sudo apt-get install ros-jade-ros-base
 sudo rosdep init
 rosdep -y update
 sudo apt-get install ros-jade-gazebo-ros-pkgs
+
+LIDAPY_FRAMEWORK=$(find $HOME -type d -name lidapy-framework 2>/dev/null)
+
+# Assumes script is being run from the scripts directory
+if [ -e "$LIDAPY_FRAMEWORK/requirements.txt" ]; then
+    pip install -r "$LIDAPY_FRAMEWORK/requirements.txt"
+fi
