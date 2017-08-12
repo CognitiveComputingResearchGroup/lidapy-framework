@@ -24,7 +24,7 @@ automated dependency installation (using [Vagrant](https://www.vagrantup.com/) p
 If you plan on using [Gazebo](http://gazebosim.org)  (3D environment simulation/visualization) for your agent's 
 environment, option 1 is highly encouraged (as option 2 can result in unacceptably slow performance).
 
-### Option 1 - Setup for Supported Ubuntu OS 
+### Option 1 - Setup for Supported Ubuntu Operating System
 
 #### ROS (Jade)
 Follow the [Ros Jade Installation Instructions](http://wiki.ros.org/jade/Installation/Ubuntu)
